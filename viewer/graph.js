@@ -48,6 +48,49 @@ let loaded = { url: null, mtime: 0, question: null };
 let pollTimer = null;
 let jobTimer = null;
 
+/* ---------- language ----------
+   The set's content arrives in whatever language the question was asked in.
+   The viewer's own chrome follows: CJK in the working question flips it to
+   Chinese. Field names, ids and enums stay ASCII per the schema. */
+
+const ZH = {
+  'Click a question to see its readings and how to work it.': '点击一个问题，查看它的阅读材料和使用方法。',
+  'Nothing loaded yet. Ask a question, and the graph will appear here.': '还没有加载任何内容。提出一个问题，图谱就会出现在这里。',
+  'Nobody has looked this set over yet.': '这套问题还没有人审阅过。',
+  'Working question · sharpened by triage': '工作问题 · 已经审题磨锋利',
+  'Asked as:': '原本的问法：',
+  'Readings, ranked': '阅读材料（按相关度排序）',
+  'Check first:': '读前先查：',
+  'Read for:': '读什么：',
+  'Used by:': '被引用于：',
+  'Free route:': '免费途径：',
+  'How we checked:': '我们如何核实：',
+  'What makes it hard:': '难在哪里：',
+  'Find it:': '如何找到：',
+  'Unconfirmed:': '未确认：',
+  'Reading': '阅读材料',
+  'no reading': '无需阅读',
+  'Thinking-only card.': '纯思考卡——不需要阅读。',
+  'One reading because:': '只配一份阅读材料，因为：',
+  'core group': '核心组',
+  'supporting group': '支撑组',
+  'context group': '外围组',
+  'Expand into nine more': '展开成更多问题',
+  'Copy expansion prompt': '复制展开指令',
+  'Copied — paste into Claude Code': '已复制——粘贴进 Claude Code',
+  'expansion': '次展开',
+  'Meaning': '含义', 'Landscape': '全景', 'Mechanism': '机制', 'Tension': '张力',
+  'Evidence': '证据', 'Scope': '边界', 'Stake': '意义'
+};
+
+function isZh() {
+  return DATA && /[一-鿿]/.test(((DATA.meta || {}).working_question) || '');
+}
+
+function T(s) {
+  return (isZh() && ZH[s]) || s;
+}
+
 /* ---------- small helpers ---------- */
 
 function esc(s) {
@@ -427,12 +470,12 @@ function renderMeta() {
   if (m.generated_at) bits.push(`<span class="pill">${esc(m.generated_at)}</span>`);
   if (m.mode) bits.push(`<span class="pill">${esc(m.mode)}</span>`);
   const nExp = (m.expansions || []).length;
-  if (nExp) bits.push(`<span class="pill">${nExp} expansion${nExp > 1 ? 's' : ''}</span>`);
+  if (nExp) bits.push(`<span class="pill">${nExp} ${isZh() ? T('expansion') : 'expansion' + (nExp > 1 ? 's' : '')}</span>`);
 
   el.meta.innerHTML =
     `<h1>${esc(m.working_question || '(no working question)')}</h1>` +
     `<p>${bits.join(' ')}</p>` +
-    (draft ? '<p class="muted" style="margin-top:8px">Nobody has looked this set over yet.</p>' : '');
+    (draft ? `<p class="muted" style="margin-top:8px">${T('Nobody has looked this set over yet.')}</p>` : '');
 }
 
 /* ---------- graph ---------- */
@@ -611,8 +654,8 @@ function reselect(id) {
 function resetPanel() {
   selectedId = null;
   el.panel.innerHTML = DATA
-    ? '<p class="muted">Click a question to see its readings and how to work it.</p>'
-    : '<p class="muted">Nothing loaded yet. Ask a question, and the graph will appear here.</p>';
+    ? `<p class="muted">${T('Click a question to see its readings and how to work it.')}</p>`
+    : `<p class="muted">${T('Nothing loaded yet. Ask a question, and the graph will appear here.')}</p>`;
 }
 
 function sourceLine(sid, role) {
@@ -624,16 +667,16 @@ function sourceLine(sid, role) {
     .filter(Boolean).join(' · ');
   let out = `<p><span class="role ${esc(role)}">${esc(role)}</span>${body} <span class="muted">(${esc(tier)})</span></p>`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
-    out += `<p class="flag"><strong>Unconfirmed:</strong> ${esc(s.unconfirmed_detail)}</p>`;
+    out += `<p class="flag"><strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
   }
   if (s.access_tier === 'T4' && s.paired_with) {
-    out += `<p class="muted">Free route: ${esc(s.paired_with)}</p>`;
+    out += `<p class="muted">${T('Free route:')} ${esc(s.paired_with)}</p>`;
   }
   return out;
 }
 
 function expandButton(node, label) {
-  const verb = HELPER && HELPER.cli ? 'Expand into nine more' : 'Copy expansion prompt';
+  const verb = HELPER && HELPER.cli ? T('Expand into nine more') : T('Copy expansion prompt');
   return `<button class="btn" id="expand" data-node="${esc(node)}" data-q="${esc(label)}"
     style="margin-top:6px">${verb}</button><span id="expandnote" class="muted"></span>`;
 }
@@ -673,8 +716,8 @@ function wireExpand() {
     }
 
     await handoffInPanel(prompt);
-    b.textContent = (await copy(prompt)) ? 'Copied — paste into Claude Code' : 'Select the prompt below';
-    setTimeout(() => { b.textContent = 'Copy expansion prompt'; }, 4000);
+    b.textContent = (await copy(prompt)) ? T('Copied — paste into Claude Code') : 'Select the prompt below';
+    setTimeout(() => { b.textContent = T('Copy expansion prompt'); }, 4000);
   });
 }
 
@@ -690,10 +733,10 @@ async function handoffInPanel(prompt) {
 function showRoot() {
   const m = DATA.meta || {};
   el.panel.innerHTML =
-    `<h2>Working question · sharpened by triage</h2>` +
+    `<h2>${T('Working question · sharpened by triage')}</h2>` +
     `<p class="q">${esc(m.working_question || '')}</p>` +
     (m.original_question
-      ? `<div class="sec"><p><span class="lbl">Asked as:</span> ${esc(m.original_question)}</p>` +
+      ? `<div class="sec"><p><span class="lbl">${T('Asked as:')}</span> ${esc(m.original_question)}</p>` +
         (m.triage_summary ? `<p>${esc(m.triage_summary)}</p>` : '') + `</div>`
       : '') +
     expandButton('root', m.working_question || '');
@@ -701,22 +744,22 @@ function showRoot() {
 }
 
 function showQuestion(q) {
-  const groupName = { core: 'core group', supporting: 'supporting group', context: 'context group' }[q.relevance_group] || q.relevance_group;
-  const typeName = q.type ? `${q.type.name}${q.type.move ? ' · ' + q.type.move : ''}` : '';
+  const groupName = T({ core: 'core group', supporting: 'supporting group', context: 'context group' }[q.relevance_group] || q.relevance_group);
+  const typeName = q.type ? `${T(q.type.name)}${q.type.move ? ' · ' + q.type.move : ''}` : '';
   let h = `<h2>${esc(q.id)} · ${esc(groupName)}${typeName ? ' · ' + esc(typeName) : ''}</h2>`;
   h += `<p class="q">${esc(q.question)}</p>`;
   h += `<div class="sec">`;
   if (q.readings && q.readings.length) {
-    h += `<p class="lbl">Readings, ranked</p>`;
+    h += `<p class="lbl">${T('Readings, ranked')}</p>`;
     q.readings.forEach(r => { h += sourceLine(r.source, r.role); });
   } else {
-    h += `<p><span class="role background">no reading</span>${esc(q.single_reading_reason || 'Thinking-only card.')}</p>`;
+    h += `<p><span class="role background">${T('no reading')}</span>${esc(q.single_reading_reason || T('Thinking-only card.'))}</p>`;
   }
   if (q.readings && q.readings.length === 1 && q.single_reading_reason) {
-    h += `<p class="muted">One reading because: ${esc(q.single_reading_reason)}</p>`;
+    h += `<p class="muted">${T('One reading because:')} ${esc(q.single_reading_reason)}</p>`;
   }
-  h += `<p style="margin-top:9px"><span class="lbl">Check first:</span> ${esc(q.check_first)}</p>`;
-  h += `<p><span class="lbl">Read for:</span> ${esc(q.read_for)}</p>`;
+  h += `<p style="margin-top:9px"><span class="lbl">${T('Check first:')}</span> ${esc(q.check_first)}</p>`;
+  h += `<p><span class="lbl">${T('Read for:')}</span> ${esc(q.read_for)}</p>`;
   h += `<p>${esc(q.level)}</p>`;
   h += `</div>`;
   h += expandButton(q.id, q.question);
@@ -729,19 +772,19 @@ function showSource(sid) {
   const users = DATA.questions
     .filter(q => (q.readings || []).some(r => r.source === sid))
     .map(q => `${q.id} (${q.readings.find(r => r.source === sid).role})`);
-  let h = `<h2>Reading · ${esc([s.access_tier, s.verified].filter(Boolean).join(' · '))}</h2>`;
+  let h = `<h2>${T('Reading')} · ${esc([s.access_tier, s.verified].filter(Boolean).join(' · '))}</h2>`;
   h += `<p class="q">${s.url
     ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.citation)}</a>`
     : esc(s.citation)}</p>`;
   h += `<div class="sec">`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
-    h += `<p class="flag"><strong>Unconfirmed:</strong> ${esc(s.unconfirmed_detail)}</p>`;
+    h += `<p class="flag"><strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
   }
-  if (!s.url && s.reachable_at) h += `<p><span class="lbl">Find it:</span> ${esc(s.reachable_at)}</p>`;
-  if (s.paired_with) h += `<p><span class="lbl">Free route:</span> ${esc(s.paired_with)}</p>`;
-  if (s.verified_how) h += `<p><span class="lbl">How we checked:</span> ${esc(s.verified_how)}</p>`;
-  if (s.complexity) h += `<p><span class="lbl">What makes it hard:</span> ${esc(s.complexity)}</p>`;
-  h += `<p><span class="lbl">Used by:</span> ${esc(users.join(', ') || 'nothing')}</p>`;
+  if (!s.url && s.reachable_at) h += `<p><span class="lbl">${T('Find it:')}</span> ${esc(s.reachable_at)}</p>`;
+  if (s.paired_with) h += `<p><span class="lbl">${T('Free route:')}</span> ${esc(s.paired_with)}</p>`;
+  if (s.verified_how) h += `<p><span class="lbl">${T('How we checked:')}</span> ${esc(s.verified_how)}</p>`;
+  if (s.complexity) h += `<p><span class="lbl">${T('What makes it hard:')}</span> ${esc(s.complexity)}</p>`;
+  h += `<p><span class="lbl">${T('Used by:')}</span> ${esc(users.join(', ') || 'nothing')}</p>`;
   h += `</div>`;
   el.panel.innerHTML = h;
 }

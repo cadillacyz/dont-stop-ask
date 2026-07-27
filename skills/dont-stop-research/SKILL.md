@@ -219,6 +219,17 @@ Also read, from the repository root:
   source_literacy:   method quality, sample, funding, primary vs. secondary
   initiative:        the researcher proposes, the skill pushes back
   mode:              {{mode — solo (default) or guided}}
+  language:          MATCH THE QUESTION. If the question is asked in Chinese, the cards,
+                     triage record, teach-back block, and briefing are written in Chinese;
+                     same for any other language. Structure stays ASCII regardless: field
+                     names, ids (Q1, S1, TB1), enum values (core, easy, confirmed…), and
+                     the filename slug (romanize the topic — pinyin for Chinese). Sources
+                     may be in the question's language, English, or both — verified by
+                     search exactly the same way, and when a reading's language differs
+                     from the card's, say so in `level` (reading an English paper is a
+                     named difficulty like any other). Do not force sources into the
+                     question's language: on many topics the strongest literature is in
+                     English, and SAYING that is more useful than hiding it.
 ────────────────────────────────────────────────────────────────────────
 
 INPUTS

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/USER/dont-stop-ask/schema/question-set.schema.json",
+  "$id": "https://github.com/cadillacyz/dont-stop-ask/schema/question-set.schema.json",
   "title": "dont-stop-ask question set",
   "description": "A spoiler-free question graph emitted by the dont-stop-research skill. Contains visibility:both fields only — the spoiler fields (why_this, they_might_say, teach-back signatures and follow-ups) MUST NOT appear in a document conforming to this schema, because this is the surface the researcher works from.",
   "type": "object",

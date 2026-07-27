@@ -52,6 +52,11 @@ It runs two ways:
 Difficulty and reading level are calibrated from what you say you already know, not from an assumed
 age or education level.
 
+**Ask in any language.** A question asked in Chinese comes back as a Chinese question set — cards,
+briefing, teach-back — and the viewer's interface follows. Sources stay in whatever language the
+strongest literature is in (often English), and when a reading's language differs from yours, the
+card says so and treats it as a named difficulty rather than hiding it.
+
 ## The five rules
 
 Every question set is generated under these, and they override everything else:
@@ -100,7 +105,7 @@ You need [Claude Code](https://claude.com/claude-code), plus Python 3 if you wan
 local preview.
 
 ```bash
-git clone https://github.com/USER/dont-stop-ask.git
+git clone https://github.com/cadillacyz/dont-stop-ask.git
 ```
 
 Then make the skill available to Claude Code:

@@ -43,6 +43,10 @@
 
 难度和阅读水平是根据你自述的已有知识来校准的，而不是根据假定的年龄或学历。
 
+**用任何语言提问都可以。** 用中文提问，返回的就是中文的问题集——卡片、简报、复述问题都是中文，查看器的
+界面也会跟着切换。阅读材料保持在该题目最强文献所用的语言里（往往是英文）；当材料语言和你的语言不一致时，
+卡片会明说，并把「读英文文献」当作一项被点名的难度来对待，而不是装作它不存在。
+
 ## 五条铁律
 
 每一套问题都在这些规则下生成，它们高于其他一切指令：
@@ -88,7 +92,7 @@
 需要 [Claude Code](https://claude.com/claude-code)；如果想用校验脚本或本地预览，还需要 Python 3。
 
 ```bash
-git clone https://github.com/USER/dont-stop-ask.git
+git clone https://github.com/cadillacyz/dont-stop-ask.git
 ```
 
 然后把技能装进 Claude Code：
