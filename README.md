@@ -31,62 +31,81 @@ Every set is generated under these; they override everything else.
 | 4 | **No leading questions** — two careful people must be able to disagree defensibly · **不用引导性问题**——两个审慎的人必须能得出不同却都站得住的答案 |
 | 5 | **No disguised recall** — every question requires judgment, not lookup · **不做伪装的记忆题**——每个问题都要求判断，而非检索 |
 
-## Use it in Claude Code · 在 Claude Code 中使用
+## Works with any AI tool · 任何 AI 工具都能用
+
+No Claude account, no proprietary skills system, no special cloud access. The whole tool is one
+instruction file — [`portable/dont-stop-research.md`](portable/dont-stop-research.md) — and the
+only hard requirement is that your AI can **search the web**, because every citation gets verified
+before it ships.
+
+不需要 Claude 账号，不依赖任何专有技能系统，也不需要特殊云端权限。整个工具就是一个指令文件——
+[`portable/dont-stop-research.md`](portable/dont-stop-research.md)——唯一的硬性要求是你的 AI
+能**联网搜索**，因为每条引用出场前都要核实。
+
+**In a coding agent — Codex, Cursor, Claude Code, Gemini CLI, anything that reads a repo ·
+在编程代理中：**
 
 ```bash
 git clone https://github.com/cadillacyz/dont-stop-ask.git
-cp -r dont-stop-ask/skills/dont-stop-research ~/.claude/skills/
 ```
 
-Windows PowerShell: `Copy-Item -Recurse dont-stop-ask\skills\dont-stop-research $HOME\.claude\skills\`
+Open the folder in your agent and just ask your question. The repo carries entry-point files the
+agents read on their own — [`AGENTS.md`](AGENTS.md), [`CLAUDE.md`](CLAUDE.md),
+[`GEMINI.md`](GEMINI.md) — which tell them to run the portable prompt, verify sources by search,
+and write the JSON into `question-sets/` where the viewer finds it.
 
-Then start the companion server and open the viewer · 然后启动陪伴服务器，打开查看器：
+克隆后用你的代理打开这个文件夹，直接提问即可。仓库自带代理会自动读取的入口文件（`AGENTS.md`、
+`CLAUDE.md`、`GEMINI.md`），它们会引导代理执行提示词、联网核实来源、把 JSON 写进
+`question-sets/`，查看器就能找到。
+
+**In a chat assistant — ChatGPT, Gemini, Claude on the web · 在网页版聊天助手中：**
+
+1. Paste the contents of `portable/dont-stop-research.md` into the chat (**web search on** —
+   verification is non-negotiable), add your question at the bottom, send.
+   把 `portable/dont-stop-research.md` 的内容粘贴进对话（**开启联网搜索**——核实是硬性要求），
+   末尾加上你的问题，发送。
+2. Save the JSON code block it returns as `question-sets/anything.json`.
+   把返回的 JSON 代码块存成 `question-sets/任意名字.json`。
+3. The viewer loads it automatically — or drag the file onto the page.
+   查看器会自动加载——或者直接把文件拖到页面上。
+
+**Optional: the Claude Code slash command · 可选：Claude Code 斜杠命令**
+
+```bash
+cp -r skills/dont-stop-research ~/.claude/skills/
+```
+
+(Windows PowerShell: `Copy-Item -Recurse skills\dont-stop-research $HOME\.claude\skills\`) — adds
+`/dont-stop-research`, which also writes the full markdown artifact and a companion briefing.
+Convenience only; nothing else depends on it. · 增加 `/dont-stop-research` 命令，并额外生成完整的
+markdown 记录和导读简报。纯属便利，其他部分不依赖它。
+
+## The viewer · 查看器
 
 ```bash
 python scripts/serve.py
 ```
 
-Or just double-click `start.bat` on Windows. · Windows 下也可以直接双击 `start.bat`。
+Or double-click `start.bat` on Windows, then open <http://127.0.0.1:8000/viewer/>. It watches
+`question-sets/` — **however the JSON gets written, the graph loads itself**, follows expansions,
+and reloads edits in place. Click a dot for its readings; click expand to grow a question into up
+to nine more (it hands you the prompt for whichever AI you're using).
 
-Open <http://127.0.0.1:8000/viewer/>, type your question, hit **Ask**. If the `claude` CLI is on
-your PATH it generates right there; otherwise it hands you the exact command to paste into Claude
-Code. Either way, **the graph loads itself** the moment the file appears — the server watches
-`question-sets/`, follows expansions, and reloads edits in place.
-
-打开 <http://127.0.0.1:8000/viewer/>，输入问题，按 **Ask**。如果 `claude` 命令行工具在 PATH 里，就地
-生成；否则它把完整命令交给你，粘贴进 Claude Code 即可。无论哪种方式，**文件一出现图谱就会自己加载**——
-服务器盯着 `question-sets/`，自动跟随展开、就地重载修改。
-
-## Use it in ChatGPT or any other assistant · 在 ChatGPT 或其他助手中使用
-
-The whole tool also exists as one self-contained prompt:
-[`portable/dont-stop-research.md`](portable/dont-stop-research.md).
-
-整个工具也被打包成一个独立的提示词文件：[`portable/dont-stop-research.md`](portable/dont-stop-research.md)。
-
-1. Paste the file's contents into ChatGPT (or Gemini, or any assistant **with web search
-   enabled** — verification is non-negotiable), add your question at the bottom, send.
-   把文件内容粘贴进 ChatGPT（或 Gemini，或任何**开启了联网搜索**的助手——核实来源是硬性要求），
-   在末尾加上你的问题，发送。
-2. It returns the question set in chat plus a JSON code block. Save that block as
-   `question-sets/anything.json` in this folder (or anywhere).
-   它会在对话里给出问题集，外加一个 JSON 代码块。把代码块存成 `question-sets/任意名字.json`。
-3. The viewer picks it up automatically if the server is running — or drag the file onto the page.
-   服务器开着的话查看器会自动加载——或者直接把文件拖到页面上。
-
-To expand a question, click its dot in the viewer, copy the expansion prompt, and paste it into the
-same chat. · 想展开某个问题：在查看器里点它的圆点，复制展开指令，粘贴回同一个对话。
+Windows 下也可以直接双击 `start.bat`，然后打开 <http://127.0.0.1:8000/viewer/>。它盯着
+`question-sets/`——**无论 JSON 是怎么写出来的，图谱都会自己加载**，自动跟随展开、就地重载修改。
+点圆点看阅读材料；点展开把一个问题长成最多九个新问题（展开指令适用于你正在用的任何 AI）。
 
 ## What's in here · 仓库结构
 
 | Path | What · 内容 |
 |---|---|
-| `skills/dont-stop-research/` | The Claude Code skill · Claude Code 技能 |
-| `portable/dont-stop-research.md` | The same tool as one pasteable prompt, for any assistant · 同一工具的单文件提示词版，适用于任何助手 |
+| `portable/dont-stop-research.md` | **The tool** — one self-contained prompt for any AI · **工具本体**——适用于任何 AI 的单文件提示词 |
+| `AGENTS.md` · `CLAUDE.md` · `GEMINI.md` | Entry points coding agents read automatically · 编程代理自动读取的入口文件 |
 | `viewer/` | The interactive graph. Static; d3 from a CDN · 交互式图谱，纯静态 |
-| `scripts/serve.py` | Companion server: watches `question-sets/`, runs the skill when a CLI is available. Binds 127.0.0.1 only · 陪伴服务器，只绑定本机 |
+| `scripts/serve.py` | Companion server: watches `question-sets/`. Binds 127.0.0.1 only · 陪伴服务器，只绑定本机 |
 | `scripts/validate.py` | Checks a set against `schema/question-set.schema.json` · 按 schema 校验问题集 |
 | `start.bat` | Double-click launcher for Windows · Windows 双击启动 |
+| `skills/dont-stop-research/` | Optional Claude Code packaging of the same tool · 同一工具的可选 Claude Code 封装 |
 
 ## What it will not do · 它不会做的事
 

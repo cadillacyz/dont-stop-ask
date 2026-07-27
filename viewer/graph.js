@@ -2,7 +2,6 @@
    Renders a question set emitted by the dont-stop-research skill.
    Reads visibility:both fields only; the schema forbids spoiler fields in this file. */
 
-const SKILL = '/dont-stop-research';
 const POLL_MS = 4000;
 
 const COLOR = {
@@ -76,7 +75,7 @@ const ZH = {
   'context group': '外围组',
   'Expand into nine more': '展开成更多问题',
   'Copy expansion prompt': '复制展开指令',
-  'Copied — paste into Claude Code': '已复制——粘贴进 Claude Code',
+  'Copied — paste into your AI tool': '已复制——粘贴进你的 AI 工具',
   'expansion': '次展开',
   'Meaning': '含义', 'Landscape': '全景', 'Mechanism': '机制', 'Tension': '张力',
   'Evidence': '证据', 'Scope': '边界', 'Stake': '意义'
@@ -109,23 +108,29 @@ async function copy(text) {
   catch { return false; }
 }
 
+/* Prompts are tool-agnostic: they route through portable/dont-stop-research.md,
+   which any agent can follow. In Claude Code the repo's CLAUDE.md (or the optional
+   /dont-stop-research skill) picks this up; in Codex/Cursor/Gemini CLI, AGENTS.md does. */
 function askPrompt() {
-  const bits = [`${SKILL} ${el.q.value.trim()}`];
-  if (el.ctx.value.trim()) bits.push(`context: ${el.ctx.value.trim()}`);
-  bits.push(`mode: ${el.mode.value}`);
-  bits.push('output_dir: ./question-sets/');
+  const bits = [
+    `Follow portable/dont-stop-research.md in this repository and run it on this question:`,
+    ``,
+    `${el.q.value.trim()}`
+  ];
+  if (el.ctx.value.trim()) bits.push(``, `context: ${el.ctx.value.trim()}`);
+  bits.push(`mode: ${el.mode.value}`,
+    ``,
+    `Verify every source by web search, then write the JSON to question-sets/ per AGENTS.md.`);
   return bits.join('\n');
 }
 
 function expandPrompt(node, question) {
   const rel = (loaded.url || './question-sets/your-set.json').replace(/^\//, '');
-  return `${SKILL} expand_from: ${rel}#${node}\n\n` +
-    `Expand this node: "${question}"\n` +
+  return `Follow the Expansion section of portable/dont-stop-research.md in this repository.\n\n` +
+    `Expand node ${node} of ${rel}: "${question}"\n\n` +
     `Generate up to nine verified follow-up questions (fewer if any would be padding), each with ` +
-    `one to three ranked readings, grouped by relevance to this node's question. Append the ` +
-    `cluster to the existing artifact and write a new JSON containing the union of old and new ` +
-    `nodes, per STAGE 4 of the skill.\n` +
-    `output_dir: ./question-sets/`;
+    `one to three ranked readings, grouped by relevance to this node's question. Write a new JSON ` +
+    `to the same file containing the union of the old and new nodes.`;
 }
 
 /* ---------- loading ---------- */
@@ -365,8 +370,8 @@ async function handoff(prompt, lead) {
   el.progress.hidden = true;
   el.go.disabled = false;
   document.querySelector('.handoff-lead').textContent = ok
-    ? (lead || "Paste this into Claude Code — it's on your clipboard already.")
-    : 'Copy this into Claude Code (clipboard was blocked, so select it manually).';
+    ? (lead || "Paste this into your AI tool — it's on your clipboard already.")
+    : 'Copy this into your AI tool (clipboard was blocked, so select it manually).';
   el.handoffCmd.textContent = prompt;
   el.watching.textContent = HELPER
     ? `Watching ${HELPER.sets_dir}.`
@@ -706,7 +711,7 @@ function wireExpand() {
     }
 
     await handoffInPanel(prompt);
-    b.textContent = (await copy(prompt)) ? T('Copied — paste into Claude Code') : 'Select the prompt below';
+    b.textContent = (await copy(prompt)) ? T('Copied — paste into your AI tool') : 'Select the prompt below';
     setTimeout(() => { b.textContent = T('Copy expansion prompt'); }, 4000);
   });
 }
@@ -716,7 +721,7 @@ async function handoffInPanel(prompt) {
   if (document.getElementById('panelprompt')) return;
   el.panel.insertAdjacentHTML('beforeend',
     `<pre id="panelprompt" class="handoff-cmd" style="margin-top:10px">${esc(prompt)}</pre>` +
-    `<p class="muted" style="font-size:12px">Paste into Claude Code. The graph reloads itself ` +
+    `<p class="muted" style="font-size:12px">Paste into whichever AI you use. The graph reloads itself ` +
     `when the new file lands.</p>`);
 }
 

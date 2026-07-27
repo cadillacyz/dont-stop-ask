@@ -37,7 +37,6 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SETS_DIR = ROOT / "question-sets"
 SCAN = [("question-sets", SETS_DIR)]
 PORT = int(os.environ.get("DSA_PORT", "8000"))
-SKILL = "/dont-stop-research"
 
 # Overridable so a broken default flag never blocks anyone:
 #   set DSA_CLAUDE_CMD to a JSON list, using {prompt} where the prompt goes.
@@ -94,24 +93,26 @@ def list_sets():
 
 
 def build_prompt(question, context, mode):
-    bits = [f"{SKILL} {question.strip()}"]
+    # Tool-agnostic: routes through portable/dont-stop-research.md, which any
+    # agent can follow (AGENTS.md / CLAUDE.md pick it up in a repo context).
+    bits = ["Follow portable/dont-stop-research.md in this repository and run it on this question:",
+            "", question.strip()]
     if context and context.strip():
-        bits.append(f"context: {context.strip()}")
-    bits.append(f"mode: {mode if mode in ('solo', 'guided') else 'solo'}")
-    bits.append(f"output_dir: {SETS_DIR.as_posix()}")
+        bits += ["", f"context: {context.strip()}"]
+    bits += [f"mode: {mode if mode in ('solo', 'guided') else 'solo'}", "",
+             f"Verify every source by web search, then write the JSON to {SETS_DIR.as_posix()}/ "
+             "per AGENTS.md."]
     return "\n".join(bits)
 
 
 def build_expand_prompt(set_url, node, question):
     rel = set_url.lstrip("/")
     return (
-        f"{SKILL} expand_from: {rel}#{node}\n\n"
-        f'Expand this node: "{question}"\n'
+        "Follow the Expansion section of portable/dont-stop-research.md in this repository.\n\n"
+        f'Expand node {node} of {rel}: "{question}"\n\n'
         "Generate up to nine verified follow-up questions (fewer if any would be padding), each "
-        "with one to three ranked readings, grouped by relevance to this node's question. Append "
-        "the cluster to the existing artifact and write a new JSON containing the union of old and "
-        "new nodes, per STAGE 4 of the skill.\n"
-        f"output_dir: {SETS_DIR.as_posix()}"
+        "with one to three ranked readings, grouped by relevance to this node's question. Write a "
+        "new JSON to the same file containing the union of the old and new nodes."
     )
 
 
@@ -207,7 +208,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "sets_dir": SETS_DIR.as_posix(),
                 "cli": bool(cli),
                 "cli_path": cli,
-                "skill": SKILL,
+                "tool": "portable/dont-stop-research.md",
                 "sets": list_sets(),
             })
         if route == "/api/sets":
