@@ -67,6 +67,7 @@ const ZH = {
   'Find it:': '如何找到：',
   'Unconfirmed:': '未确认：',
   'Reading': '阅读材料',
+  'Source ID': '来源编号',
   'no reading': '无需阅读',
   'Thinking-only card.': '纯思考卡——不需要阅读。',
   'One reading because:': '只配一份阅读材料，因为：',
@@ -660,7 +661,8 @@ function sourceLine(sid, role) {
   const body = s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${name}</a>` : name;
   const tier = [s.access_tier, s.verified, s.time_estimate ? `${s.time_estimate} min` : null]
     .filter(Boolean).join(' · ');
-  let out = `<p><span class="role ${esc(role)}">${esc(role)}</span>${body} <span class="muted">(${esc(tier)})</span></p>`;
+  let out = `<p><span class="source-id" title="${esc(T('Source ID'))}">${esc(sid)}</span>` +
+    `<span class="role ${esc(role)}">${esc(role)}</span>${body} <span class="muted">(${esc(tier)})</span></p>`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
     out += `<p class="flag"><strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
   }
@@ -767,7 +769,7 @@ function showSource(sid) {
   const users = DATA.questions
     .filter(q => (q.readings || []).some(r => r.source === sid))
     .map(q => `${q.id} (${q.readings.find(r => r.source === sid).role})`);
-  let h = `<h2>${T('Reading')} · ${esc([s.access_tier, s.verified].filter(Boolean).join(' · '))}</h2>`;
+  let h = `<h2>${T('Reading')} ${esc(sid)} · ${esc([s.access_tier, s.verified].filter(Boolean).join(' · '))}</h2>`;
   h += `<p class="q">${s.url
     ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.citation)}</a>`
     : esc(s.citation)}</p>`;

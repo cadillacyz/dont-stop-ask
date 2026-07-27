@@ -283,6 +283,20 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
 .role.supporting { background: #251f2e; color: #c4b0d8; }
 .role.background { background: #1b1e26; color: var(--fg-3); }
 
+.source-id,
+.id-key code {
+  display: inline-block;
+  border: 1px solid rgba(141, 150, 184, 0.45);
+  border-radius: 4px;
+  background: rgba(141, 150, 184, 0.1);
+  color: #c9cee2;
+  font: 600 10.5px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: 0.04em;
+}
+.source-id { margin-right: 6px; padding: 1px 5px; vertical-align: 1px; }
+.id-key { white-space: nowrap; }
+.id-key code { padding: 0 4px; }
+
 .flag {
   border-left: 2px solid var(--warn);
   background: #1e1a11;
