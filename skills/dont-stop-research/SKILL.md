@@ -465,11 +465,6 @@ someone has looked the set over. In solo mode it simply marks a set you have not
 
 ## Example Output
 
-A complete worked example — a nine-card set on US–China tariffs, expanded once into a seven-card
-cluster, with sixteen questions and fourteen verified sources — ships in this repository at
-`examples/us-china-tariffs/`. It includes one honestly-marked `unconfirmed` source, which is what a
-correct outcome looks like when a figure cannot be traced to its primary document.
-
 The briefing's first screen is the whole point of the layered format — a reader who gets only that
 far can already act:
 
