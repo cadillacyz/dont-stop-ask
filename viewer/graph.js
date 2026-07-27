@@ -4,6 +4,7 @@
 
 const EXAMPLE_DATA = '../examples/us-china-tariffs/question-set.json';
 const SKILL = '/dont-stop-research';
+const POLL_MS = 4000;
 
 const COLOR = {
   easy: '#6fd48a',
@@ -21,43 +22,71 @@ const el = {
   meta: document.getElementById('meta'),
   banner: document.getElementById('banner'),
   ask: document.getElementById('ask'),
-  file: document.getElementById('file')
+  status: document.getElementById('status'),
+  pick: document.getElementById('setpick'),
+  file: document.getElementById('file'),
+  form: document.getElementById('askform'),
+  q: document.getElementById('q'),
+  ctx: document.getElementById('ctx'),
+  mode: document.getElementById('mode'),
+  go: document.getElementById('go'),
+  handoff: document.getElementById('handoff'),
+  handoffCmd: document.getElementById('handoffcmd'),
+  watching: document.getElementById('watching'),
+  progress: document.getElementById('progress'),
+  progText: document.getElementById('progtext'),
+  progLog: document.getElementById('proglog'),
+  askFoot: document.getElementById('askfoot')
 };
 
 let DATA = null;
+let HELPER = null;          // /api/status payload, or null when served as plain static files
 let sim = null;
 let zoom = null;
-let lastSource = null;
 let selectedId = null;
+let loaded = { url: null, mtime: 0, question: null };
+let pollTimer = null;
+let jobTimer = null;
+
+/* ---------- small helpers ---------- */
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function banner(msg, kind) {
+  if (!msg) { el.banner.hidden = true; el.banner.innerHTML = ''; return; }
+  el.banner.hidden = false;
+  el.banner.classList.toggle('err', kind === 'error');
+  el.banner.innerHTML = msg;
+}
+
+async function copy(text) {
+  try { await navigator.clipboard.writeText(text); return true; }
+  catch { return false; }
+}
+
+function askPrompt() {
+  const bits = [`${SKILL} ${el.q.value.trim()}`];
+  if (el.ctx.value.trim()) bits.push(`context: ${el.ctx.value.trim()}`);
+  bits.push(`mode: ${el.mode.value}`);
+  bits.push('output_dir: ./question-sets/');
+  return bits.join('\n');
+}
+
+function expandPrompt(node, question) {
+  const rel = (loaded.url || EXAMPLE_DATA).replace(/^\//, '');
+  return `${SKILL} expand_from: ${rel}#${node}\n\n` +
+    `Expand this node: "${question}"\n` +
+    `Generate up to nine verified follow-up questions (fewer if any would be padding), each with ` +
+    `one to three ranked readings, grouped by relevance to this node's question. Append the ` +
+    `cluster to the existing artifact and write a new JSON containing the union of old and new ` +
+    `nodes, per STAGE 4 of the skill.\n` +
+    `output_dir: ./question-sets/`;
+}
 
 /* ---------- loading ---------- */
-
-function banner(msg, isError) {
-  if (!msg) { el.banner.hidden = true; return; }
-  el.banner.hidden = false;
-  el.banner.textContent = msg;
-  el.banner.classList.toggle('err', !!isError);
-}
-
-function dataParam() {
-  return new URLSearchParams(location.search).get('data');
-}
-
-async function loadFromUrl(url) {
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  return res.json();
-}
-
-function readFile(f) {
-  lastSource = { kind: 'file', value: f };
-  const r = new FileReader();
-  r.onload = () => {
-    try { accept(JSON.parse(r.result)); }
-    catch (err) { banner(`That file is not valid JSON — ${err.message}`, true); }
-  };
-  r.readAsText(f);
-}
 
 function validate(d) {
   const problems = [];
@@ -75,50 +104,318 @@ function validate(d) {
   return problems;
 }
 
-/* No ?data= means nobody has asked anything yet: show the ask state rather than
-   loading the example over the top of it. */
-async function boot() {
-  const param = dataParam();
-  if (!param) {
-    showAsk();
-    return;
-  }
-  lastSource = { kind: 'url', value: param };
-  try {
-    accept(await loadFromUrl(param));
-  } catch (err) {
-    showAsk();
-    banner(`Could not load ${param} — ${err.message}. Open a file instead.`, true);
-  }
+async function fetchJson(url) {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
 }
 
-function showAsk() {
-  el.ask.hidden = false;
-  el.meta.innerHTML = '';
-  resetPanel();
-}
-
-function accept(d) {
+function accept(d, source) {
   const problems = validate(d);
   if (problems.length) {
-    banner(`This file does not match the schema: ${problems.slice(0, 3).join('; ')}`, true);
+    banner(`This set does not match the schema: ${esc(problems.slice(0, 3).join('; '))}`, 'error');
     if (!d || !Array.isArray(d.questions)) return;
-  } else {
-    banner(null);
   }
   DATA = d;
-  el.ask.hidden = true;
+  if (source) loaded = { url: source.url, mtime: source.mtime || 0, question: (d.meta || {}).working_question };
+  hideAsk();
   renderMeta();
   render();
   resetPanel();
 }
 
-function resetPanel() {
-  selectedId = null;
-  el.panel.innerHTML = DATA
-    ? '<p class="muted">Click a question to see its readings and how to work it.</p>'
-    : '<p class="muted">Nothing loaded yet. Ask a question, or open a set you already have.</p>';
+async function loadSet(entry, opts = {}) {
+  try {
+    const d = await fetchJson(entry.url);
+    const keep = opts.keepSelection ? selectedId : null;
+    accept(d, entry);
+    if (keep) reselect(keep);
+    if (opts.note) banner(opts.note);
+    syncPicker();
+    return true;
+  } catch (err) {
+    banner(`Could not load ${esc(entry.url)} — ${esc(err.message)}`, 'error');
+    return false;
+  }
 }
+
+async function boot() {
+  const param = new URLSearchParams(location.search).get('data');
+
+  try {
+    HELPER = await fetchJson('/api/status');
+  } catch {
+    HELPER = null;
+  }
+
+  setStatus();
+
+  // Only auto-load sets the user generated. Landing on the bundled example
+  // would look like an answer to a question nobody asked.
+  const generated = ((HELPER && HELPER.sets) || []).filter(s => s.origin === 'question-sets');
+
+  if (param) {
+    await loadSet({ url: param, mtime: 0 });
+  } else if (generated.length) {
+    await loadSet(generated[0], {
+      note: `Loaded <strong>${esc(generated[0].name)}</strong> — the newest set in question-sets/.`
+    });
+  } else {
+    showAsk();
+  }
+
+  if (HELPER) startWatching();
+}
+
+function setStatus() {
+  if (!HELPER) {
+    el.status.className = 'status';
+    el.status.textContent = 'no helper';
+    el.status.title = 'Opened as plain files. Run scripts/serve.py for auto-loading.';
+    return;
+  }
+  if (HELPER.cli) {
+    el.status.className = 'status live';
+    el.status.textContent = 'live · can generate';
+    el.status.title = `Watching ${HELPER.sets_dir} · claude CLI at ${HELPER.cli_path}`;
+  } else {
+    el.status.className = 'status partial';
+    el.status.textContent = 'live · watching';
+    el.status.title = `Watching ${HELPER.sets_dir}. No claude CLI on PATH, so asking hands you a prompt.`;
+  }
+}
+
+/* ---------- watching the folder ---------- */
+
+function startWatching() {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(poll, POLL_MS);
+}
+
+async function poll() {
+  let sets;
+  try { sets = (await fetchJson('/api/sets')).sets || []; }
+  catch { return; }
+
+  if (HELPER) HELPER.sets = sets;
+  syncPicker();
+
+  // Only ever auto-follow generated sets. The bundled example is loaded on
+  // request, never pushed at anyone.
+  const newest = sets.filter(s => s.origin === 'question-sets')[0];
+  if (!newest) return;
+
+  // Nothing loaded yet: the first set to appear wins, which is the moment
+  // a freshly generated set shows up on its own.
+  if (!DATA) {
+    stopProgress();
+    await loadSet(newest, { note: `<strong>${esc(newest.name)}</strong> just appeared — loaded it.` });
+    return;
+  }
+
+  if (newest.url === loaded.url) {
+    if (newest.mtime > loaded.mtime) {
+      await loadSet(newest, {
+        keepSelection: true,
+        note: `<strong>${esc(newest.name)}</strong> changed on disk — reloaded.`
+      });
+      stopProgress();
+    }
+    return;
+  }
+
+  if (newest.mtime <= loaded.mtime) return;
+
+  // A different, newer file. If it is about the same question it is a
+  // regeneration or an expansion of what we are looking at, so follow it.
+  if (newest.working_question && newest.working_question === loaded.question) {
+    await loadSet(newest, {
+      keepSelection: true,
+      note: `Followed <strong>${esc(newest.name)}</strong> — same question, newer file.`
+    });
+    stopProgress();
+  } else {
+    banner(
+      `A newer set is on disk: <strong>${esc(newest.name)}</strong> — ` +
+      `<a href="#" id="loadnew">load it</a>`
+    );
+    const link = document.getElementById('loadnew');
+    if (link) link.addEventListener('click', async ev => {
+      ev.preventDefault();
+      stopProgress();
+      await loadSet(newest, { note: null });
+      banner(null);
+    });
+  }
+}
+
+function syncPicker() {
+  const sets = (HELPER && HELPER.sets) || [];
+  if (sets.length < 2) { el.pick.hidden = true; return; }
+  el.pick.hidden = false;
+  const current = loaded.url;
+  el.pick.innerHTML = sets.map(s =>
+    `<option value="${esc(s.url)}"${s.url === current ? ' selected' : ''}>` +
+    `${esc(s.name)}${s.origin === 'examples' ? ' (example)' : ''}</option>`
+  ).join('');
+}
+
+el.pick.addEventListener('change', async e => {
+  const entry = ((HELPER && HELPER.sets) || []).find(s => s.url === e.target.value);
+  if (entry) { banner(null); await loadSet(entry); }
+});
+
+/* ---------- the ask flow ---------- */
+
+function showAsk() {
+  el.ask.hidden = false;
+  el.handoff.hidden = true;
+  el.progress.hidden = true;
+  if (!DATA) { el.meta.innerHTML = ''; resetPanel(); }
+  el.askFoot.textContent = HELPER
+    ? (HELPER.cli
+        ? 'Asking runs the skill here and the graph loads itself when it finishes.'
+        : 'No claude CLI on PATH, so asking hands you a prompt to paste. The graph still loads itself once the file appears.')
+    : 'Opened as plain files. Run python scripts/serve.py for auto-loading and folder watching.';
+  setTimeout(() => el.q.focus(), 50);
+}
+
+function hideAsk() {
+  el.ask.hidden = true;
+  stopProgress();
+}
+
+function startProgress(text) {
+  el.progress.hidden = false;
+  el.handoff.hidden = true;
+  el.progText.textContent = text;
+  el.progLog.textContent = '';
+  el.go.disabled = true;
+}
+
+function stopProgress() {
+  clearInterval(jobTimer);
+  jobTimer = null;
+  el.progress.hidden = true;
+  el.go.disabled = false;
+}
+
+function watchJob(jobId) {
+  clearInterval(jobTimer);
+  jobTimer = setInterval(async () => {
+    let job;
+    try { job = await fetchJson(`/api/jobs/${jobId}`); }
+    catch { return; }
+    el.progText.textContent = job.state === 'running'
+      ? `Working… ${job.elapsed}s. Verifying sources takes a few minutes.`
+      : (job.state === 'done' ? 'Finished. Waiting for the file…' : 'That run failed.');
+    el.progLog.textContent = (job.log || []).join('\n');
+    el.progLog.scrollTop = el.progLog.scrollHeight;
+    if (job.state === 'failed') {
+      stopProgress();
+      banner('The generation run failed — the log above says why.', 'error');
+    }
+  }, 1500);
+}
+
+async function handoff(prompt, lead) {
+  const ok = await copy(prompt);
+  el.handoff.hidden = false;
+  el.progress.hidden = true;
+  el.go.disabled = false;
+  document.querySelector('.handoff-lead').textContent = ok
+    ? (lead || "Paste this into Claude Code — it's on your clipboard already.")
+    : 'Copy this into Claude Code (clipboard was blocked, so select it manually).';
+  el.handoffCmd.textContent = prompt;
+  el.watching.textContent = HELPER
+    ? `Watching ${HELPER.sets_dir}.`
+    : 'Start scripts/serve.py first, or drop the file here when it exists.';
+}
+
+el.form.addEventListener('submit', async ev => {
+  ev.preventDefault();
+  const question = el.q.value.trim();
+  if (question.length < 8) { el.q.focus(); return; }
+  banner(null);
+
+  if (!HELPER) return handoff(askPrompt());
+
+  startProgress('Starting…');
+  let res;
+  try {
+    res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, context: el.ctx.value, mode: el.mode.value })
+    });
+  } catch (err) {
+    stopProgress();
+    return handoff(askPrompt());
+  }
+
+  const body = await res.json().catch(() => ({}));
+  if (res.ok && body.job) { watchJob(body.job); return; }
+  stopProgress();
+  handoff(body.prompt || askPrompt());
+});
+
+document.getElementById('qmark').addEventListener('click', () => {
+  const q = document.getElementById('qmark');
+  q.classList.remove('wiggle');
+  void q.offsetWidth;
+  q.classList.add('wiggle');
+  el.q.focus();
+});
+
+document.getElementById('newq').addEventListener('click', () => {
+  el.q.value = '';
+  el.ctx.value = '';
+  showAsk();
+});
+
+document.getElementById('demo').addEventListener('click', async e => {
+  const entry = ((HELPER && HELPER.sets) || []).find(s => s.origin === 'examples')
+    || { url: EXAMPLE_DATA, mtime: 0 };
+  if (!(await loadSet(entry))) {
+    banner('The example needs the page served over HTTP — run python scripts/serve.py.', 'error');
+  }
+});
+
+document.getElementById('fit').addEventListener('click', () => {
+  const fn = el.svg.node().__fit;
+  if (fn) fn();
+});
+
+el.file.addEventListener('change', e => {
+  const f = e.target.files && e.target.files[0];
+  if (f) readFile(f);
+});
+
+function readFile(f) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      accept(JSON.parse(r.result), { url: null, mtime: 0 });
+      banner(`Loaded ${esc(f.name)} from disk. Re-pick it to see later changes.`);
+    } catch (err) { banner(`That file is not valid JSON — ${esc(err.message)}`, 'error'); }
+  };
+  r.readAsText(f);
+}
+
+['dragenter', 'dragover'].forEach(t => {
+  el.stage.addEventListener(t, e => { e.preventDefault(); el.ask.classList.add('over'); el.ask.hidden = false; });
+});
+el.stage.addEventListener('dragleave', () => {
+  el.ask.classList.remove('over');
+  if (DATA) el.ask.hidden = true;
+});
+el.stage.addEventListener('drop', e => {
+  e.preventDefault();
+  el.ask.classList.remove('over');
+  const f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) readFile(f);
+  else if (DATA) el.ask.hidden = true;
+});
 
 /* ---------- meta ---------- */
 
@@ -271,10 +568,14 @@ function render() {
       .transition().duration(220).attr('r', d.r);
     selectedId = d.id;
     dot.classed('sel', n => n.id === selectedId);
-    if (d.kind === 'question') showQuestion(d.q);
-    else if (d.kind === 'root') showRoot();
-    else showSource(d.id);
+    openNode(d);
   });
+
+  el.svg.node().__dots = dot;
+  el.svg.node().__fit = () => {
+    el.svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+    sim.alpha(0.4).restart();
+  };
 
   sim.on('tick', () => {
     edge.attr('d', l => {
@@ -286,18 +587,32 @@ function render() {
     dot.attr('cx', d => d.x).attr('cy', d => d.y);
     label.attr('x', d => d.x).attr('y', d => d.y - d.r - 7);
   });
+}
 
-  el.svg.node().__fit = () => {
-    el.svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
-    sim.alpha(0.4).restart();
-  };
+function openNode(d) {
+  if (d.kind === 'question') showQuestion(d.q);
+  else if (d.kind === 'root') showRoot();
+  else showSource(d.id);
+}
+
+/* Re-open whatever was selected before a hot reload, if it still exists. */
+function reselect(id) {
+  const dot = el.svg.node().__dots;
+  if (!dot) return;
+  const match = dot.data().find(n => n.id === id);
+  if (!match) return;
+  selectedId = id;
+  dot.classed('sel', n => n.id === id);
+  openNode(match);
 }
 
 /* ---------- panel ---------- */
 
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function resetPanel() {
+  selectedId = null;
+  el.panel.innerHTML = DATA
+    ? '<p class="muted">Click a question to see its readings and how to work it.</p>'
+    : '<p class="muted">Nothing loaded yet. Ask a question, and the graph will appear here.</p>';
 }
 
 function sourceLine(sid, role) {
@@ -318,34 +633,58 @@ function sourceLine(sid, role) {
 }
 
 function expandButton(node, label) {
+  const verb = HELPER && HELPER.cli ? 'Expand into nine more' : 'Copy expansion prompt';
   return `<button class="btn" id="expand" data-node="${esc(node)}" data-q="${esc(label)}"
-    style="margin-top:6px">Copy expansion prompt</button>`;
+    style="margin-top:6px">${verb}</button><span id="expandnote" class="muted"></span>`;
 }
 
 function wireExpand() {
   const b = document.getElementById('expand');
   if (!b) return;
   b.addEventListener('click', async () => {
-    const url = dataParam() || (lastSource && lastSource.kind === 'file'
-      ? `./${lastSource.value.name}`
-      : EXAMPLE_DATA);
-    const prompt =
-      `${SKILL} expand_from: ${url}#${b.dataset.node}\n\n` +
-      `Expand this node: "${b.dataset.q}"\n` +
-      `Generate up to nine verified follow-up questions (fewer if any would be padding), each with ` +
-      `one to three ranked readings, grouped by relevance to this node's question. Append the ` +
-      `cluster to the existing artifact and write a new JSON containing the union of old and new ` +
-      `nodes, per STAGE 4 of the skill.`;
-    try {
-      await navigator.clipboard.writeText(prompt);
-      b.textContent = 'Copied — paste into Claude Code';
-    } catch {
-      b.textContent = 'Copy failed — select the prompt below';
-      el.panel.insertAdjacentHTML('beforeend',
-        `<pre class="sec muted" style="white-space:pre-wrap;user-select:all">${esc(prompt)}</pre>`);
+    const prompt = expandPrompt(b.dataset.node, b.dataset.q);
+    const note = document.getElementById('expandnote');
+
+    if (HELPER && HELPER.cli) {
+      b.disabled = true;
+      note.textContent = ' running…';
+      try {
+        const res = await fetch('/api/expand', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ set: loaded.url, node: b.dataset.node, question: b.dataset.q })
+        });
+        const body = await res.json().catch(() => ({}));
+        if (res.ok && body.job) {
+          el.ask.hidden = false;
+          startProgress(`Expanding ${b.dataset.node}…`);
+          watchJob(body.job);
+          return;
+        }
+        note.textContent = '';
+        b.disabled = false;
+        await handoffInPanel(prompt);
+      } catch {
+        note.textContent = '';
+        b.disabled = false;
+        await handoffInPanel(prompt);
+      }
+      return;
     }
+
+    await handoffInPanel(prompt);
+    b.textContent = (await copy(prompt)) ? 'Copied — paste into Claude Code' : 'Select the prompt below';
     setTimeout(() => { b.textContent = 'Copy expansion prompt'; }, 4000);
   });
+}
+
+async function handoffInPanel(prompt) {
+  await copy(prompt);
+  if (document.getElementById('panelprompt')) return;
+  el.panel.insertAdjacentHTML('beforeend',
+    `<pre id="panelprompt" class="handoff-cmd" style="margin-top:10px">${esc(prompt)}</pre>` +
+    `<p class="muted" style="font-size:12px">Paste into Claude Code. The graph reloads itself ` +
+    `when the new file lands.</p>`);
 }
 
 function showRoot() {
@@ -353,8 +692,10 @@ function showRoot() {
   el.panel.innerHTML =
     `<h2>Working question · sharpened by triage</h2>` +
     `<p class="q">${esc(m.working_question || '')}</p>` +
-    (m.original_question ? `<div class="sec"><p><span class="lbl">They asked:</span> ${esc(m.original_question)}</p>` +
-      (m.triage_summary ? `<p>${esc(m.triage_summary)}</p>` : '') + `</div>` : '') +
+    (m.original_question
+      ? `<div class="sec"><p><span class="lbl">Asked as:</span> ${esc(m.original_question)}</p>` +
+        (m.triage_summary ? `<p>${esc(m.triage_summary)}</p>` : '') + `</div>`
+      : '') +
     expandButton('root', m.working_question || '');
   wireExpand();
 }
@@ -387,10 +728,7 @@ function showSource(sid) {
   const s = DATA.sources[sid];
   const users = DATA.questions
     .filter(q => (q.readings || []).some(r => r.source === sid))
-    .map(q => {
-      const role = q.readings.find(r => r.source === sid).role;
-      return `${q.id} (${role})`;
-    });
+    .map(q => `${q.id} (${q.readings.find(r => r.source === sid).role})`);
   let h = `<h2>Reading · ${esc([s.access_tier, s.verified].filter(Boolean).join(' · '))}</h2>`;
   h += `<p class="q">${s.url
     ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.citation)}</a>`
@@ -408,97 +746,11 @@ function showSource(sid) {
   el.panel.innerHTML = h;
 }
 
-/* ---------- controls ---------- */
-
-[el.file, document.getElementById('file2')].forEach(input => {
-  input.addEventListener('change', e => {
-    const f = e.target.files && e.target.files[0];
-    if (f) readFile(f);
-  });
-});
-
-async function flash(btn, msg, revert) {
-  const original = btn.textContent;
-  btn.textContent = msg;
-  setTimeout(() => { btn.textContent = revert || original; }, 2600);
-}
-
-async function copyCommand(btn) {
-  try {
-    await navigator.clipboard.writeText(`${SKILL} `);
-    flash(btn, 'Copied — paste into Claude Code');
-  } catch {
-    document.getElementById('askfoot').textContent =
-      `Copy blocked by the browser. The command is: ${SKILL} your question here`;
-  }
-}
-
-document.getElementById('copycmd').addEventListener('click', e => copyCommand(e.currentTarget));
-
-const qmark = document.getElementById('qmark');
-qmark.addEventListener('click', async () => {
-  qmark.classList.remove('wiggle');
-  void qmark.offsetWidth;
-  qmark.classList.add('wiggle');
-  try {
-    await navigator.clipboard.writeText(`${SKILL} `);
-    document.getElementById('askfoot').textContent =
-      'Command copied. Paste it into Claude Code, add your question, then drop the JSON here.';
-  } catch {
-    /* the visible command below is the fallback */
-  }
-});
-
-document.getElementById('demo').addEventListener('click', async e => {
-  try {
-    lastSource = { kind: 'url', value: EXAMPLE_DATA };
-    accept(await loadFromUrl(EXAMPLE_DATA));
-  } catch (err) {
-    flash(e.currentTarget, 'Needs a local server');
-    banner(`Could not load the example — ${err.message}. Serve the folder over HTTP ` +
-           `(python -m http.server) or open your own file.`, true);
-  }
-});
-
-document.getElementById('reload').addEventListener('click', async () => {
-  if (!lastSource) return boot();
-  if (lastSource.kind === 'url') {
-    try { accept(await loadFromUrl(lastSource.value)); banner(null); }
-    catch (err) { banner(`Reload failed — ${err.message}`, true); }
-  } else {
-    banner('Browsers cannot re-read a picked file. Choose it again to pick up changes.', false);
-  }
-});
-
-document.getElementById('fit').addEventListener('click', () => {
-  const fn = el.svg.node().__fit;
-  if (fn) fn();
-});
-
-['dragenter', 'dragover'].forEach(t => {
-  el.stage.addEventListener(t, e => {
-    e.preventDefault();
-    el.ask.hidden = false;
-    el.ask.classList.add('over');
-  });
-});
-el.stage.addEventListener('dragleave', () => {
-  el.ask.classList.remove('over');
-  if (DATA) el.ask.hidden = true;
-});
-el.stage.addEventListener('drop', e => {
-  e.preventDefault();
-  el.ask.classList.remove('over');
-  const f = e.dataTransfer.files && e.dataTransfer.files[0];
-  if (f) readFile(f);
-  else if (DATA) el.ask.hidden = true;
-});
-
 let rt = null;
 window.addEventListener('resize', () => {
   if (!DATA) return;
   clearTimeout(rt);
-  rt = setTimeout(() => { const s = selectedId; render(); selectedId = s; }, 200);
+  rt = setTimeout(() => { const s = selectedId; render(); if (s) reselect(s); }, 200);
 });
 
 boot();

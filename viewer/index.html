@@ -14,8 +14,10 @@
     <span class="en">dont-stop-ask</span>
   </div>
   <div class="bar-actions">
-    <label class="btn" for="file">Open a question set…<input id="file" type="file" accept="application/json,.json" hidden /></label>
-    <button class="btn" id="reload" title="Re-read the file">Reload</button>
+    <span id="status" class="status" title="Local helper status"></span>
+    <select id="setpick" class="pick" aria-label="Which question set" hidden></select>
+    <button class="btn" id="newq">Ask something else</button>
+    <label class="btn" for="file">Open a file…<input id="file" type="file" accept="application/json,.json" hidden /></label>
     <button class="btn" id="fit">Fit view</button>
   </div>
 </header>
@@ -28,26 +30,50 @@
     <div id="tip" class="tip" hidden></div>
 
     <div id="ask" class="ask">
-      <button id="qmark" class="qmark" aria-label="Copy the command that starts a question set">
+      <button id="qmark" class="qmark" aria-label="dont-stop-ask">
         <svg viewBox="0 0 160 160" aria-hidden="true">
           <circle class="q-halo" cx="80" cy="80" r="62" />
           <circle class="q-ring" cx="80" cy="80" r="52" />
           <text class="q-glyph" x="80" y="79" text-anchor="middle" dominant-baseline="central">?</text>
         </svg>
       </button>
+
       <h1 class="ask-title">What do you want to know?</h1>
       <p class="ask-sub">Ask something you actually wonder about. It comes back as a map of sharper
         questions, each with readings worth opening — never as an answer.</p>
-      <div class="ask-cmd">
-        <code id="cmd">/dont-stop-research your question here</code>
-        <button class="btn" id="copycmd">Copy</button>
+
+      <form id="askform" class="askform" autocomplete="off">
+        <input id="q" class="q-input" type="text" required
+               placeholder="How do I teach my kids to speak English more naturally?" />
+        <input id="ctx" class="q-input q-ctx" type="text"
+               placeholder="What you already know, and why you're asking (optional, but it sharpens the set)" />
+        <div class="askrow">
+          <label class="seg" title="Who the briefing is written for">
+            <select id="mode">
+              <option value="solo">researching it myself</option>
+              <option value="guided">helping someone else research it</option>
+            </select>
+          </label>
+          <button class="btn primary" id="go" type="submit">Ask</button>
+        </div>
+      </form>
+
+      <div id="handoff" class="handoff" hidden>
+        <p class="handoff-lead">Paste this into Claude Code — it's on your clipboard already.</p>
+        <pre id="handoffcmd" class="handoff-cmd"></pre>
+        <p class="handoff-note">The graph will load itself the moment the file appears.
+          <span id="watching"></span></p>
       </div>
+
+      <div id="progress" class="progress" hidden>
+        <p class="prog-lead"><span class="spinner"></span> <span id="progtext">Working…</span></p>
+        <pre id="proglog" class="prog-log"></pre>
+      </div>
+
       <div class="ask-alt">
         <button class="btn" id="demo">See a finished example</button>
-        <label class="btn" for="file2">Open your own…<input id="file2" type="file" accept="application/json,.json" hidden /></label>
       </div>
-      <p class="ask-foot" id="askfoot">Run the command in Claude Code, then drop the JSON it writes
-        anywhere on this page.</p>
+      <p class="ask-foot" id="askfoot"></p>
     </div>
   </section>
 

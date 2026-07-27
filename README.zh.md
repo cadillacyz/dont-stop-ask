@@ -105,34 +105,47 @@ Copy-Item -Recurse dont-stop-ask\skills\dont-stop-research $HOME\.claude\skills\
 
 ## 使用
 
-在 Claude Code 会话中生成一套问题：
+启动一次陪伴服务器，然后让它一直开着：
 
 ```bash
-claude "/dont-stop-research 间歇性断食有没有普通热量限制做不到的效果？context：读过大众科普报道，统计学不成问题，没有生物学背景"
+python scripts/serve.py
 ```
 
-三个文件会写进 `./question-sets/`。打开图谱：
+打开 <http://127.0.0.1:8000/viewer/>。你会看到一个问号和一个输入框。写下你想知道的事，再补一句你已经
+知道什么，然后按 **Ask**。
+
+接下来会发生什么，取决于一件事——`claude` 命令行工具是否在你的 PATH 里：
+
+| | 装了命令行工具 | 只装了桌面应用 |
+|---|---|---|
+| **Ask** | 就地运行技能，实时显示进度，完成后图谱自动出现 | 把完整命令交给你（已复制到剪贴板），粘贴进 Claude Code |
+| **展开某个问题** | 同样——一次点击 | 同样——一次粘贴 |
+| **加载结果** | 自动 | **同样自动** |
+
+最后一行才是关键。服务器会盯着 `question-sets/`，所以**无论文件是怎么写出来的，图谱都会自己加载**——
+不用挑文件，不用刷新。手动改一套问题，图谱会就地更新，并保留你当前打开的那个问题。生成第二套，它会切换过去。
+展开某个问题，它会跟随新文件，因为它认得出这是同一个工作问题。
+
+顶栏的状态灯会告诉你处于哪种模式：*live · can generate* 表示命令行工具在位；*live · watching* 表示
+提问会给你一段提示词去粘贴。
+
+想要一键生成：
 
 ```bash
-python -m http.server 8000
+npm i -g @anthropic-ai/claude-code
 ```
 
-然后访问 `http://localhost:8000/viewer/`。页面会以一个问号开场——点 *Open your own…* 把 JSON 交给它，
-或者直接用参数打开：`http://localhost:8000/viewer/?data=../question-sets/你的文件.json`。
+### 不用服务器也行
 
-直接用浏览器打开 `viewer/index.html` 也可以。浏览器禁止读取本地文件，所以把 JSON 拖到页面上任意位置即可。
-
-**展开某个问题：** 点它的圆点，按 *Copy expansion prompt*，粘贴回 Claude Code。它会对这个问题重跑一遍
-问题阶梯，复用已核实过的来源，核实新增的来源，然后写出一份包含全部内容的新 JSON。刷新查看器，新分支就出现了。
+直接用浏览器打开 `viewer/index.html` 仍然可用，只是失去了自动监视。把 JSON 拖到页面任意位置，或用
+`?data=../question-sets/你的文件.json` 传入。
 
 ### 试用范例
 
 仓库自带一个完整范例：关于美中关税究竟是让世界贸易改道还是萎缩的九个问题，并已展开出一个七问题的分支——
 关税到底是为了什么。共 16 个问题、14 份已核实来源，其中一份被诚实标注为无法确认。
 
-```bash
-python -m http.server 8000   # 打开 http://localhost:8000/viewer/ 并点 “See a finished example”
-```
+在查看器里点 **See a finished example**。它永远不会被自动推给你——自己冒出来的图谱，一定是你问过的那个。
 
 文件：[question-set.json](examples/us-china-tariffs/question-set.json) ·
 [问题集正文](examples/us-china-tariffs/question-set.md) ·
@@ -146,6 +159,7 @@ python -m http.server 8000   # 打开 http://localhost:8000/viewer/ 并点 “Se
 | `skills/dont-stop-research/shared/` | 铁律、问题阶梯、卡片格式、两种输出格式 |
 | `schema/question-set.schema.json` | 查看器依赖的 JSON 契约 |
 | `viewer/` | 静态力导向图。d3 走 CDN，别无依赖 |
+| `scripts/serve.py` | 陪伴服务器：监视 `question-sets/`，并在命令行工具可用时运行技能。只绑定 127.0.0.1 |
 | `examples/us-china-tariffs/` | 完整范例的三个文件 |
 | `scripts/validate.py` | 按 schema 和项目约束校验一套问题 |
 

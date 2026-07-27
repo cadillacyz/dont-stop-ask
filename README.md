@@ -117,28 +117,41 @@ Copy-Item -Recurse dont-stop-ask\skills\dont-stop-research $HOME\.claude\skills\
 
 ## Use it
 
-Generate a set from inside a Claude Code session:
+Start the companion server once and leave it running:
 
 ```bash
-claude "/dont-stop-research Does intermittent fasting do anything that ordinary calorie restriction doesn't? context: I read the popular coverage, comfortable with statistics, no biology background"
+python scripts/serve.py
 ```
 
-Three files land in `./question-sets/`. Open the graph:
+Open <http://127.0.0.1:8000/viewer/>. You get a question mark and a box. Type what you want to know,
+add a line about what you already know, and hit **Ask**.
+
+What happens next depends on one thing — whether the `claude` CLI is on your PATH:
+
+| | With the CLI installed | Without it (desktop app only) |
+|---|---|---|
+| **Ask** | Runs the skill right there, streams progress, graph appears when it finishes | Hands you the exact command, already copied to your clipboard, to paste into Claude Code |
+| **Expand a question** | Same — one click | Same — one paste |
+| **Loading the result** | Automatic | **Also automatic** |
+
+That last row is the point. The server watches `question-sets/`, so **however the file gets written,
+the graph loads itself** — no file picking, no reloading. Edit a set by hand and the graph updates in
+place, keeping whatever question you had open. Generate a second set and it switches to it. Expand a
+question and it follows the new file, because it recognises the same working question.
+
+The status light in the top bar tells you which mode you're in: *live · can generate* means the CLI is
+there, *live · watching* means asking will hand you a prompt instead.
+
+To get one-click generation:
 
 ```bash
-python -m http.server 8000
+npm i -g @anthropic-ai/claude-code
 ```
 
-Then visit `http://localhost:8000/viewer/`. It opens on a question mark — click *Open your own…* and
-hand it the JSON, or pass it directly:
-`http://localhost:8000/viewer/?data=../question-sets/question-set-fasting-2026-07-28.json`.
+### Without the server
 
-Opening `viewer/index.html` straight from disk works too. Browsers block reading local files, so drop
-the JSON anywhere on the page.
-
-**To grow a question:** click its dot, hit *Copy expansion prompt*, paste into Claude Code. It runs
-the ladder again on that question, reuses sources it has already verified, verifies any new ones, and
-writes an updated JSON containing everything. Reload the viewer and the branch is there.
+Opening `viewer/index.html` straight from disk still works — you just lose the watching. Drop a JSON
+anywhere on the page, or pass one with `?data=../question-sets/your-set.json`.
 
 ### Try the example
 
@@ -146,9 +159,8 @@ The repository ships a complete worked example: nine questions on whether the US
 rerouted world trade or shrank it, expanded once into a seven-question cluster on what tariffs are
 actually *for*. Sixteen questions, fourteen verified sources, one honestly-flagged unconfirmed one.
 
-```bash
-python -m http.server 8000   # then open http://localhost:8000/viewer/ and click "See a finished example"
-```
+Click **See a finished example** in the viewer. It is never loaded at you automatically — the graph
+that appears by itself is always one you asked for.
 
 Files: [question-set.json](examples/us-china-tariffs/question-set.json) ·
 [the artifact](examples/us-china-tariffs/question-set.md) ·
@@ -162,6 +174,7 @@ Files: [question-set.json](examples/us-china-tariffs/question-set.json) ·
 | `skills/dont-stop-research/shared/` | The rules, the question ladder, the card format, the two output formats |
 | `schema/question-set.schema.json` | The JSON contract the viewer depends on |
 | `viewer/` | Static force-directed graph. d3 from a CDN; nothing else |
+| `scripts/serve.py` | Companion server: watches `question-sets/`, and runs the skill when the CLI is available. Binds to 127.0.0.1 only |
 | `examples/us-china-tariffs/` | The worked example, all three files |
 | `scripts/validate.py` | Checks a set against the schema and the project's invariants |
 
