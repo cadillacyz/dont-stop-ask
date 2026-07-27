@@ -1,0 +1,20 @@
+# Generated question sets — these contain student context and belong to the person
+# who generated them, not to the repository. Publish one deliberately, into examples/.
+question-sets/
+*.local.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code local state
+.claude/settings.local.json

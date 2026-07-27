@@ -1,0 +1,11 @@
+# Normalise to LF in the repository; check out native on Windows.
+* text=auto
+
+*.md   text
+*.json text
+*.js   text
+*.css  text
+*.html text
+*.py   text
+*.yml  text
+LICENSE text

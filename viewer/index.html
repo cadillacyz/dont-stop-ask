@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>不停问 · dont-stop-ask</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="bar">
+  <div class="brand">
+    <span class="zh">不停问</span>
+    <span class="en">dont-stop-ask</span>
+  </div>
+  <div class="bar-actions">
+    <label class="btn" for="file">Open a question set…<input id="file" type="file" accept="application/json,.json" hidden /></label>
+    <button class="btn" id="reload" title="Re-read the file from disk">Reload</button>
+    <button class="btn" id="fit">Fit view</button>
+  </div>
+</header>
+
+<div id="banner" class="banner" hidden></div>
+
+<main>
+  <section id="stage" class="stage">
+    <svg id="graph" aria-label="Question graph"></svg>
+    <div id="tip" class="tip" hidden></div>
+    <div id="dropzone" class="dropzone" hidden>
+      <div>
+        <p class="dz-title">Drop a <code>question-set.json</code> here</p>
+        <p class="dz-sub">Or use “Open a question set…” above. Browsers block reading local files
+        directly, so opening this page from disk needs the file handed to it once.</p>
+      </div>
+    </div>
+  </section>
+
+  <aside id="side" class="side">
+    <div id="meta" class="meta"></div>
+    <div id="panel" class="panel">
+      <p class="muted">Click a question dot to see its readings and how to work it.</p>
+    </div>
+  </aside>
+</main>
+
+<footer class="legend">
+  <span><i class="sw" style="background:#6fd48a"></i>easier</span>
+  <span><i class="sw" style="background:#f0b24a"></i>middle</span>
+  <span><i class="sw" style="background:#f0625d"></i>most technical</span>
+  <span><i class="sw" style="background:#8d96b8"></i>reading</span>
+  <span><i class="sw" style="background:#a78bfa"></i>working question</span>
+  <span class="spacer"></span>
+  <span class="hint">drag dots · scroll to zoom · click for readings</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="graph.js"></script>
+</body>
+</html>

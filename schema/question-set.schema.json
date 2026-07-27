@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/USER/dont-stop-ask/schema/question-set.schema.json",
+  "title": "dont-stop-ask question set",
+  "description": "A student-safe question graph emitted by HTeen-Research. Contains visibility:both fields only — adult-only fields (why_this, they_might_say, teach-back signatures) MUST NOT appear in a document conforming to this schema.",
+  "type": "object",
+  "required": ["meta", "root", "questions", "sources"],
+  "additionalProperties": false,
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["generated_by", "generated_at", "status", "original_question", "working_question"],
+      "additionalProperties": false,
+      "properties": {
+        "student": { "type": "string", "description": "Name or description, or Anonymous. Avoid identifying detail in files intended for publication." },
+        "band": { "type": "string", "enum": ["HTeen"], "description": "Age band. HTeen = 16-18." },
+        "generated_by": { "type": "string", "description": "Skill name and version, e.g. HTeen-Research v1.0" },
+        "generated_at": { "type": "string", "format": "date", "description": "ISO date of generation" },
+        "status": { "type": "string", "enum": ["draft", "adult-approved", "in-progress", "complete"], "description": "draft means an adult has not yet reviewed the set. Student-facing consumers should surface this, not hide it." },
+        "original_question": { "type": "string", "description": "Verbatim, as the teen stated it" },
+        "working_question": { "type": "string", "description": "Post-triage sharpened question" },
+        "triage_summary": { "type": "string", "description": "Plain statement of what changed and why. The full six-criteria record lives in the markdown artifact." },
+        "assignment_context": { "type": "string" },
+        "expansions": {
+          "type": "array",
+          "description": "One entry per expansion cluster, in generation order",
+          "items": {
+            "type": "object",
+            "required": ["node", "generated_at"],
+            "additionalProperties": false,
+            "properties": {
+              "node": { "type": "string", "description": "Id of the node that was expanded" },
+              "generated_at": { "type": "string", "format": "date" },
+              "working_question": { "type": "string", "description": "The cluster's working question — normally the expanded node's question" },
+              "note": { "type": "string", "description": "Conventionally records that triage was inherited and that relevance groups are relative to this cluster" }
+            }
+          }
+        },
+        "staleness_note": { "type": "string", "description": "Advisory only. What would make this set stale and when." }
+      }
+    },
+    "root": {
+      "type": "object",
+      "description": "The centre node of the graph — the working question itself",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "const": "root" },
+        "label": { "type": "string", "description": "Short display label, a few words" },
+        "note": { "type": "string", "description": "One or two sentences on how the question was sharpened" }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "parent", "question", "label", "type", "relevance_group", "difficulty", "readings", "check_first", "read_for", "level"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Z]+[0-9]+$", "description": "Q1-Q9 for a first-pass set; E1-E9, F1-F9 for successive expansions" },
+          "parent": { "type": "string", "description": "root, or the id of the node this card expands" },
+          "question": { "type": "string", "description": "The question in full, in language a 16-18-year-old would use" },
+          "label": { "type": "string", "description": "Short display label for the graph node, a few words" },
+          "type": {
+            "type": "object",
+            "required": ["n", "name"],
+            "additionalProperties": false,
+            "properties": {
+              "n": { "type": "integer", "minimum": 1, "maximum": 7 },
+              "name": { "type": "string", "enum": ["Meaning", "Landscape", "Mechanism", "Tension", "Evidence", "Scope", "Stake"] },
+              "move": { "type": "string", "description": "The Paul & Elder move, or the elaborative form for Mechanism cards" }
+            }
+          },
+          "relevance_group": { "type": "string", "enum": ["core", "supporting", "context"], "description": "Distance from the working question, NOT difficulty" },
+          "difficulty": { "type": "string", "enum": ["easy", "middle", "technical"], "description": "Coarse three-way rating for sorting and colour-coding. Does not replace level." },
+          "load_bearing": { "type": "boolean", "description": "True for the Tension card the set is built around, and for the hardest card" },
+          "readings": {
+            "type": "array",
+            "maxItems": 3,
+            "description": "One to three ranked readings. Empty array means a thinking-only card, and single_reading_reason must then explain it.",
+            "items": {
+              "type": "object",
+              "required": ["role", "source"],
+              "additionalProperties": false,
+              "properties": {
+                "role": { "type": "string", "enum": ["primary", "supporting", "background"] },
+                "source": { "type": "string", "description": "Id of an entry in sources" }
+              }
+            }
+          },
+          "single_reading_reason": { "type": "string", "description": "Required when readings has fewer than two entries: why one (or none) suffices" },
+          "check_first": { "type": "string", "description": "A lateral-reading move the student performs BEFORE reading. Never a verdict about the source." },
+          "read_for": { "type": "string", "description": "A pointer into the text. Never a summary of it." },
+          "level": { "type": "string", "description": "Prose naming the primary complexity challenge and a realistic time" }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "description": "Keyed by source id (S1, S2, ...)",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["citation", "access_tier", "verified"],
+        "additionalProperties": false,
+        "properties": {
+          "citation": { "type": "string", "description": "Title, author, year, venue, kind" },
+          "short": { "type": "string", "description": "Compact label for dense UI" },
+          "access_tier": { "type": "string", "enum": ["T1", "T2", "T3", "T4"] },
+          "url": { "type": "string", "description": "A real URL that was checked. Omit rather than guess." },
+          "reachable_at": { "type": "string", "description": "Used when there is no single URL: a searchable description of where to find it" },
+          "verified": { "type": "string", "enum": ["confirmed", "unconfirmed"] },
+          "verified_how": { "type": "string", "description": "What was checked and against what" },
+          "unconfirmed_detail": { "type": "string", "description": "REQUIRED when verified is unconfirmed: exactly what could not be confirmed and what to check" },
+          "paired_with": { "type": "string", "description": "REQUIRED when access_tier is T4: a free route to the same argument" },
+          "complexity": { "type": "string", "description": "Primary complexity challenge" },
+          "time_estimate": { "type": "integer", "description": "Minutes" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "verified": { "const": "unconfirmed" } }, "required": ["verified"] },
+            "then": { "required": ["unconfirmed_detail"] }
+          },
+          {
+            "if": { "properties": { "access_tier": { "const": "T4" } }, "required": ["access_tier"] },
+            "then": { "required": ["paired_with"] }
+          }
+        ]
+      }
+    },
+    "teach_back": {
+      "type": "array",
+      "maxItems": 3,
+      "description": "Question text only. The telling/building signatures and follow-ups are adult-only and MUST NOT appear here.",
+      "items": {
+        "type": "object",
+        "required": ["id", "question", "anchors"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "question": { "type": "string", "description": "Askable cold by someone with zero subject knowledge" },
+          "anchors": { "type": "array", "items": { "type": "string" }, "description": "Which cards this question tests" }
+        }
+      }
+    }
+  }
+}

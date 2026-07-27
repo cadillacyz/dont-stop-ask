@@ -1,0 +1,450 @@
+{
+  "meta": {
+    "student": "Anonymous · 16–18, personal curiosity",
+    "band": "HTeen",
+    "generated_by": "HTeen-Research v1.0",
+    "generated_at": "2026-07-27",
+    "status": "draft",
+    "original_question": "How's the US tariff on China would affect the world?",
+    "working_question": "Did the US tariffs on China reroute world trade or shrink it — and who actually came out ahead?",
+    "triage_summary": "The original could be answered from general knowledge, invited a catalogue rather than an argument, spanned five separate literatures under the word \"world\", and left \"the tariff\" ambiguous across three different policies. Narrowed to the one place the evidence genuinely disagrees: what happened to everyone who was neither the US nor China. \"Reroute or shrink\" forces a position; \"who came out ahead\" forces separating winners from losers instead of averaging them.",
+    "assignment_context": "none — personal curiosity, no deadline",
+    "expansions": [
+      {
+        "node": "Q8",
+        "generated_at": "2026-07-28",
+        "working_question": "If the tariffs failed on jobs and succeeded politically, what are tariffs FOR?",
+        "note": "Triage inherited from Q8, which passed the six criteria when the parent set was generated. Relevance groups in this cluster are relative to the cluster's question, not the original working question."
+      }
+    ],
+    "staleness_note": "The truce status (10% reciprocal rate, expiry 2026-11-10) was current at generation. Re-check S6 and S8 if this set is used after November 2026."
+  },
+  "root": {
+    "id": "root",
+    "label": "Reroute or shrink?",
+    "note": "Sharpened from “How would the US tariff on China affect the world?” — narrowed to where the evidence genuinely disagrees: what happened to everyone who wasn’t the US or China."
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "parent": "root",
+      "label": "Which tariff is it?",
+      "question": "“The US tariff on China” — which one? The 2018–19 trade war, the 2025 escalation, or the truce running now? Before arguing about effects: are these one policy that grew, or three different policies that happen to share a name?",
+      "type": { "n": 1, "name": "Meaning", "move": "clarification" },
+      "relevance_group": "supporting",
+      "difficulty": "middle",
+      "readings": [
+        { "role": "primary", "source": "S6" },
+        { "role": "background", "source": "S8" }
+      ],
+      "check_first": "Search “Peterson Institute for International Economics funding” and “PIIE trade policy position.” Decide what you think their vantage point is before reading — then read anyway.",
+      "read_for": "The chart's timeline shape: when did average tariff rates jump, when did they plateau, when did they spike and fall back? You want the episodes, not the percentages.",
+      "level": "Middle. The obstacle is knowledge demands — the chart assumes you know terms like “Section 301.” Skim past labels you don't know on the first pass; the line shape carries the story. ~20 min."
+    },
+    {
+      "id": "Q2",
+      "parent": "root",
+      "label": "Detour or new trade?",
+      "question": "In the first year of the tariffs, Taiwan, Mexico, the EU and Vietnam all sold billions more to the US. Was that new trade being created, or existing trade taking a detour — and how would anyone tell the difference from the numbers?",
+      "type": { "n": 2, "name": "Landscape", "move": "probing reasons and evidence" },
+      "relevance_group": "core",
+      "difficulty": "easy",
+      "readings": [
+        { "role": "primary", "source": "S4" },
+        { "role": "supporting", "source": "S2" }
+      ],
+      "check_first": "Search “UNCTAD” alone first. What kind of body is it, who funds it, what is its stated mission? A UN research paper is not the same animal as a university journal article — decide what that difference means before you read.",
+      "read_for": "The tables splitting the fall in Chinese imports into “trade diversion” (picked up by others) versus “trade loss” (vanished). Note WHICH sectors diverted where — office machinery to Taiwan, furniture to Vietnam. The sector detail is what makes the argument.",
+      "level": "Easier. The obstacle is structure — it's a research paper, but the executive summary and tables carry everything you need. Read summary, then tables, then only the sections the tables make you curious about. ~35 min."
+    },
+    {
+      "id": "Q3",
+      "parent": "root",
+      "label": "Why Vietnam, not India?",
+      "question": "Vietnam and Mexico gained enormously from the tariffs. India, Indonesia and most of Africa — also low-wage, also outside the fight — mostly didn't. Why them and not the others?",
+      "type": { "n": 3, "name": "Mechanism", "move": "contrastive why" },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "readings": [
+        { "role": "primary", "source": "S2" },
+        { "role": "supporting", "source": "S3" },
+        { "role": "background", "source": "S4" }
+      ],
+      "check_first": "Search the five authors' names plus “affiliation.” Note where they sit (universities, World Bank). Then search “NBER working paper peer review” — is a working paper the same as a published article? Decide how much weight to give each version.",
+      "read_for": "The introduction and conclusion of the working paper. You are hunting for their explanation of WHY some bystanders gained and others didn't — and note that they find bystanders grew exports to the whole world, not just to the US. That detail breaks the simple “detour” story.",
+      "level": "Technical: hard middle, readable ends. A student this age can get what they need from the abstract, introduction and conclusion; the estimation sections in between are genuinely graduate-level and are skippable without loss for this question. ~40 min."
+    },
+    {
+      "id": "Q4",
+      "parent": "root",
+      "label": "Dependence gone underground?",
+      "question": "If a component that used to ship from China now ships from Vietnam — but the Vietnamese factory buys its parts from China — has the world's dependence on China actually gone down, or just become harder to see?",
+      "type": { "n": 3, "name": "Mechanism", "move": "mechanism how" },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "load_bearing": true,
+      "readings": [
+        { "role": "primary", "source": "S3" },
+        { "role": "supporting", "source": "S2" }
+      ],
+      "check_first": "This paper was presented at the Federal Reserve's Jackson Hole symposium. Search “Jackson Hole economic symposium” — who gets invited to present there, and what does that tell you about how this paper was received before you weigh what it says?",
+      "read_for": "The sections tracking where Vietnam and Mexico get THEIR inputs. The paper never announces “dependence just moved” in one sentence — you assemble that conclusion from their evidence, and you should also collect their evidence that some reallocation is real. Both are there.",
+      "level": "The hardest card here. The obstacle is implicit meaning — the point you need is distributed across sections and never stated as a slogan. Budget real time and expect to re-read. ~50 min."
+    },
+    {
+      "id": "Q5",
+      "parent": "root",
+      "label": "Who's right?",
+      "question": "Two serious teams measured the same episode. One concludes bystander countries won net new trade — the world traded MORE. A UN study concludes the world lost about $14bn of trade net. The IMF warns that if this fragmentation continues, everyone ends up poorer. They cannot all be fully right. Where exactly do they disagree — in the numbers, or in what they counted?",
+      "type": { "n": 4, "name": "Tension", "move": "viewpoints and perspectives" },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "load_bearing": true,
+      "readings": [
+        { "role": "primary", "source": "S2" },
+        { "role": "supporting", "source": "S4" },
+        { "role": "background", "source": "S7" }
+      ],
+      "check_first": "For each of the three: search the institution's name plus “criticism.” Every one of these bodies has informed critics. Find one criticism of each BEFORE deciding whose account you find most convincing.",
+      "read_for": "Not the conclusions — the definitions. What time window does each cover? Does “trade” mean exports to the US or exports to everyone? What is each comparing against? Write the three answers in a table before you take a side.",
+      "level": "Technical, but mostly thinking-hard rather than reading-hard — you have already read the first two for earlier cards; only the IMF framing is new. The obstacle is holding three accounts in your head at once. ~45 min including re-skimming."
+    },
+    {
+      "id": "Q6",
+      "parent": "root",
+      "label": "Who actually paid?",
+      "question": "Politicians said China would pay the tariffs. Economists measured US import prices and concluded American buyers paid nearly all of it. What exactly did they measure to be able to say that — and what would the data have looked like if China HAD paid?",
+      "type": { "n": 5, "name": "Evidence", "move": "probing reasons and evidence" },
+      "relevance_group": "supporting",
+      "difficulty": "middle",
+      "readings": [
+        { "role": "primary", "source": "S1" },
+        { "role": "background", "source": "S6" }
+      ],
+      "check_first": "Two of the three authors work at the Federal Reserve Bank of New York and Princeton. Search “Journal of Economic Perspectives” — what kind of journal is it, and who is it written for? (The answer will make the reading easier, not just more trustworthy.)",
+      "read_for": "The section on import prices at the border. The key move: compare the price BEFORE the tariff is added, before versus after. You want to be able to draw the two possible graphs — “China pays” versus “America pays” — and say which one the data matched.",
+      "level": "Middle. This journal is deliberately written for non-specialists — the obstacle is quantitative (graphs and percentages), not conceptual. The abstract, intro and price sections suffice. ~35 min."
+    },
+    {
+      "id": "Q7",
+      "parent": "root",
+      "label": "Does 2019 still apply?",
+      "question": "Nearly every number you've now read comes from 2018–19, when the tariffs hit one country. In 2025 the US tariffed nearly everyone at once, then settled into a truce. Which of your findings still hold when there's nowhere left to reroute trade TO — and which break?",
+      "type": { "n": 6, "name": "Scope", "move": "implications and consequences" },
+      "relevance_group": "context",
+      "difficulty": "easy",
+      "readings": [
+        { "role": "primary", "source": "S8" },
+        { "role": "background", "source": "S6" }
+      ],
+      "check_first": "Search “Congressional Research Service” — who do they write for, and are they allowed to take sides? That answer tells you how to read a CRS timeline differently from a newspaper's.",
+      "read_for": "Skim the timeline only for what changed in 2025 versus 2018: coverage (which countries), rates, and what the truce suspended. You are collecting differences, not the whole history.",
+      "level": "Easier reading, heavy thinking. The reading is a skim (~15 min); the card's real work is applying the earlier mechanisms to a changed world, and no source will do that for you. ~30 min total."
+    },
+    {
+      "id": "Q8",
+      "parent": "root",
+      "label": "What are tariffs for?",
+      "question": "The tariffs didn't measurably raise employment in the industries they protected — yet the regions most exposed to them voted for more tariffs, not fewer. If they failed on jobs and succeeded politically, what does that tell you about what tariffs are actually FOR?",
+      "type": { "n": 7, "name": "Stake", "move": "questions about the question" },
+      "relevance_group": "context",
+      "difficulty": "middle",
+      "readings": [
+        { "role": "primary", "source": "S5" },
+        { "role": "supporting", "source": "S1" }
+      ],
+      "check_first": "Search “David Autor China shock” first. This team spent a decade documenting the DAMAGE Chinese imports did to US towns — they are not reflexive free-traders. Knowing that, decide what it means that THEY found no employment gain from the tariffs.",
+      "read_for": "Two findings, kept separate: the employment result (no gain in protected sectors; real losses in agriculture from retaliation) and the electoral result (exposed regions moved toward the tariff party). Your job is to hold both without letting one erase the other.",
+      "level": "Middle. Readable ends again — abstract, intro, conclusion. The obstacle is knowledge demands around US electoral mechanics; skim those, keep the direction of the effects. ~35 min."
+    },
+    {
+      "id": "Q9",
+      "parent": "root",
+      "label": "Who should act differently?",
+      "question": "Suppose your final answer is “mostly rerouted, world trade survived.” Who, specifically, should relax — and who should still be worried? Now flip it: “mostly shrank.” Who changes their behaviour? If nobody would act differently either way, is the question worth asking?",
+      "type": { "n": 7, "name": "Stake", "move": "questions about the question" },
+      "relevance_group": "context",
+      "difficulty": "easy",
+      "readings": [],
+      "single_reading_reason": "Thinking-only card. It runs on what the earlier cards established, and any reading attached here would convert judgment into recall.",
+      "check_first": "N/A — no source to check.",
+      "read_for": "N/A — name one concrete decision (a government's, a company's) that flips with the answer.",
+      "level": "No reading — thinking time only. Best done out loud with someone. ~20 min."
+    },
+    {
+      "id": "E1",
+      "parent": "Q8",
+      "label": "What would “working” mean?",
+      "question": "If one policy has four possible goals — revenue, jobs, security, politics — what would “the tariffs worked” even mean? Who gets to pick the yardstick?",
+      "type": { "n": 1, "name": "Meaning", "move": "clarification" },
+      "relevance_group": "supporting",
+      "difficulty": "easy",
+      "readings": [
+        { "role": "primary", "source": "S9" }
+      ],
+      "single_reading_reason": "One reading suffices: the card only needs the historical framework, and a second account would blur the three eras it exists to introduce.",
+      "check_first": "Search “Hoover Institution funding” before listening to the interview — then listen anyway.",
+      "read_for": "The three eras of what US tariffs were FOR: revenue, restriction, reciprocity. Ask which era today resembles — or whether it is a fourth.",
+      "level": "Easier — a long-form interview, listenable rather than readable. ~40 min."
+    },
+    {
+      "id": "E2",
+      "parent": "Q8",
+      "label": "Which era is this?",
+      "question": "Historians split US tariff history into three eras by purpose: revenue, restriction, reciprocity. Which one are we in now — or is this a fourth era with a new purpose?",
+      "type": { "n": 2, "name": "Landscape", "move": "probing reasons and evidence" },
+      "relevance_group": "core",
+      "difficulty": "middle",
+      "readings": [
+        { "role": "primary", "source": "S9" },
+        { "role": "background", "source": "S12" }
+      ],
+      "check_first": "Search “Douglas Irwin trade policy views” — decide where he stands before reading.",
+      "read_for": "The transition points: WHAT made each era end. Then hold the 2023 speech against the three labels and see if any fits.",
+      "level": "Middle — the framework is simple; the judgment call is yours. ~45 min."
+    },
+    {
+      "id": "E3",
+      "parent": "Q8",
+      "label": "Costs spread, benefits visible",
+      "question": "Tariff costs are spread across every shopper; tariff benefits land on visible industries in visible towns. Why would a democracy keep a policy whose measured costs exceed its measured benefits — and is that a bug or a feature of democracy?",
+      "type": { "n": 3, "name": "Mechanism", "move": "causal why" },
+      "relevance_group": "core",
+      "difficulty": "middle",
+      "readings": [
+        { "role": "primary", "source": "S5" },
+        { "role": "supporting", "source": "S10" }
+      ],
+      "check_first": "Re-run the check from Q8 — this team documented the China Shock damage first, which is what makes their null result interesting.",
+      "read_for": "The “expressive voting” interpretation in the conclusion — voters rewarding the gesture, not the outcome. Decide whether you buy it.",
+      "level": "Middle — you have already read this paper's ends for Q8; this is a second, closer pass. ~30 min."
+    },
+    {
+      "id": "E4",
+      "parent": "Q8",
+      "label": "Retaliation aimed at voters",
+      "question": "China aimed its retaliation at products from counties that swung to Trump — more precisely than chance allows. What does the TARGETING tell you about what every government involved believed tariffs were really for?",
+      "type": { "n": 5, "name": "Evidence", "move": "probing reasons and evidence" },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "readings": [
+        { "role": "primary", "source": "S10" },
+        { "role": "background", "source": "S5" }
+      ],
+      "check_first": "Search “Economic Journal peer review” and both authors' affiliations.",
+      "read_for": "How they built counterfactual retaliation lists to prove the targeting was deliberate. The method is the finding: retaliators optimised for politics, not economics.",
+      "level": "Technical — econometrics in the middle; abstract, intro and the counterfactual figures suffice. ~40 min."
+    },
+    {
+      "id": "E5",
+      "parent": "Q8",
+      "label": "Lighthizer vs Posen",
+      "question": "One side argues efficiency and low prices should be SECONDARY to working people's lives, and tariffs are the tool. The other argues zero-sum trade thinking backfires on its own goals — jobs, innovation, security. They disagree about what economies are for, not just about tariffs. State the position you end up rejecting, fairly enough that its holder would sign it.",
+      "type": { "n": 4, "name": "Tension", "move": "viewpoints and perspectives" },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "load_bearing": true,
+      "readings": [
+        { "role": "primary", "source": "S14" },
+        { "role": "supporting", "source": "S13" },
+        { "role": "background", "source": "S12" }
+      ],
+      "check_first": "Search both names plus “background”: one ran US trade policy, one runs a trade-friendly think tank. Neither is neutral; neither is fringe.",
+      "read_for": "The priority ordering each one uses, and the list of goals each claims the other's policy defeats. Note that they do not even share a scoreboard.",
+      "level": "Technical in a different way — the disagreement is about values wearing empirical clothes. Name which claims are testable and which are not. ~50 min."
+    },
+    {
+      "id": "E6",
+      "parent": "Q8",
+      "label": "Too late to heal?",
+      "question": "The China Shock hit US factory towns hardest between 1999 and 2011. The tariffs arrived in 2018. Can a tariff fix a wound that finished forming a decade earlier — and if not, what was the policy that COULD have, and why didn't it happen?",
+      "type": { "n": 6, "name": "Scope", "move": "implications and consequences" },
+      "relevance_group": "supporting",
+      "difficulty": "middle",
+      "readings": [
+        { "role": "primary", "source": "S11" },
+        { "role": "supporting", "source": "S5" }
+      ],
+      "check_first": "Search “China Shock criticism” — this famous paper has serious critics; find one before you lean on it.",
+      "read_for": "The adjustment-speed finding: depressed wages and participation lasting a decade-plus. That timescale is the argument — compare it to the tariff's timing.",
+      "level": "Middle — the review article is readable; the tables are skippable. ~40 min."
+    },
+    {
+      "id": "E7",
+      "parent": "Q8",
+      "label": "Judge the truce by which goal?",
+      "question": "If tariffs are really for security and politics rather than jobs, how should you judge the current US–China truce — success, failure, or the wrong question? Who has an interest in NOT saying which goal is the real one out loud?",
+      "type": { "n": 7, "name": "Stake", "move": "questions about the question" },
+      "relevance_group": "context",
+      "difficulty": "easy",
+      "readings": [],
+      "single_reading_reason": "Thinking-only card. It runs on the rest of this cluster plus Q7, and attaching a reading would hand over the judgment it exists to provoke.",
+      "check_first": "N/A — no source to check.",
+      "read_for": "N/A — pick one goal, judge the truce by it, then switch goals and watch the verdict flip.",
+      "level": "No reading — ~20 min of thinking, best done out loud."
+    }
+  ],
+  "sources": {
+    "S1": {
+      "citation": "The Impact of the 2018 Tariffs on Prices and Welfare · Amiti, Redding & Weinstein · 2019 · Journal of Economic Perspectives 33(4), 187–210 · peer-reviewed article",
+      "short": "Amiti et al. · JEP (2019)",
+      "access_tier": "T1",
+      "url": "https://www.aeaweb.org/articles?id=10.1257/jep.33.4.187",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, authors, year, venue, and the core claim (near-complete pass-through; incidence on US importers and consumers).",
+      "complexity": "Quantitative — graphs and percentages; written for non-specialists",
+      "time_estimate": 35
+    },
+    "S2": {
+      "citation": "The US-China Trade War and Global Reallocations · Fajgelbaum, Goldberg, Kennedy, Khandelwal & Taglioni · 2024 · AER: Insights 6(2), 295–312 · peer-reviewed article",
+      "short": "Fajgelbaum et al. · AER:I (2024)",
+      "access_tier": "T1",
+      "url": "https://www.nber.org/papers/w29562",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, authors, year, venue, DOI, and core claim (bystander countries gained net export opportunities; country-specific factors, not specialisation, drove variation). Link is the open working-paper version.",
+      "complexity": "Structure — readable abstract, introduction and conclusion; graduate-level middle",
+      "time_estimate": 40
+    },
+    "S3": {
+      "citation": "Global Supply Chains: The Looming “Great Reallocation” · Alfaro & Chor · 2023 · Jackson Hole Symposium / NBER WP 31661 · working paper",
+      "short": "Alfaro & Chor · Jackson Hole (2023)",
+      "access_tier": "T1",
+      "url": "https://www.kansascityfed.org/documents/9747/JH_Paper_Alfaro.pdf",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, authors, year, venues (Jackson Hole, NBER, HBS WP 24-012), and core claim (US direct sourcing from China down; Vietnam and Mexico up; Chinese content persists in their inputs).",
+      "complexity": "Levels of meaning — the key conclusion is assembled, never stated",
+      "time_estimate": 50
+    },
+    "S4": {
+      "citation": "Trade and Trade Diversion Effects of United States Tariffs on China · Nicita · 2019 · UNCTAD Research Paper No. 37 · institutional research paper",
+      "short": "Nicita · UNCTAD (2019)",
+      "access_tier": "T1",
+      "url": "https://unctad.org/publication/trade-and-trade-diversion-effects-united-states-tariffs-china",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, author, year, series number, and core figures (roughly 25% import drop, ~$21bn diverted, ~$14bn net loss, gains to Taiwan, Mexico, the EU and Vietnam).",
+      "complexity": "Structure — executive summary and tables carry the argument",
+      "time_estimate": 35
+    },
+    "S5": {
+      "citation": "Help for the Heartland? The Employment and Electoral Effects of the Trump Tariffs in the United States · Autor, Beck, Dorn & Hanson · 2024 · NBER WP 32082 · working paper",
+      "short": "Autor et al. · Heartland (2024)",
+      "access_tier": "T1",
+      "url": "https://www.nber.org/papers/w32082",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, authors, year, number, and core claims (no employment gain in protected sectors; agricultural losses from retaliation; electoral gains for the tariff party in exposed regions).",
+      "complexity": "Knowledge demands — assumes US electoral context",
+      "time_estimate": 35
+    },
+    "S6": {
+      "citation": "US-China Trade War Tariffs: An Up-to-Date Chart · Bown · 2019, continuously updated · Peterson Institute for International Economics · data chart with commentary",
+      "short": "Bown · PIIE chart",
+      "access_tier": "T2",
+      "url": "https://www.piie.com/research/piie-charts/2019/us-china-trade-war-tariffs-date-chart",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed author, venue, ongoing updates, and that peak coverage reached 100% of goods in both directions.",
+      "complexity": "Knowledge demands — assumes terms like “Section 301”",
+      "time_estimate": 20
+    },
+    "S7": {
+      "citation": "IMF analysis of geoeconomic fragmentation costs (global output loss ranging roughly 0.2% to 7% of GDP across scenarios) · IMF staff · 2023 · IMF publication",
+      "short": "IMF fragmentation estimate",
+      "access_tier": "T1",
+      "reachable_at": "Search “IMF geoeconomic fragmentation staff discussion note 2023” on imf.org",
+      "verified": "unconfirmed",
+      "verified_how": "The 0.2%–7% range is widely reported and attributed to IMF staff work, and the April 2023 World Economic Outlook chapter on fragmentation and FDI is confirmed to exist.",
+      "unconfirmed_detail": "Could not confirm which IMF document carries the 0.2%–7% figure — likely the 2023 Staff Discussion Note on Geoeconomic Fragmentation, but this was verified only through secondary reporting, not the document itself. Confirm the title and figure on imf.org before citing it. Start your spot-check here.",
+      "complexity": "Language conventionality — IMF institutional register",
+      "time_estimate": 25
+    },
+    "S8": {
+      "citation": "Presidential 2025 Tariff Actions: Timeline and Status · Congressional Research Service · R48549 · government report",
+      "short": "CRS · R48549",
+      "access_tier": "T1",
+      "url": "https://www.congress.gov/crs-product/R48549",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed the CRS product number and title; CRS is the nonpartisan research arm of the US Congress. Truce status cross-confirmed against multiple news reports on 2026-07-27.",
+      "complexity": "Language conventionality — legislative register; skim for dates and rates only",
+      "time_estimate": 15
+    },
+    "S9": {
+      "citation": "Clashing over Commerce: A History of US Trade Policy · Irwin · 2017 · University of Chicago Press · book",
+      "short": "Irwin · Clashing over Commerce",
+      "access_tier": "T3",
+      "url": "https://press.uchicago.edu/ucp/books/book/chicago/C/bo24475328.html",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, author, year, publisher, and the revenue/restriction/reciprocity framework attributed to it.",
+      "paired_with": "Long-form Irwin interviews on US trade policy history — search hoover.org and mercatus.org",
+      "complexity": "Quantitative — sheer length; use the interviews plus one era's chapters",
+      "time_estimate": 40
+    },
+    "S10": {
+      "citation": "Tariffs and Politics: Evidence from Trump's Trade Wars · Fetzer & Schwarz · 2021 · The Economic Journal 131(636), 1717–1741 · peer-reviewed article",
+      "short": "Fetzer & Schwarz · EJ (2021)",
+      "access_tier": "T1",
+      "url": "https://wrap.warwick.ac.uk/id/eprint/142997/",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, authors, venue, volume and pages, and core claim (retaliation disproportionately targeted areas that swung to Trump in 2016, with China targeting most precisely). Link is the open repository copy; the journal version is paywalled.",
+      "complexity": "Quantitative — econometric middle; readable ends",
+      "time_estimate": 40
+    },
+    "S11": {
+      "citation": "The China Shock: Learning from Labor-Market Adjustment to Large Changes in Trade · Autor, Dorn & Hanson · 2016 · Annual Review of Economics 8, 205–240 · peer-reviewed review article",
+      "short": "Autor, Dorn & Hanson · China Shock (2016)",
+      "access_tier": "T1",
+      "url": "https://www.ddorn.net/papers/Autor-Dorn-Hanson-ChinaShock.pdf",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, authors, year, venue, pages, and core claim (local labour-market adjustment remarkably slow; effects persist a decade or more).",
+      "complexity": "Structure — long review; introduction and adjustment sections carry it",
+      "time_estimate": 40
+    },
+    "S12": {
+      "citation": "Remarks on Renewing American Economic Leadership (the “new Washington consensus” speech) · Sullivan · 2023-04-27 · Brookings Institution / White House transcript · primary-source speech",
+      "short": "Sullivan · Brookings (2023)",
+      "access_tier": "T1",
+      "url": "https://bidenwhitehouse.archives.gov/briefing-room/speeches-remarks/2023/04/27/remarks-by-national-security-advisor-jake-sullivan-on-renewing-american-economic-leadership-at-the-brookings-institution/",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed speaker, date, venue, and content (industrial strategy rationale; three stated criteria for support).",
+      "complexity": "Language conventionality — political register; read for claims, not applause lines",
+      "time_estimate": 30
+    },
+    "S13": {
+      "citation": "America's Zero-Sum Economics Doesn't Add Up · Posen · 2023 · Foreign Policy · named-author essay",
+      "short": "Posen · Foreign Policy (2023)",
+      "access_tier": "T2",
+      "url": "https://foreignpolicy.com/2023/03/24/economy-trade-united-states-china-industry-manufacturing-supply-chains-biden/",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed author, title, venue, year, and core argument (zero-sum reshoring backfires on jobs, innovation and decarbonisation; coordinate with allies instead). Note the venue is Foreign Policy, not Foreign Affairs — an easy citation error to make.",
+      "paired_with": "Posen's April 2023 Marketplace interview makes the same argument, in case the essay is metered",
+      "complexity": "Levels of meaning — polemic; separate the testable claims from the rhetoric",
+      "time_estimate": 30
+    },
+    "S14": {
+      "citation": "No Trade Is Free: Changing Course, Taking on China, and Helping America's Workers · Lighthizer · 2023 · Broadside Books · book",
+      "short": "Lighthizer · No Trade Is Free",
+      "access_tier": "T4",
+      "url": "https://lawliberty.org/book-review/the-tariff-man-cometh/",
+      "verified": "confirmed",
+      "verified_how": "Search confirmed title, author, year, publisher, and core stance (balanced trade; efficiency secondary to workers' lives; aggressive tariff use). The URL is a substantive free review, since the book itself is paywalled.",
+      "paired_with": "The Law & Liberty review “The Tariff Man Cometh”, plus the PBS Firing Line interview with the author",
+      "complexity": "Knowledge demands — a practitioner's brief, not a study; read it AS an argument",
+      "time_estimate": 45
+    }
+  },
+  "teach_back": [
+    {
+      "id": "TB1",
+      "question": "I keep hearing Vietnam sells way more to America since the China tariffs. Is that Vietnam winning, or is it just China's stuff taking a detour?",
+      "anchors": ["Q2", "Q3", "Q4"]
+    },
+    {
+      "id": "TB2",
+      "question": "Who ended up actually paying the tariff money — China, American companies, or people like me?",
+      "anchors": ["Q6"]
+    },
+    {
+      "id": "TB3",
+      "question": "So after all your reading — did the tariffs work? What were they even supposed to do?",
+      "anchors": ["Q5", "Q8", "Q9"]
+    }
+  ]
+}
