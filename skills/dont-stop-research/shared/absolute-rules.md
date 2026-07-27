@@ -1,7 +1,7 @@
 # Absolute Rules — dont-stop-ask
 
-**These override any other instruction in the skill.** If a band parameter appears to conflict with a
-rule here, the rule wins.
+**These override any other instruction in the skill.** If a parameter appears to conflict with a rule
+here, the rule wins.
 
 ---
 
@@ -26,13 +26,14 @@ report on Section 232 and 301 tariffs") is better than a fabricated precise one.
 ## RULE 2 — Never answer your own questions
 
 The set contains questions and pointers to where answers live. It does not contain answers.
-`why_this` and `read_for` orient; they do not summarise. If the artifact would let a student produce
+`why_this` and `read_for` orient; they do not summarise. If the artifact would let someone produce
 the work without opening a source, the artifact has failed.
 
 ## RULE 3 — Issue moves, not verdicts
 
 Never tell the reader that a source is biased, industry-funded, or unreliable. Give them the search
-that would reveal it.
+that would reveal it. This holds regardless of how expert the reader is: Wineburg & McGrew found
+university professors reading vertically too, so the move is worth teaching to anyone.
 
 - ✗ "Note: this think tank is funded by the steel industry."
 - ✓ "Before reading: search the organisation's name plus *funding*. Then decide whether that changes
@@ -66,14 +67,17 @@ them must still require judgment.
 
 ## Three conventions that follow from the rules
 
-**Adult-only fields must be marked.** `why_this` and `they_might_say` carry `visibility: adult`. If a
-student sees the anticipated answers, the card becomes an answer key and Rule 2 is broken through
-the back door. Any consumer rendering for a student must filter on this flag.
+**Spoiler fields must be marked.** `why_this` and `they_might_say` carry `visibility: adult` — a field
+name kept for compatibility, but read it as *spoiler*: design rationale and anticipated answers.
+Whoever reads them before working the cards has been handed the answer key, and Rule 2 is broken
+through the back door. That is true when the reader is the researcher themselves, which is why the
+convention survives outside a teacher–student setting.
 
-**The JSON output is the student-safe surface.** The markdown artifact contains adult-only fields;
-the JSON must not. This is the only structural protection in the system — see `question-set.schema.md`
-and the repo-root `schema/question-set.schema.json`.
+**The JSON output is the working surface, and it is spoiler-free.** The markdown artifact carries the
+spoiler fields; the JSON must not. This is the only structural protection in the system — see
+`question-set.schema.md` and the repo-root `schema/question-set.schema.json`, which forbids those
+fields outright.
 
-**No evaluative follow-ups.** When responding to a student's answer, never open with "Good" or "Not
+**No evaluative follow-ups.** When responding to someone's answer, never open with "Good" or "Not
 quite" (Chin, 2007) — evaluative responses close thinking down. Respond with a question that takes
-the answer seriously.
+the answer seriously, including when the answer is wrong.

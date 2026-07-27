@@ -1,8 +1,9 @@
 /* dont-stop-ask · 不停问 — question graph viewer
-   Renders a question set emitted by the HTeen-Research skill.
-   Reads visibility:both fields only; the schema forbids adult-only fields in this file. */
+   Renders a question set emitted by the dont-stop-research skill.
+   Reads visibility:both fields only; the schema forbids spoiler fields in this file. */
 
-const DEFAULT_DATA = '../examples/us-china-tariffs/question-set.json';
+const EXAMPLE_DATA = '../examples/us-china-tariffs/question-set.json';
+const SKILL = '/dont-stop-research';
 
 const COLOR = {
   easy: '#6fd48a',
@@ -19,7 +20,7 @@ const el = {
   panel: document.getElementById('panel'),
   meta: document.getElementById('meta'),
   banner: document.getElementById('banner'),
-  dropzone: document.getElementById('dropzone'),
+  ask: document.getElementById('ask'),
   file: document.getElementById('file')
 };
 
@@ -38,15 +39,24 @@ function banner(msg, isError) {
   el.banner.classList.toggle('err', !!isError);
 }
 
-function dataUrl() {
-  const q = new URLSearchParams(location.search).get('data');
-  return q || DEFAULT_DATA;
+function dataParam() {
+  return new URLSearchParams(location.search).get('data');
 }
 
 async function loadFromUrl(url) {
   const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.json();
+}
+
+function readFile(f) {
+  lastSource = { kind: 'file', value: f };
+  const r = new FileReader();
+  r.onload = () => {
+    try { accept(JSON.parse(r.result)); }
+    catch (err) { banner(`That file is not valid JSON — ${err.message}`, true); }
+  };
+  r.readAsText(f);
 }
 
 function validate(d) {
@@ -57,7 +67,7 @@ function validate(d) {
   if (!d.sources) problems.push('missing sources');
   const leaked = ['why_this', 'they_might_say', 'if_stuck'];
   (d.questions || []).forEach(q => {
-    leaked.forEach(k => { if (k in q) problems.push(`${q.id} contains adult-only field "${k}"`); });
+    leaked.forEach(k => { if (k in q) problems.push(`${q.id} contains spoiler field "${k}"`); });
     (q.readings || []).forEach(r => {
       if (!d.sources || !d.sources[r.source]) problems.push(`${q.id} cites unknown source ${r.source}`);
     });
@@ -65,15 +75,27 @@ function validate(d) {
   return problems;
 }
 
+/* No ?data= means nobody has asked anything yet: show the ask state rather than
+   loading the example over the top of it. */
 async function boot() {
-  lastSource = { kind: 'url', value: dataUrl() };
-  try {
-    const d = await loadFromUrl(lastSource.value);
-    accept(d);
-  } catch (err) {
-    el.dropzone.hidden = false;
-    banner(`Could not load ${lastSource.value} — ${err.message}. Open a file instead.`, true);
+  const param = dataParam();
+  if (!param) {
+    showAsk();
+    return;
   }
+  lastSource = { kind: 'url', value: param };
+  try {
+    accept(await loadFromUrl(param));
+  } catch (err) {
+    showAsk();
+    banner(`Could not load ${param} — ${err.message}. Open a file instead.`, true);
+  }
+}
+
+function showAsk() {
+  el.ask.hidden = false;
+  el.meta.innerHTML = '';
+  resetPanel();
 }
 
 function accept(d) {
@@ -85,7 +107,7 @@ function accept(d) {
     banner(null);
   }
   DATA = d;
-  el.dropzone.hidden = true;
+  el.ask.hidden = true;
   renderMeta();
   render();
   resetPanel();
@@ -93,7 +115,9 @@ function accept(d) {
 
 function resetPanel() {
   selectedId = null;
-  el.panel.innerHTML = '<p class="muted">Click a question dot to see its readings and how to work it.</p>';
+  el.panel.innerHTML = DATA
+    ? '<p class="muted">Click a question to see its readings and how to work it.</p>'
+    : '<p class="muted">Nothing loaded yet. Ask a question, or open a set you already have.</p>';
 }
 
 /* ---------- meta ---------- */
@@ -104,13 +128,14 @@ function renderMeta() {
   const bits = [];
   if (m.status) bits.push(`<span class="pill ${draft ? 'draft' : ''}">${esc(m.status)}</span>`);
   if (m.generated_at) bits.push(`<span class="pill">${esc(m.generated_at)}</span>`);
+  if (m.mode) bits.push(`<span class="pill">${esc(m.mode)}</span>`);
   const nExp = (m.expansions || []).length;
   if (nExp) bits.push(`<span class="pill">${nExp} expansion${nExp > 1 ? 's' : ''}</span>`);
 
   el.meta.innerHTML =
     `<h1>${esc(m.working_question || '(no working question)')}</h1>` +
     `<p>${bits.join(' ')}</p>` +
-    (draft ? '<p class="muted" style="margin-top:8px">Not yet reviewed by an adult.</p>' : '');
+    (draft ? '<p class="muted" style="margin-top:8px">Nobody has looked this set over yet.</p>' : '');
 }
 
 /* ---------- graph ---------- */
@@ -168,7 +193,7 @@ function anchors(nodes, W, H) {
   const parents = [...new Set(nodes.filter(n => n.kind === 'question').map(n => n.q.parent))];
   const map = {};
   const cx = W / 2, cy = H / 2;
-  const spread = Math.min(W, H) * 0.29;
+  const spread = Math.min(W, H) * 0.36;
   parents.forEach((p, i) => {
     const base = parents.length === 1 ? 0 : (-Math.PI / 2) + (i * 2 * Math.PI / parents.length);
     const px = parents.length === 1 ? cx : cx + Math.cos(base) * spread * 0.95;
@@ -199,12 +224,13 @@ function render() {
   const anchorOf = n => (n.kind === 'question' ? A[`${n.q.parent}|${n.q.relevance_group}`] : null);
 
   sim = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d => d.id).distance(l => (l.strong ? 64 : 92)).strength(0.5))
-    .force('charge', d3.forceManyBody().strength(-150))
-    .force('center', d3.forceCenter(W / 2, H / 2))
-    .force('collide', d3.forceCollide().radius(d => d.r + 13))
-    .force('x', d3.forceX(d => (anchorOf(d) || { x: W / 2 }).x).strength(d => (anchorOf(d) ? 0.13 : 0.02)))
-    .force('y', d3.forceY(d => (anchorOf(d) || { y: H / 2 }).y).strength(d => (anchorOf(d) ? 0.13 : 0.02)));
+    .force('link', d3.forceLink(links).id(d => d.id).distance(l => (l.strong ? 88 : 124)).strength(0.45))
+    .force('charge', d3.forceManyBody().strength(-420).distanceMax(Math.min(W, H) * 0.8))
+    .force('center', d3.forceCenter(W / 2, H / 2).strength(0.06))
+    /* Collide radius covers the label sitting above each dot, not just the dot. */
+    .force('collide', d3.forceCollide().radius(d => (d.kind === 'source' ? d.r + 16 : d.r + 30)))
+    .force('x', d3.forceX(d => (anchorOf(d) || { x: W / 2 }).x).strength(d => (anchorOf(d) ? 0.11 : 0.015)))
+    .force('y', d3.forceY(d => (anchorOf(d) || { y: H / 2 }).y).strength(d => (anchorOf(d) ? 0.11 : 0.015)));
 
   const edge = g.append('g').selectAll('path').data(links).join('path')
     .attr('class', l => 'edge' + (l.strong ? '' : ' weak'));
@@ -300,9 +326,11 @@ function wireExpand() {
   const b = document.getElementById('expand');
   if (!b) return;
   b.addEventListener('click', async () => {
-    const url = new URLSearchParams(location.search).get('data') || DEFAULT_DATA;
+    const url = dataParam() || (lastSource && lastSource.kind === 'file'
+      ? `./${lastSource.value.name}`
+      : EXAMPLE_DATA);
     const prompt =
-      `/HTeen-Research expand_from: ${url}#${b.dataset.node}\n\n` +
+      `${SKILL} expand_from: ${url}#${b.dataset.node}\n\n` +
       `Expand this node: "${b.dataset.q}"\n` +
       `Generate up to nine verified follow-up questions (fewer if any would be padding), each with ` +
       `one to three ranked readings, grouped by relevance to this node's question. Append the ` +
@@ -382,16 +410,54 @@ function showSource(sid) {
 
 /* ---------- controls ---------- */
 
-el.file.addEventListener('change', e => {
-  const f = e.target.files && e.target.files[0];
-  if (!f) return;
-  lastSource = { kind: 'file', value: f };
-  const r = new FileReader();
-  r.onload = () => {
-    try { accept(JSON.parse(r.result)); }
-    catch (err) { banner(`That file is not valid JSON — ${err.message}`, true); }
-  };
-  r.readAsText(f);
+[el.file, document.getElementById('file2')].forEach(input => {
+  input.addEventListener('change', e => {
+    const f = e.target.files && e.target.files[0];
+    if (f) readFile(f);
+  });
+});
+
+async function flash(btn, msg, revert) {
+  const original = btn.textContent;
+  btn.textContent = msg;
+  setTimeout(() => { btn.textContent = revert || original; }, 2600);
+}
+
+async function copyCommand(btn) {
+  try {
+    await navigator.clipboard.writeText(`${SKILL} `);
+    flash(btn, 'Copied — paste into Claude Code');
+  } catch {
+    document.getElementById('askfoot').textContent =
+      `Copy blocked by the browser. The command is: ${SKILL} your question here`;
+  }
+}
+
+document.getElementById('copycmd').addEventListener('click', e => copyCommand(e.currentTarget));
+
+const qmark = document.getElementById('qmark');
+qmark.addEventListener('click', async () => {
+  qmark.classList.remove('wiggle');
+  void qmark.offsetWidth;
+  qmark.classList.add('wiggle');
+  try {
+    await navigator.clipboard.writeText(`${SKILL} `);
+    document.getElementById('askfoot').textContent =
+      'Command copied. Paste it into Claude Code, add your question, then drop the JSON here.';
+  } catch {
+    /* the visible command below is the fallback */
+  }
+});
+
+document.getElementById('demo').addEventListener('click', async e => {
+  try {
+    lastSource = { kind: 'url', value: EXAMPLE_DATA };
+    accept(await loadFromUrl(EXAMPLE_DATA));
+  } catch (err) {
+    flash(e.currentTarget, 'Needs a local server');
+    banner(`Could not load the example — ${err.message}. Serve the folder over HTTP ` +
+           `(python -m http.server) or open your own file.`, true);
+  }
 });
 
 document.getElementById('reload').addEventListener('click', async () => {
@@ -412,26 +478,20 @@ document.getElementById('fit').addEventListener('click', () => {
 ['dragenter', 'dragover'].forEach(t => {
   el.stage.addEventListener(t, e => {
     e.preventDefault();
-    el.dropzone.hidden = false;
-    el.dropzone.classList.add('over');
+    el.ask.hidden = false;
+    el.ask.classList.add('over');
   });
 });
 el.stage.addEventListener('dragleave', () => {
-  el.dropzone.classList.remove('over');
-  if (DATA) el.dropzone.hidden = true;
+  el.ask.classList.remove('over');
+  if (DATA) el.ask.hidden = true;
 });
 el.stage.addEventListener('drop', e => {
   e.preventDefault();
-  el.dropzone.classList.remove('over');
+  el.ask.classList.remove('over');
   const f = e.dataTransfer.files && e.dataTransfer.files[0];
-  if (!f) return;
-  lastSource = { kind: 'file', value: f };
-  const r = new FileReader();
-  r.onload = () => {
-    try { accept(JSON.parse(r.result)); }
-    catch (err) { banner(`That file is not valid JSON — ${err.message}`, true); }
-  };
-  r.readAsText(f);
+  if (f) readFile(f);
+  else if (DATA) el.ask.hidden = true;
 });
 
 let rt = null;

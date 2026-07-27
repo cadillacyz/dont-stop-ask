@@ -1,14 +1,15 @@
 {
   "meta": {
-    "student": "Anonymous · 16–18, personal curiosity",
-    "band": "HTeen",
-    "generated_by": "HTeen-Research v1.0",
+    "researcher": "Anonymous",
+    "context": "Comfortable with basic supply-and-demand reasoning; no background in trade policy or international economics. Following the news and wanting to understand it properly.",
+    "mode": "guided",
+    "generated_by": "dont-stop-research v1.0",
     "generated_at": "2026-07-27",
     "status": "draft",
     "original_question": "How's the US tariff on China would affect the world?",
     "working_question": "Did the US tariffs on China reroute world trade or shrink it — and who actually came out ahead?",
     "triage_summary": "The original could be answered from general knowledge, invited a catalogue rather than an argument, spanned five separate literatures under the word \"world\", and left \"the tariff\" ambiguous across three different policies. Narrowed to the one place the evidence genuinely disagrees: what happened to everyone who was neither the US nor China. \"Reroute or shrink\" forces a position; \"who came out ahead\" forces separating winners from losers instead of averaging them.",
-    "assignment_context": "none — personal curiosity, no deadline",
+    "purpose": "Personal curiosity, no deadline",
     "expansions": [
       {
         "node": "Q8",
@@ -72,7 +73,7 @@
       ],
       "check_first": "Search the five authors' names plus “affiliation.” Note where they sit (universities, World Bank). Then search “NBER working paper peer review” — is a working paper the same as a published article? Decide how much weight to give each version.",
       "read_for": "The introduction and conclusion of the working paper. You are hunting for their explanation of WHY some bystanders gained and others didn't — and note that they find bystanders grew exports to the whole world, not just to the US. That detail breaks the simple “detour” story.",
-      "level": "Technical: hard middle, readable ends. A student this age can get what they need from the abstract, introduction and conclusion; the estimation sections in between are genuinely graduate-level and are skippable without loss for this question. ~40 min."
+      "level": "Technical: hard middle, readable ends. A capable reader can get what they need from the abstract, introduction and conclusion; the estimation sections in between are genuinely graduate-level and are skippable without loss for this question. ~40 min."
     },
     {
       "id": "Q4",

@@ -19,7 +19,7 @@ downgraded to unconfirmed" is a perfectly good outcome.
 
 | | What | Notes |
 |---|---|---|
-| **Question sets** | Add a worked example on a new topic | Must pass `scripts/validate.py`; every source verified by search |
+| **Question sets** | Add a worked example on a new topic | Must pass `scripts/validate.py`; every source verified by search. Non-English topics and sources especially welcome |
 | **Translations** | The README exists in English and Chinese | Skill prompts are English-only for now; translating them is a real project, discuss first |
 | **Viewer** | Layout, accessibility, keyboard navigation | Keep it dependency-free apart from d3 via CDN |
 | **The skill** | Improvements to the rules, ladder, or formats | These change every future set — open an issue before a PR |
@@ -54,21 +54,27 @@ These are not style preferences. A set that breaks one of them cannot be merged.
 2. **No answers anywhere.** `read_for` points into a text; it never summarises one.
 3. **No verdicts about sources.** `check_first` is a search the student performs, not a conclusion
    they receive.
-4. **No adult-only fields in the JSON.** `why_this`, `they_might_say`, and the teach-back signatures
-   belong in the markdown artifact only. The validator fails the build if they leak.
+4. **No spoiler fields in the JSON.** `why_this`, `they_might_say`, and the teach-back signatures
+   belong in the markdown artifact only — the JSON is the surface someone works from, and those
+   fields are the answers. The validator fails the build if they leak.
 5. **All seven ladder types present** in every cluster, with at least one real Tension card. If the
    topic has no genuine expert disagreement, say so explicitly rather than manufacturing one.
 6. **No paywalled source without a free route** in `paired_with`.
 
 ## Privacy
 
-Never commit a real student's context, name, school, or assignment. `question-sets/` is gitignored
-for exactly this reason. Examples use `Anonymous` plus a one-line description of the band and
-motivation.
+Never commit anyone's real identifying context — name, employer, school, or assignment.
+`question-sets/` is gitignored for exactly this reason. Examples use `Anonymous` plus a one-line
+description of background and motivation, which is all the calibration needs.
 
 ## Scope
 
-This version covers ages 16–18 (`HTeen`) only. A 13–15 band and student-facing session consumers
-exist in the design but are deliberately not in this repository yet. The content-boundary policy for
-sensitive topics is unset, and it is the highest-priority open question — see Known Limitations in
-the skill. Contributions there are especially welcome, and should start as an issue.
+The skill is deliberately not scoped to an age or education level: difficulty is calibrated from the
+`context` field instead. Two open questions where contributions are especially welcome, both starting
+as an issue rather than a PR:
+
+- **A content policy for sensitive topics.** The skill will build a set on anything. That is right for
+  an adult researching their own question and wrong when `guided` mode is used with a young person.
+  See Known Limitations 9 in the skill.
+- **Calibration from thin context.** One paragraph of self-description is a weak signal. Ideas for
+  eliciting it better, or for detecting a mis-pitched set after the fact, would be valuable.

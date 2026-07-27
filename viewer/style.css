@@ -15,6 +15,10 @@
 
 * { box-sizing: border-box; }
 
+/* An author `display` rule beats the UA stylesheet's [hidden] { display: none },
+   so state it explicitly — otherwise the ask overlay covers the graph forever. */
+[hidden] { display: none !important; }
+
 html, body {
   margin: 0;
   height: 100%;
@@ -82,20 +86,77 @@ main { flex: 1; display: flex; min-height: 0; }
   z-index: 5;
 }
 
-.dropzone {
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em; }
+
+/* ---- the ask state: what you see before there's a graph ---- */
+
+.ask {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: rgba(11, 12, 16, 0.92);
+  gap: 4px;
   padding: 24px;
+  background: var(--bg);
 }
-.dropzone.over { background: rgba(24, 28, 38, 0.96); }
-.dz-title { font-size: 16px; margin: 0 0 8px; }
-.dz-sub { font-size: 13px; color: var(--fg-3); margin: 0; max-width: 380px; }
-code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.92em; }
+.ask.over { background: var(--bg-2); }
+
+.qmark {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0 0 6px;
+  cursor: pointer;
+  width: 148px;
+  height: 148px;
+  animation: float 5s ease-in-out infinite;
+}
+.qmark svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.q-halo { fill: var(--root); opacity: 0.1; }
+.q-ring { fill: none; stroke: var(--root); stroke-width: 1.5; opacity: 0.45; stroke-dasharray: 3 6; }
+.q-glyph { fill: var(--root); font-size: 66px; font-weight: 500; font-family: inherit; }
+.qmark:hover .q-halo { opacity: 0.17; }
+.qmark:hover .q-ring { opacity: 0.75; }
+.qmark:focus-visible { outline: 2px solid var(--root); outline-offset: 6px; border-radius: 50%; }
+.qmark.wiggle { animation: wiggle 0.5s ease-in-out; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  25% { transform: rotate(-7deg) scale(1.06); }
+  75% { transform: rotate(7deg) scale(1.06); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qmark, .qmark.wiggle { animation: none; }
+}
+
+.ask-title { font-size: 21px; font-weight: 400; margin: 0; letter-spacing: 0.01em; }
+.ask-sub {
+  font-size: 14px;
+  color: var(--fg-2);
+  margin: 6px 0 18px;
+  max-width: 430px;
+  line-height: 1.65;
+}
+.ask-cmd {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 7px 8px 7px 14px;
+  max-width: 100%;
+}
+.ask-cmd code { color: var(--fg); font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ask-alt { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; justify-content: center; }
+.ask-foot { font-size: 12.5px; color: var(--fg-3); margin: 18px 0 0; max-width: 380px; line-height: 1.6; }
 
 .side {
   width: 380px;
@@ -165,8 +226,15 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
 .legend .sw { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
 .legend .spacer { flex: 1; }
 
-.node-label { font-size: 11px; fill: rgba(235, 236, 245, 0.75); pointer-events: none; }
-.node-label.dim { fill: rgba(235, 236, 245, 0.3); }
+.node-label {
+  font-size: 11.5px;
+  fill: rgba(235, 236, 245, 0.8);
+  pointer-events: none;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3.5px;
+  stroke-linejoin: round;
+}
 .edge { fill: none; stroke: rgba(200, 205, 255, 0.26); stroke-width: 1; }
 .edge.weak { stroke: rgba(200, 205, 255, 0.12); }
 .halo { opacity: 0.13; }

@@ -2,7 +2,7 @@
 
 The worked example shipped with the project. Generated on 2026-07-27 and expanded once on 2026-07-28.
 
-**They asked:** "How's the US tariff on China would affect the world?"
+**Asked as:** "How's the US tariff on China would affect the world?"
 
 **Triage sharpened it to:** "Did the US tariffs on China reroute world trade or shrink it — and who
 actually came out ahead?"
@@ -17,9 +17,18 @@ record is in [question-set.md](question-set.md).
 
 | File | Who it's for |
 |---|---|
-| [question-set.md](question-set.md) | The adult reviewing. Contains everything, including the adult-only fields — what each card unlocks and the answers a teenager is likely to give. |
-| [question-set.json](question-set.json) | The viewer. Same set, adult-only fields stripped. This is what a student may safely see. |
-| [research-briefing.md](research-briefing.md) | The adult acting. Layered: the first screen is enough to start. |
+| [question-set.md](question-set.md) | Whoever reviews the set. Contains everything, including the spoiler fields — what each card unlocks and the answers a reader is likely to reach for first. |
+| [question-set.json](question-set.json) | The viewer. Same set, spoiler fields stripped. This is the surface you work from. |
+| [research-briefing.md](research-briefing.md) | The reader acting on it. Layered: the first screen is enough to start. |
+
+This example was generated in **`guided` mode**, which is why the briefing addresses a second person
+supporting the research ("ask them this"). In `solo` mode the same briefing addresses the
+researcher's own later self and opens with a spoiler warning instead.
+
+The `context` recorded for this example is *"comfortable with basic supply-and-demand reasoning; no
+background in trade policy or international economics"* — every difficulty rating in the set is
+relative to that. A trade economist running the same question would get the same questions rated
+differently.
 
 ## What it contains
 
@@ -41,7 +50,7 @@ economies are for, where the skill is instructed to note which claims are testab
 **S7** is flagged `verified: unconfirmed`. The widely-quoted IMF estimate that geoeconomic
 fragmentation could cost 0.2%–7% of global GDP is real reporting of real IMF work, but we could not
 confirm from a primary document *which* IMF publication carries that figure. The card that uses it
-shows the warning, and the briefing tells the adult to start their spot-check there.
+shows the warning, and the briefing tells the reader to start their spot-check there.
 
 This is what a correct outcome looks like when a figure cannot be traced. Shipping it confidently
 attributed would have been the failure.

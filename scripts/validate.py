@@ -7,8 +7,8 @@ Usage:
 
 Uses jsonschema when installed for full schema validation. The project-specific
 invariants below are checked either way, because they are the ones that matter:
-a leaked adult-only field turns the viewer into an answer key, and an unverified
-source breaks Rule 1.
+a leaked spoiler field turns the working surface into an answer key, and an
+unverified source breaks Rule 1.
 """
 
 import json
@@ -18,8 +18,8 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SCHEMA_PATH = ROOT / "schema" / "question-set.schema.json"
 
-ADULT_ONLY = ("why_this", "they_might_say", "if_stuck")
-TEACHBACK_ADULT_ONLY = ("telling_signature", "building_signature", "follow_up")
+SPOILER = ("why_this", "they_might_say", "if_stuck")
+TEACHBACK_SPOILER = ("telling_signature", "building_signature", "follow_up")
 DIFFICULTY = {"easy", "middle", "technical"}
 GROUPS = {"core", "supporting", "context"}
 TYPES = {"Meaning", "Landscape", "Mechanism", "Tension", "Evidence", "Scope", "Stake"}
@@ -43,9 +43,9 @@ def check(data):
             problems.append(f"{qid}: duplicate question id")
         ids.add(qid)
 
-        for field in ADULT_ONLY:
+        for field in SPOILER:
             if field in q:
-                problems.append(f"{qid}: leaks adult-only field '{field}'")
+                problems.append(f"{qid}: leaks spoiler field '{field}'")
 
         if q.get("difficulty") not in DIFFICULTY:
             problems.append(f"{qid}: difficulty {q.get('difficulty')!r} not in {sorted(DIFFICULTY)}")
@@ -115,9 +115,9 @@ def check(data):
         problems.append(f"{sid}: in the inventory but cited by no card")
 
     for tb in data.get("teach_back") or []:
-        for field in TEACHBACK_ADULT_ONLY:
+        for field in TEACHBACK_SPOILER:
             if field in tb:
-                problems.append(f"{tb.get('id')}: leaks adult-only teach-back field '{field}'")
+                problems.append(f"{tb.get('id')}: leaks spoiler teach-back field '{field}'")
         for anchor in tb.get("anchors") or []:
             if anchor not in ids:
                 problems.append(f"{tb.get('id')}: anchors unknown card {anchor!r}")

@@ -1,7 +1,7 @@
 # Research Briefing: Did the US–China Tariffs Reroute World Trade — or Shrink It?
 
-**Student:** Anonymous, 16–18 band · **Date:** 2026-07-27
-**Artifact:** `question-set.md` · **`status: draft`** — approve before they start
+**Researcher:** Anonymous · guided mode · **Date:** 2026-07-27
+**Artifact:** `question-set.md` · **`status: draft`** — look it over before they start
 
 ## The 10-Minute Version
 
@@ -17,7 +17,7 @@ better off?
 
 **The one tell: if they can say whether "dependence on China" went down or just went underground —
 and admit the answer is genuinely unclear — they did the hard reading.** The hardest card (Q4) is
-about goods that now ship from Vietnam but are built from Chinese parts. A teen who raises that
+about goods that now ship from Vietnam but are built from Chinese parts. A reader who raises that
 wrinkle unprompted has done the work.
 
 *Everything below the line is reference. You do not need it to start.*
@@ -128,7 +128,7 @@ needs no reading at all.
 > "The US tariff on China" — which one? The 2018–19 trade war, the 2025 escalation, or the truce
 > running now? Are these one policy that grew, or three policies sharing a name?
 > **Why this card** *(for you, not them)*: nearly all the measured evidence is from 2018–19; the
-> 2025 round was far bigger. A student who never separates the episodes will quote 2019 findings
+> 2025 round was far bigger. Anyone who never separates the episodes will quote 2019 findings
 > as if they describe 2026.
 > **Source:** Bown, PIIE chart · T2 · 20 min · **Check first:** search PIIE's funding and trade
 > stance before reading — then read anyway. · **Read for:** the timeline's shape, not the
@@ -177,7 +177,7 @@ finds genuine work and the check feels passed. The two-move check: *does it exis
 say what we claimed?*
 
 **Start with S7** — it is our one admitted gap, described above. If you find we've attributed the
-figure to the wrong IMF document, show the teen; that is the lesson working, not failing.
+figure to the wrong IMF document, correct the card — that is the most useful thing to come out of the set.
 
 Topic-specific warning: on this topic the bigger risk is not fake citations but **real numbers
 detached from their scope** — "$14bn lost" (first half of 2019 only, goods only), "25% drop"
@@ -201,7 +201,7 @@ reports on 2026-07-27 and will go stale.
 | Writing or outlining the essay | **AI-undermining** — refused |
 
 There is no deadline here, so the temptation is not "get it written" — it is **"get it explained
-to me."** A teen who has an AI summarise all eight sources will sound fluent and have learned
+to me."** Anyone who has an AI summarise all eight sources will sound fluent and have learned
 nothing; the tell is fluency about conclusions with silence about measurements. **No essay, no
 argument outline, no draft, and no telling them which side to take.** The falsifiable test: if
 they end up with a position they cannot defend out loud against the three questions above,
@@ -225,7 +225,7 @@ interrogation: Pressley et al. (1992), Woloshyn et al. (1994); teach-back design
 (2007), Bargh & Schul (1980); complexity: Shanahan et al. (2012); AI boundary: Wiggins & McTighe
 (2005), Bjork et al. (2013); follow-up style: Chin (2007).
 
-**What this briefing cannot do** — it cannot tell whether the teen read anything; the questions
+**What this briefing cannot do** — it cannot tell whether the reading happened; the questions
 and tells are diagnostic aids for an adult who is present. The artifact is `status: draft` until
-you change it to `adult-approved`, which is the review handshake — and an honour-system one, since
-nothing enforces it.
+you change it to `reviewed`, which is the review handshake — and an honour-system one, since nothing
+enforces it.

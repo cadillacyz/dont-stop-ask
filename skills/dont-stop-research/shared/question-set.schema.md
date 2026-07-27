@@ -1,14 +1,14 @@
 # Question Set — Artifact Schema
 
-**The artifact is the unit of work.** It is generated once and consumed three times: rendered as an
-adult briefing, emitted as a student-safe JSON graph, and re-read later when a node is expanded.
+**The artifact is the unit of work.** It is generated once and consumed three times: rendered as a
+companion briefing, emitted as a spoiler-free JSON graph, and re-read later when a node is expanded.
 
 ```
                        QUESTION SET  (this file's schema)
                                 │
         ┌───────────────────────┼───────────────────────┐
         ▼                       ▼                       ▼
-  adult briefing          JSON graph               expansion
+  companion briefing      JSON graph               expansion
   (document,              (viewer-facing,          (Stage 4 reads it,
    all fields)             visibility:both only)    appends a cluster)
 ```
@@ -19,13 +19,13 @@ adult briefing, emitted as a student-safe JSON graph, and re-read later when a n
 
 ## Why the seam exists
 
-1. **The adult's review becomes real.** They approve the actual thing the student will receive, not a
-   summary of it.
+1. **Review becomes real.** Whoever looks the set over approves the actual thing that gets worked
+   from, not a summary of it.
 2. **The consumers are different programs, not different registers.** A briefing is a document read
-   once, offline. A graph is an interactive surface a student clicks through. Forcing both through one
-   renderer would distort both.
-3. **Regeneration gets cheap.** A student stalls on Q4 → regenerate that card against the stored set.
-   No re-triage, no re-verification of five untouched sources.
+   once, offline. A graph is an interactive surface clicked through over days. Forcing both through
+   one renderer would distort both.
+3. **Regeneration gets cheap.** Stalled on Q4 → regenerate that card against the stored set. No
+   re-triage, no re-verification of five untouched sources.
 
 ---
 
@@ -33,24 +33,25 @@ adult briefing, emitted as a student-safe JSON graph, and re-read later when a n
 
 ### Header
 ```yaml
-student:            <name or description, or Anonymous>
-band:               HTeen
+researcher:         <short description of who this is for, or Anonymous>
+context:            <what they already know, verbatim from input if supplied>
+mode:               solo | guided
 generated_by:       <skill name> v<version>
 generated_at:       <ISO date>
-status:             draft | adult-approved | in-progress | complete
-original_question:  "<verbatim, as the teen said it>"
+status:             draft | reviewed | in-progress | complete
+original_question:  "<verbatim, as it was asked>"
 working_question:   "<post-triage>"
-assignment_context: <deadline / subject / none>
+purpose:            <deadline / use / none>
 connects_to:        [<prior topic slugs, or empty>]
 ```
 
-`status` is the handshake. A student-facing consumer should refuse to run against `draft` — that is
-the whole point of the adult review step.
+`status` records whether anyone has looked the set over. In `guided` mode that review is the point of
+the handshake; in `solo` mode it just flags a set you generated and haven't checked.
 
 ### Triage record (Stage 0)
 The six-criteria evaluation, **numbered threats**, the revised question, and a plain statement of
-what changed and why. Preserved in full: it is the most useful part of the briefing for an adult,
-and later it is evidence of how the student's questions are improving over time.
+what changed and why. Preserved in full: readers consistently find it the most interesting part of
+the briefing, and over time it is a record of how someone's questions are getting sharper.
 
 If the original question was already strong, record that and say why — do not revise for the sake of
 revising.
@@ -63,8 +64,8 @@ readings.
 ### Teach-back
 
 Three questions that test whether the *whole set* landed — asked after the reading, not during it.
-Exactly three. They are the dinner-table questions, and they are **artifact content, not briefing
-prose**.
+Exactly three. They are the questions you could be asked over lunch by someone who knows nothing
+about the topic, and they are **artifact content, not briefing prose**.
 
 ```yaml
 teach_back:
@@ -75,16 +76,17 @@ teach_back:
                          uncertainty>"
     follow_up:          "<one probe to use when the answer stalls or recites>"
     anchors:            [Q3, Q5]      # which cards this question actually tests
-    visibility:         mixed          # question: both · signatures and follow_up: adult
+    visibility:         mixed          # question: both · signatures and follow_up: spoiler
 ```
 
-`anchors` is the field that earns its keep — it lets a consumer say *"they clearly hadn't worked Q5"*
+`anchors` is the field that earns its keep — it lets a consumer say *"Q5 clearly wasn't worked"*
 rather than only *"that answer was thin."*
 
-**Constraints.** `question` must survive the no-knowledge test: an adult who has never heard of the
-topic must be able to ask it cold and understand the shape of the answer. If asking it requires
-reading a card first, it is a card, not a teach-back question. The signatures are `visibility: adult`
-for the same reason `they_might_say` is — a student who sees them is being handed the mark scheme.
+**Constraints.** `question` must survive the no-knowledge test: someone who has never heard of the
+topic must be able to ask it cold and follow the shape of the answer. If asking it requires reading a
+card first, it is a card, not a teach-back question. The signatures are spoiler-flagged for the same
+reason `they_might_say` is — reading them in advance hands over the mark scheme, including to
+yourself.
 
 ### Source inventory
 One row per source:
@@ -124,8 +126,9 @@ without re-verifying everything.
 
 ## Consumer contract
 
-**Adult briefing** renders all fields per `briefing-format.md`, plus engagement indicators, the
-`teach_back` block rendered verbatim, the verification section, and the AI boundary map.
+**Companion briefing** renders all fields per `briefing-format.md`, plus engagement indicators, the
+`teach_back` block rendered verbatim, the verification section, and the AI boundary map. In `solo`
+mode it opens with the spoiler warning.
 
 **JSON graph** carries `visibility: both` fields only. It must never contain `why_this`,
 `they_might_say`, or the teach-back signatures and follow-ups. It must carry every source's

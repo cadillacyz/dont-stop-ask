@@ -15,7 +15,7 @@
   </div>
   <div class="bar-actions">
     <label class="btn" for="file">Open a question set…<input id="file" type="file" accept="application/json,.json" hidden /></label>
-    <button class="btn" id="reload" title="Re-read the file from disk">Reload</button>
+    <button class="btn" id="reload" title="Re-read the file">Reload</button>
     <button class="btn" id="fit">Fit view</button>
   </div>
 </header>
@@ -26,19 +26,35 @@
   <section id="stage" class="stage">
     <svg id="graph" aria-label="Question graph"></svg>
     <div id="tip" class="tip" hidden></div>
-    <div id="dropzone" class="dropzone" hidden>
-      <div>
-        <p class="dz-title">Drop a <code>question-set.json</code> here</p>
-        <p class="dz-sub">Or use “Open a question set…” above. Browsers block reading local files
-        directly, so opening this page from disk needs the file handed to it once.</p>
+
+    <div id="ask" class="ask">
+      <button id="qmark" class="qmark" aria-label="Copy the command that starts a question set">
+        <svg viewBox="0 0 160 160" aria-hidden="true">
+          <circle class="q-halo" cx="80" cy="80" r="62" />
+          <circle class="q-ring" cx="80" cy="80" r="52" />
+          <text class="q-glyph" x="80" y="79" text-anchor="middle" dominant-baseline="central">?</text>
+        </svg>
+      </button>
+      <h1 class="ask-title">What do you want to know?</h1>
+      <p class="ask-sub">Ask something you actually wonder about. It comes back as a map of sharper
+        questions, each with readings worth opening — never as an answer.</p>
+      <div class="ask-cmd">
+        <code id="cmd">/dont-stop-research your question here</code>
+        <button class="btn" id="copycmd">Copy</button>
       </div>
+      <div class="ask-alt">
+        <button class="btn" id="demo">See a finished example</button>
+        <label class="btn" for="file2">Open your own…<input id="file2" type="file" accept="application/json,.json" hidden /></label>
+      </div>
+      <p class="ask-foot" id="askfoot">Run the command in Claude Code, then drop the JSON it writes
+        anywhere on this page.</p>
     </div>
   </section>
 
   <aside id="side" class="side">
     <div id="meta" class="meta"></div>
     <div id="panel" class="panel">
-      <p class="muted">Click a question dot to see its readings and how to work it.</p>
+      <p class="muted">Click a question to see its readings and how to work it.</p>
     </div>
   </aside>
 </main>
@@ -48,7 +64,7 @@
   <span><i class="sw" style="background:#f0b24a"></i>middle</span>
   <span><i class="sw" style="background:#f0625d"></i>most technical</span>
   <span><i class="sw" style="background:#8d96b8"></i>reading</span>
-  <span><i class="sw" style="background:#a78bfa"></i>working question</span>
+  <span><i class="sw" style="background:#a78bfa"></i>your question</span>
   <span class="spacer"></span>
   <span class="hint">drag dots · scroll to zoom · click for readings</span>
 </footer>

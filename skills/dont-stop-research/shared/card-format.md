@@ -9,20 +9,22 @@ Field names are canonical — the artifact schema, the JSON schema, and the view
 | Field | Visibility | Contents |
 |---|---|---|
 | `id` | both | `Q1`…`Q9` for a first-pass set; `E1`…`E9`, `F1`…`F9` for successive expansions |
-| `question` | both | The question, in language a 16–18-year-old would actually use |
+| `question` | both | The question, in plain language — no field jargon the reader hasn't met yet |
 | `type` | both | Ladder type + Paul & Elder move |
 | `parent` | both | `root`, or the id of the node this card expands |
 | `relevance_group` | both | `core` · `supporting` · `context` — distance from the working question |
 | `difficulty` | both | `easy` · `middle` · `technical` — see below |
-| `why_this` | **adult** | One line: what this unlocks. Orients; never answers. |
+| `why_this` | **spoiler** | One line: what this unlocks. Orients; never answers. |
 | `source_ref` | both | Ranked list of 1–3 readings, each with a role (or `none`) |
 | `check_first` | both | A lateral-reading move to run **before** reading. A search they perform. |
 | `read_for` | both | A pointer *into* the text — which part, what to notice. Not a summary. |
 | `level` | both | Prose: primary complexity challenge + realistic time |
-| `they_might_say` | **adult** | 2–3 likely answers, each with a follow-up that takes it seriously |
+| `they_might_say` | **spoiler** | 2–3 likely answers, each with a follow-up that takes it seriously |
 
-`visibility: adult` fields must be filtered out of the JSON output and by any student-facing
-consumer. `they_might_say` in particular converts the card into an answer key.
+Spoiler fields carry `visibility: adult` in the artifact — a field value kept for compatibility, read
+it as *spoiler*. They must be filtered out of the JSON output and out of any surface the researcher
+works from. `they_might_say` in particular converts the card into an answer key, and that applies
+whether the reader is a student, a colleague, or the researcher themselves.
 
 **Follow-ups in `they_might_say` never open with "Good" or "Not quite"** (Chin, 2007). They respond
 with a question that takes the answer seriously, including when the answer is wrong.
@@ -36,7 +38,7 @@ role:
 
 | Role | Count | What it is |
 |---|---|---|
-| `primary` | exactly 1 | The reading this card exists to make the student open |
+| `primary` | exactly 1 | The reading this card exists to make the reader open |
 | `supporting` | 0 or 1 | A second account that complicates, corroborates, or contradicts the primary |
 | `background` | 0 or 1 | Orientation only — a chart, a timeline, a glossary-grade explainer |
 
@@ -63,27 +65,30 @@ Rank sources in this order. Every source in the inventory declares its tier.
 | **T3** | Textbook, encyclopedia, established reference | Definitional scaffolding |
 | **T4** | Paywalled academic or trade book | Name only if genuinely central; **always pair with a reachable alternative** |
 
-**Never assign a source the student cannot open.** A paywalled paper the student can't read is a dead
-end that teaches them research is for other people. T4 entries carry `paired_with` naming a free
-route — a review, an interview, a repository preprint.
+**Never assign a source the reader cannot open.** A paywalled paper nobody can reach is a dead end
+that teaches them research is for other people. T4 entries carry `paired_with` naming a free route —
+a review, an interview, a repository preprint.
 
-HTeen (16–18) leads with T1. A student this age can read a well-written paper's abstract,
+Lead with T1. A capable reader can get what they need from a well-written paper's abstract,
 introduction, and conclusion even when the middle is beyond them — say so in `level` when true.
 
 ---
 
 ## Difficulty: the coarse three-way rating
 
-`difficulty` is a sorting and colour-coding value, not a substitute for `level`.
+`difficulty` is a sorting and colour-coding value, not a substitute for `level`. **It is relative to
+the reader described in `context`**, not absolute: the same paper is `technical` for a newcomer and
+`easy` for a specialist, and the rating must describe the actual reader.
 
 | Value | Means |
 |---|---|
-| `easy` | A motivated 16-year-old gets what the card needs on a first pass. Includes thinking-only cards. |
+| `easy` | This reader gets what the card needs on a first pass. Includes thinking-only cards. |
 | `middle` | Readable, but something specific blocks it — assumed background, register, or volume of numbers. |
-| `technical` | Parts are genuinely beyond the band, and the card says which parts to skip. Expect visible frustration; that is the design working. |
+| `technical` | Parts are genuinely beyond this reader, and the card says which parts to skip. Expect frustration here; that is the design working, not failing. |
 
 A set of nine cards should not be nine `technical` cards. If it is, the working question is pitched
-above the band and Stage 0 should have caught it.
+above the reader and Stage 0 should have caught it. Nine `easy` cards is the opposite failure: the
+question was too easy to be worth a set.
 
 ---
 

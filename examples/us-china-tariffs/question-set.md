@@ -1,14 +1,16 @@
 # Question Set — US–China Tariffs and the World
 
 ```yaml
-student:            Anonymous · 16–18, personal curiosity
-band:               HTeen
-generated_by:       HTeen-Research v1.0
+researcher:         Anonymous
+context:            Comfortable with basic supply-and-demand reasoning; no background in
+                    trade policy or international economics
+mode:               guided
+generated_by:       dont-stop-research v1.0
 generated_at:       2026-07-27
 status:             draft
 original_question:  "How's the US tariff on China would affect the world?"
 working_question:   "Did the US tariffs on China reroute world trade or shrink it — and who actually came out ahead?"
-assignment_context: none (personal curiosity; no deadline)
+purpose:            none (personal curiosity; no deadline)
 connects_to:        []
 ```
 
@@ -20,11 +22,11 @@ Evaluated as stated: *"How's the US tariff on China would affect the world?"*
 
 **THREATS**
 
-1. **Not evidence-dependent.** A reasonably informed 17-year-old can answer it from general
+1. **Not evidence-dependent.** A reasonably informed adult can answer it from general
    knowledge — "prices go up, trade shifts elsewhere, tensions rise" — without opening a single
    source. The sources become decoration.
 2. **Not contested as framed.** "It affects the world in many ways" is a list, and everyone's list
-   looks the same. Two students working the question as stated will produce interchangeable
+   looks the same. Two people working the question as stated will produce interchangeable
    catalogues, not defensible positions.
 3. **Not specific.** "The world" spans at least five separate literatures: US consumer prices,
    supply-chain reallocation, third-country trade, macro fragmentation, and geopolitics. Each is a
@@ -34,7 +36,7 @@ Evaluated as stated: *"How's the US tariff on China would affect the world?"*
    sides), and the current truce (10% reciprocal rate, holding until November 2026). Findings about
    one do not automatically transfer to the others.
 5. **No skill demand.** As stated it asks for collection, not judgment. Nothing in it forces the
-   student to weigh two accounts against each other.
+   reader to weigh two accounts against each other.
 
 **REVISED QUESTION**
 
@@ -47,7 +49,7 @@ happened to everyone who *wasn't* the US or China. Serious researchers looked at
 and reached different verdicts — one team found bystander countries gained net new export
 opportunities; a UN study found trade diversion plus a net global loss; supply-chain work found the
 "reallocation" partly cosmetic, with Chinese content still flowing through Vietnam and Mexico. That
-is a real dispute a student can take a position in. "Reroute or shrink" forces a judgment;
+is a real dispute a reader can take a position in. "Reroute or shrink" forces a judgment;
 "who came out ahead" forces them to separate winners from losers instead of averaging them. The
 question cannot be answered without sources, and the answer is genuinely not settled.
 
@@ -64,8 +66,8 @@ question: >
   different policies that happen to share a name?
 type: 1 — Meaning · clarification
 why_this: >
-  (adult) Everything downstream depends on this. Nearly all the measured evidence comes from
-  2018–19; the 2025 round was far bigger and hit nearly every country. A student who never
+  (spoiler) Everything downstream depends on this. Nearly all the measured evidence comes from
+  2018–19; the 2025 round was far bigger and hit nearly every country. Anyone who never
   separates the episodes will quote 2019 findings as if they describe 2026.
 source_ref:
   - {id: S6, role: primary}
@@ -89,7 +91,7 @@ they_might_say:
   - answer: "Three different things — trade war, escalation, truce."
     follow_up: >
       Then which one is your question about? And which one is the evidence about?
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q2 · LANDSCAPE (probing evidence)
@@ -101,7 +103,7 @@ question: >
   would anyone tell the difference from the numbers?
 type: 2 — Landscape · probing reasons and evidence
 why_this: >
-  (adult) This is the entry point to the whole dispute. The UNCTAD study is the cleanest
+  (spoiler) This is the entry point to the whole dispute. The UNCTAD study is the cleanest
   early measurement: ~25% drop in tariffed US imports from China, ~$21bn diverted to
   bystanders, ~$14bn simply lost. The distinction between "diverted" and "lost" is the
   question's engine.
@@ -130,7 +132,7 @@ they_might_say:
     follow_up: >
       The researchers thought they could. What did they compare the numbers AGAINST to make
       the split? (Hint: what would exports have looked like with no tariff?)
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q3 · MECHANISM (contrastive why)
@@ -141,9 +143,9 @@ question: >
   also low-wage, also outside the fight — mostly didn't. Why them and not the others?
 type: 3 — Mechanism · contrastive why
 why_this: >
-  (adult) The contrastive form is deliberate — "why X and not Y" forces a mechanism, not a
+  (spoiler) The contrastive form is deliberate — "why X and not Y" forces a mechanism, not a
   description. The paper's own answer is surprising: country-specific factors, not what the
-  countries happened to specialise in, drove who gained. A student who can restate that
+  countries happened to specialise in, drove who gained. A reader who can restate that
   finding in their own example has understood it.
 source_ref:
   - {id: S2, role: primary}
@@ -159,7 +161,7 @@ read_for: >
   of WHY some bystanders gained and others didn't — and note that they find bystanders grew
   exports to the whole world, not just to the US. That detail breaks the simple "detour" story.
 level: >
-  Hard middle, readable ends. A student this age can get what they need from the abstract,
+  Hard middle, readable ends. A capable reader can get what they need from the abstract,
   introduction and conclusion; the estimation sections in between are genuinely graduate-level
   and are skippable without loss for this question. ~40 min.
 they_might_say:
@@ -170,7 +172,7 @@ they_might_say:
   - answer: "They already made the right products."
     follow_up: >
       The authors tested exactly that and rejected it. If it wasn't the products, what's left?
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q4 · MECHANISM (how) — *the hardest card*
@@ -182,7 +184,7 @@ question: >
   or just become harder to see?
 type: 3 — Mechanism · how does X lead to Y
 why_this: >
-  (adult) This is the hardest card and the one that separates reading from skimming. Alfaro &
+  (spoiler) This is the hardest card and the one that separates reading from skimming. Alfaro &
   Chor document that US direct sourcing from China fell while Vietnam's and Mexico's imports
   FROM China rose — the dependence partly went underground rather than away. Expect visible
   frustration here; that is the design working, not failing.
@@ -210,7 +212,7 @@ they_might_say:
     follow_up: >
       If China's parts are inside Vietnam's exports, what happens to the US if China cuts
       Vietnam off? Has the risk the tariff aimed at actually moved?
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q5 · TENSION (viewpoints at their strongest) — *the load-bearing card*
@@ -223,9 +225,9 @@ question: >
   be fully right. Where exactly do they disagree — in the numbers, or in what they counted?
 type: 4 — Tension · viewpoints and perspectives
 why_this: >
-  (adult) The load-bearing card. The disagreement is real and empirical, not political: it
+  (spoiler) The load-bearing card. The disagreement is real and empirical, not political: it
   turns on time windows (first year vs. five years), what counts as "trade" (to the US only
-  vs. to the world), and baselines. A student who can state the position they end up rejecting
+  vs. to the world), and baselines. Whoever can state the position they end up rejecting
   fairly has done the hardest thing this set asks.
 source_ref:
   - {id: S2, role: primary}
@@ -254,7 +256,7 @@ they_might_say:
       That's a real position, but it has a consequence: if they measured different things, your
       question "reroute or shrink?" might have a different answer at different timescales.
       Which timescale does YOUR answer live at?
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q6 · EVIDENCE (how would anyone know)
@@ -266,10 +268,10 @@ question: >
   to say that — and what would the data have looked like if China HAD paid?
 type: 5 — Evidence · probing reasons and evidence
 why_this: >
-  (adult) This is the card that teaches "what a study measured vs. what it concluded" — the
+  (spoiler) This is the card that teaches "what a study measured vs. what it concluded" — the
   one tell for this whole set. Amiti, Redding & Weinstein tracked prices at the border: if
   exporters had absorbed the tariff, pre-tariff border prices would have fallen. They didn't.
-  A student who can explain the counterfactual owns the method.
+  Whoever can explain the counterfactual owns the method.
 source_ref:
   - {id: S1, role: primary}
   - {id: S6, role: background}
@@ -295,7 +297,7 @@ they_might_say:
     follow_up: >
       Right — so describe the graph in the world where China pays. What line moves, and
       which way?
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q7 · SCOPE (where does the evidence stop)
@@ -307,9 +309,9 @@ question: >
   findings still hold when there's nowhere left to reroute trade TO — and which break?
 type: 6 — Scope · implications and consequences
 why_this: >
-  (adult) The scope card converts everything before it from trivia into a model. The
+  (spoiler) The scope card converts everything before it from trivia into a model. The
   rerouting mechanism (Q2–Q4) requires an untaxed elsewhere; a universal tariff removes it.
-  A student who sees that has stopped reciting findings and started using them.
+  Anyone who sees that has stopped reciting findings and started using them.
 source_ref:
   - {id: S8, role: primary}
   - {id: S6, role: background}
@@ -333,7 +335,7 @@ they_might_say:
     follow_up: >
       The finding that importers, not exporters, paid — does that one depend on there being
       an untaxed elsewhere? Some findings travel; which ones?
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q8 · STAKE (what were they for)
@@ -345,7 +347,7 @@ question: >
   succeeded politically, what does that tell you about what tariffs are actually FOR?
 type: 7 — Stake · questions about the question
 why_this: >
-  (adult) This card blocks the easy ending ("economists say tariffs are bad, the end") by
+  (spoiler) This card blocks the easy ending ("economists say tariffs are bad, the end") by
   taking the pro-tariff position seriously at its strongest: the case was never mainly about
   aggregate efficiency — it's about distribution, symbolism, and security. Autor et al.
   measured both the economic null and the electoral win.
@@ -374,7 +376,7 @@ they_might_say:
     follow_up: >
       Then Q4 matters again — did the tariff actually reduce dependence on China, or move it?
       Judge the policy by ITS OWN goal.
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### Q9 · STAKE (thinking card — no reading)
@@ -386,7 +388,7 @@ question: >
   their behaviour? If nobody would act differently either way, is the question worth asking?
 type: 7 — Stake · questions about the question
 why_this: >
-  (adult) The closing move: attach consequences to the answer. This is the best dinner-table
+  (spoiler) The closing move: attach consequences to the answer. This is the best dinner-table
   card in the set — it needs no reading and reveals immediately whether the earlier cards
   built a model or a pile of facts.
 source_ref: none — single-reading exemption: thinking-only card; it runs on what Q1–Q8
@@ -404,7 +406,7 @@ they_might_say:
     follow_up: >
       Good, make it concrete: what does that company do in the "rerouted" world that it
       doesn't do in the "shrank" world?
-visibility: why_this and they_might_say are adult-only
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ---
@@ -522,7 +524,7 @@ teach_back:
     Could not confirm exactly WHICH IMF document carries the 0.2%–7% figure — likely the 2023
     Staff Discussion Note on Geoeconomic Fragmentation (Aiyar et al.), but we verified this
     only through secondary reporting, not the document itself. An adult should confirm the
-    title and figure on imf.org before the student cites it. Start here.
+    title and figure on imf.org before citing it. Start here.
   complexity: language conventionality — IMF institutional register
   time_estimate: 25
   paired_with: S4
@@ -558,7 +560,7 @@ level: "Easier — a long-form interview, listenable. ~40 min"
 they_might_say:
   - answer: "'Worked' means it did what the president said it would."
     follow_up: "Presidents said several different things. Which statement counts?"
-visibility: adult fields marked as elsewhere
+visibility: why_this and they_might_say are spoiler fields
 ```
 
 ### E2 · LANDSCAPE · amber

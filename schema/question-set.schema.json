@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/USER/dont-stop-ask/schema/question-set.schema.json",
   "title": "dont-stop-ask question set",
-  "description": "A student-safe question graph emitted by HTeen-Research. Contains visibility:both fields only — adult-only fields (why_this, they_might_say, teach-back signatures) MUST NOT appear in a document conforming to this schema.",
+  "description": "A spoiler-free question graph emitted by the dont-stop-research skill. Contains visibility:both fields only — the spoiler fields (why_this, they_might_say, teach-back signatures and follow-ups) MUST NOT appear in a document conforming to this schema, because this is the surface the researcher works from.",
   "type": "object",
   "required": ["meta", "root", "questions", "sources"],
   "additionalProperties": false,
@@ -12,15 +12,16 @@
       "required": ["generated_by", "generated_at", "status", "original_question", "working_question"],
       "additionalProperties": false,
       "properties": {
-        "student": { "type": "string", "description": "Name or description, or Anonymous. Avoid identifying detail in files intended for publication." },
-        "band": { "type": "string", "enum": ["HTeen"], "description": "Age band. HTeen = 16-18." },
-        "generated_by": { "type": "string", "description": "Skill name and version, e.g. HTeen-Research v1.0" },
+        "researcher": { "type": "string", "description": "Short description of who the set is for, or Anonymous. Avoid identifying detail in files intended for publication." },
+        "context": { "type": "string", "description": "What the reader already knows, as supplied. Difficulty ratings are relative to this." },
+        "mode": { "type": "string", "enum": ["solo", "guided"], "description": "solo: the researcher works alone. guided: a second person is supporting them." },
+        "generated_by": { "type": "string", "description": "Skill name and version, e.g. dont-stop-research v1.0" },
         "generated_at": { "type": "string", "format": "date", "description": "ISO date of generation" },
-        "status": { "type": "string", "enum": ["draft", "adult-approved", "in-progress", "complete"], "description": "draft means an adult has not yet reviewed the set. Student-facing consumers should surface this, not hide it." },
-        "original_question": { "type": "string", "description": "Verbatim, as the teen stated it" },
+        "status": { "type": "string", "enum": ["draft", "reviewed", "in-progress", "complete"], "description": "draft means nobody has looked the set over yet. Consumers should surface this, not hide it." },
+        "original_question": { "type": "string", "description": "Verbatim, as the question was first asked" },
         "working_question": { "type": "string", "description": "Post-triage sharpened question" },
         "triage_summary": { "type": "string", "description": "Plain statement of what changed and why. The full six-criteria record lives in the markdown artifact." },
-        "assignment_context": { "type": "string" },
+        "purpose": { "type": "string", "description": "Why the question is being asked, and any deadline" },
         "expansions": {
           "type": "array",
           "description": "One entry per expansion cluster, in generation order",
@@ -60,7 +61,7 @@
         "properties": {
           "id": { "type": "string", "pattern": "^[A-Z]+[0-9]+$", "description": "Q1-Q9 for a first-pass set; E1-E9, F1-F9 for successive expansions" },
           "parent": { "type": "string", "description": "root, or the id of the node this card expands" },
-          "question": { "type": "string", "description": "The question in full, in language a 16-18-year-old would use" },
+          "question": { "type": "string", "description": "The question in full, in plain language — no field jargon the reader has not met yet" },
           "label": { "type": "string", "description": "Short display label for the graph node, a few words" },
           "type": {
             "type": "object",
@@ -90,7 +91,7 @@
             }
           },
           "single_reading_reason": { "type": "string", "description": "Required when readings has fewer than two entries: why one (or none) suffices" },
-          "check_first": { "type": "string", "description": "A lateral-reading move the student performs BEFORE reading. Never a verdict about the source." },
+          "check_first": { "type": "string", "description": "A lateral-reading move the reader performs BEFORE reading. Never a verdict about the source." },
           "read_for": { "type": "string", "description": "A pointer into the text. Never a summary of it." },
           "level": { "type": "string", "description": "Prose naming the primary complexity challenge and a realistic time" }
         }
@@ -131,14 +132,14 @@
     "teach_back": {
       "type": "array",
       "maxItems": 3,
-      "description": "Question text only. The telling/building signatures and follow-ups are adult-only and MUST NOT appear here.",
+      "description": "Question text only. The telling/building signatures and follow-ups are spoiler fields and MUST NOT appear here.",
       "items": {
         "type": "object",
         "required": ["id", "question", "anchors"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string" },
-          "question": { "type": "string", "description": "Askable cold by someone with zero subject knowledge" },
+          "question": { "type": "string", "description": "Askable cold by anyone with zero subject knowledge" },
           "anchors": { "type": "array", "items": { "type": "string" }, "description": "Which cards this question tests" }
         }
       }

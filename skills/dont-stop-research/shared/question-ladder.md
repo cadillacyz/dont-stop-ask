@@ -1,7 +1,6 @@
 # The Question Ladder
 
-Seven question types. The HTeen band (16–18) uses all seven; every type must appear at least once in
-a set.
+Seven question types. Every type must appear at least once in a set.
 
 ---
 
@@ -17,9 +16,10 @@ a set.
 | 6 | **Scope** | Where does this stop being true? | Implications and consequences |
 | 7 | **Stake** | Who cares, what changes if the answer flips? | Questions about the question |
 
-**Weighting.** Weight toward **Type 3 (Mechanism)** and **Type 4 (Tension)** — the two places school
-research reliably dies. Students collect *what* and never reach *why*; and a set with no real
-disagreement in it produces a book report regardless of how many sources it cites.
+**Weighting.** Weight toward **Type 3 (Mechanism)** and **Type 4 (Tension)** — the two places research
+reliably dies, at every level of expertise. Readers collect *what* and never reach *why*; and a set
+with no real disagreement in it produces a summary rather than a position, regardless of how many
+sources it cites.
 
 **Coverage rule.** Every one of the seven must appear at least once. This is the constraint that
 makes the set-size ceiling safe: you may generate six cards instead of nine, but not six cards that
@@ -40,8 +40,10 @@ The gain comes from *generating* the explanation, so the prompt form matters:
 - **Predictive** — "Given X, what would you expect about Z? Why?"
 
 **Calibration constraint (Woloshyn et al., 1994):** elaboration requires enough prior knowledge to
-generate a plausible explanation. A student who knows nothing about the topic cannot elaborate — they
-need a Type 1 or Type 2 card first. Never place a Mechanism card ahead of the knowledge it depends on.
+generate a plausible explanation. Someone who knows nothing about the topic cannot elaborate — they
+need a Type 1 or Type 2 card first. Never place a Mechanism card ahead of the knowledge it depends
+on. The floor moves with the reader's background but never disappears, which is what `context` is
+for.
 
 ---
 
@@ -58,7 +60,7 @@ Two failure modes, both bad:
 - **False balance** — presenting a fringe position as equivalent to a well-supported one. Where a
   disagreement is political rather than empirical, name which kind it is.
 
-The test: could a student who read only the Tension card write a fair summary of the position they
+The test: could someone who read only the Tension card write a fair summary of the position they
 personally disagree with?
 
 ---
