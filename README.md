@@ -1,272 +1,121 @@
 <h1>不停问 · dont-stop-ask</h1>
 
 **A research tool that never answers the question.**
+**一个从不替你回答问题的研究工具。**
 
-Give it something you actually wonder about — *"would US tariffs on China affect the rest of the
-world?"* — and it gives back a map of better questions, each anchored to real, verified readings, each
-carrying a fact-checking move to run *before* you read. You explore the map, and when a question gets
-interesting, you grow it into nine more.
+Give it something you actually wonder about, and it gives back a map of sharper questions — each
+anchored to real, verified readings, each carrying a fact-checking move to run *before* you read.
+Explore the map; when a question gets interesting, grow it into up to nine more. It does not
+summarise the sources, does not write the essay, and does not tell you which side to take. That is
+the design, not a limitation.
 
-It does not summarise the sources. It does not write the essay. It does not tell you which side to
-take. That is the design, not a limitation.
+把你真正好奇的事情交给它，它会返回一张更锋利的问题地图——每个问题都挂着真实且经过核实的阅读材料，
+每个问题都附带一个开始阅读**之前**要做的核查动作。在地图上探索；遇到有意思的问题，把它展开成最多九个新
+问题。它不总结材料，不代写文章，也不告诉你该站哪一边。这是设计，不是缺陷。
 
-[中文说明](README.zh.md) · [Try it](#try-the-example) · [Worked example](examples/us-china-tariffs/)
+**Ask in any language.** A Chinese question returns a Chinese question set, and the viewer's
+interface follows. **用任何语言提问都可以。** 中文提问返回中文问题集，查看器界面也会跟着切换。
 
 ---
 
-## Why this exists
+## The five rules · 五条铁律
 
-Most research, done honestly, goes: search, skim, paraphrase, cite. The research that actually
-teaches you something goes: sharpen the question, find out who disagrees, work out what each study
-*measured*, and take a position you can defend out loud.
+Every set is generated under these; they override everything else.
+每套问题都在这些规则下生成，它们高于其他一切指令。
 
-An AI that summarises sources makes the first kind faster. This one tries to make the second kind
-possible — by inverting the usual assistant pattern. A research assistant checks sources silently on
-your behalf, because you already know how. Here **the checking is the point**, so every judgment the
-tool could make for you is handed back as a move for you to perform.
+| | Rule · 规则 |
+|---|---|
+| 1 | **Never fabricate a source** — every citation verified by live search before it ships, or honestly marked unconfirmed · **绝不编造来源**——每条引用都先经联网搜索核实，核实不了就诚实标注 |
+| 2 | **Never answer its own questions** — if you could finish the work without opening a source, the set has failed · **绝不回答自己提出的问题**——不打开材料就能完成工作，即为失败 |
+| 3 | **Moves, not verdicts** — you get the search that reveals a source's slant, not a conclusion about it · **给动作，不给结论**——给你揭示立场的搜索方法，而不是现成判断 |
+| 4 | **No leading questions** — two careful people must be able to disagree defensibly · **不用引导性问题**——两个审慎的人必须能得出不同却都站得住的答案 |
+| 5 | **No disguised recall** — every question requires judgment, not lookup · **不做伪装的记忆题**——每个问题都要求判断，而非检索 |
 
-Two findings drive the whole design:
-
-- Professional fact-checkers evaluate an unfamiliar source in about 90 seconds by **leaving the page**
-  to see what independent sources say. Students *and university professors* instead read down the
-  page, hunting cues that are trivially faked, and take five times as long to be wrong more often
-  (Wineburg & McGrew, 2017, 2019). **The professors failing too is why this isn't a tool for
-  beginners** — knowing a field doesn't teach you to evaluate a source in it.
-- Generating an explanation beats re-reading by a wide margin, but only when you have enough prior
-  knowledge to generate one at all (Pressley et al., 1992; Woloshyn et al., 1994). So question order
-  matters, and a hard question asked too early just produces silence.
-
-## Who it's for
-
-Anyone with a question worth investigating properly. Someone writing a paper. Someone making a
-decision at work and wanting the actual evidence. Someone who read one article and wants to know
-whether it was true. A study group. A journalist. A curious person on a Sunday.
-
-It runs two ways:
-
-- **solo** — you're researching your own question. The briefing addresses your later self, and warns
-  you which sections spoil the inquiry if you read them early.
-- **guided** — someone is supporting the research: a teacher, mentor, manager, study partner, or
-  parent. The briefing addresses them, and assumes they know nothing about the subject.
-
-Difficulty and reading level are calibrated from what you say you already know, not from an assumed
-age or education level.
-
-**Ask in any language.** A question asked in Chinese comes back as a Chinese question set — cards,
-briefing, teach-back — and the viewer's interface follows. Sources stay in whatever language the
-strongest literature is in (often English), and when a reading's language differs from yours, the
-card says so and treats it as a named difficulty rather than hiding it.
-
-## The five rules
-
-Every question set is generated under these, and they override everything else:
-
-| | Rule | Why |
-|---|---|---|
-| 1 | **Never fabricate a source** | A real author + a real journal + a plausible year is the most dangerous hallucination there is, because checking the author's name appears to confirm it |
-| 2 | **Never answer its own questions** | If the set lets you produce the work without opening a source, the set has failed |
-| 3 | **Issue moves, not verdicts** | Not "this think tank is industry-funded" but "search its name plus *funding*, then decide" |
-| 4 | **No leading questions** | Two careful people must be able to reach different defensible answers |
-| 5 | **No disguised recall** | "What is a tariff?" is retrieval. "Why impose one you know raises your own prices?" is inquiry |
-
-When a source cannot be verified it ships **marked unconfirmed**, with a plain statement of what
-could not be confirmed. The example contains one. That is a correct outcome, not a bug — and the
-briefing tells you to start your spot-check there.
-
-## How it works
-
-```
-  your rough question
-        │
-        ▼
-  /dont-stop-research  ──── Claude Code, with live web search
-        │                     · sharpens the question (and shows its working)
-        │                     · generates up to 9 questions across 7 question types
-        │                     · attaches 1–3 ranked readings each, verified by search
-        │                     · groups by relevance, rates difficulty for your background
-        ▼
-  three files ─────────┬─── question-set.md    the full record, including the anticipated answers
-                       ├─── question-set.json  spoiler-free working surface (schema-enforced)
-                       └─── research-briefing.md   the prose companion
-                                │
-                                ▼
-                          viewer/  ── a force-directed graph of the JSON
-                                      click a dot → readings + how to read them
-                                      click expand → grow that question into 9 more
-```
-
-**Claude Code is the engine; this repo is the skill and the map.** Source verification needs live web
-search, so generation happens inside a Claude Code session rather than in the browser. The viewer is
-static — no server, no API key, nothing to deploy.
-
-## Install
-
-You need [Claude Code](https://claude.com/claude-code), plus Python 3 if you want the validator or a
-local preview.
+## Use it in Claude Code · 在 Claude Code 中使用
 
 ```bash
 git clone https://github.com/cadillacyz/dont-stop-ask.git
-```
-
-Then make the skill available to Claude Code:
-
-```bash
 cp -r dont-stop-ask/skills/dont-stop-research ~/.claude/skills/
 ```
 
-…or, on Windows PowerShell:
+Windows PowerShell: `Copy-Item -Recurse dont-stop-ask\skills\dont-stop-research $HOME\.claude\skills\`
 
-```powershell
-Copy-Item -Recurse dont-stop-ask\skills\dont-stop-research $HOME\.claude\skills\
-```
-
-## Use it
-
-Start the companion server once and leave it running:
+Then start the companion server and open the viewer · 然后启动陪伴服务器，打开查看器：
 
 ```bash
 python scripts/serve.py
 ```
 
-Open <http://127.0.0.1:8000/viewer/>. You get a question mark and a box. Type what you want to know,
-add a line about what you already know, and hit **Ask**.
+Or just double-click `start.bat` on Windows. · Windows 下也可以直接双击 `start.bat`。
 
-What happens next depends on one thing — whether the `claude` CLI is on your PATH:
+Open <http://127.0.0.1:8000/viewer/>, type your question, hit **Ask**. If the `claude` CLI is on
+your PATH it generates right there; otherwise it hands you the exact command to paste into Claude
+Code. Either way, **the graph loads itself** the moment the file appears — the server watches
+`question-sets/`, follows expansions, and reloads edits in place.
 
-| | With the CLI installed | Without it (desktop app only) |
-|---|---|---|
-| **Ask** | Runs the skill right there, streams progress, graph appears when it finishes | Hands you the exact command, already copied to your clipboard, to paste into Claude Code |
-| **Expand a question** | Same — one click | Same — one paste |
-| **Loading the result** | Automatic | **Also automatic** |
+打开 <http://127.0.0.1:8000/viewer/>，输入问题，按 **Ask**。如果 `claude` 命令行工具在 PATH 里，就地
+生成；否则它把完整命令交给你，粘贴进 Claude Code 即可。无论哪种方式，**文件一出现图谱就会自己加载**——
+服务器盯着 `question-sets/`，自动跟随展开、就地重载修改。
 
-That last row is the point. The server watches `question-sets/`, so **however the file gets written,
-the graph loads itself** — no file picking, no reloading. Edit a set by hand and the graph updates in
-place, keeping whatever question you had open. Generate a second set and it switches to it. Expand a
-question and it follows the new file, because it recognises the same working question.
+## Use it in ChatGPT or any other assistant · 在 ChatGPT 或其他助手中使用
 
-The status light in the top bar tells you which mode you're in: *live · can generate* means the CLI is
-there, *live · watching* means asking will hand you a prompt instead.
+The whole tool also exists as one self-contained prompt:
+[`portable/dont-stop-research.md`](portable/dont-stop-research.md).
 
-To get one-click generation:
+整个工具也被打包成一个独立的提示词文件：[`portable/dont-stop-research.md`](portable/dont-stop-research.md)。
 
-```bash
-npm i -g @anthropic-ai/claude-code
-```
+1. Paste the file's contents into ChatGPT (or Gemini, or any assistant **with web search
+   enabled** — verification is non-negotiable), add your question at the bottom, send.
+   把文件内容粘贴进 ChatGPT（或 Gemini，或任何**开启了联网搜索**的助手——核实来源是硬性要求），
+   在末尾加上你的问题，发送。
+2. It returns the question set in chat plus a JSON code block. Save that block as
+   `question-sets/anything.json` in this folder (or anywhere).
+   它会在对话里给出问题集，外加一个 JSON 代码块。把代码块存成 `question-sets/任意名字.json`。
+3. The viewer picks it up automatically if the server is running — or drag the file onto the page.
+   服务器开着的话查看器会自动加载——或者直接把文件拖到页面上。
 
-### Without the server
+To expand a question, click its dot in the viewer, copy the expansion prompt, and paste it into the
+same chat. · 想展开某个问题：在查看器里点它的圆点，复制展开指令，粘贴回同一个对话。
 
-Opening `viewer/index.html` straight from disk still works — you just lose the watching. Drop a JSON
-anywhere on the page, or pass one with `?data=../question-sets/your-set.json`.
+## What's in here · 仓库结构
 
-### Try the example
-
-The repository ships a complete worked example: nine questions on whether the US–China tariffs
-rerouted world trade or shrank it, expanded once into a seven-question cluster on what tariffs are
-actually *for*. Sixteen questions, fourteen verified sources, one honestly-flagged unconfirmed one.
-
-Click **See a finished example** in the viewer. It is never loaded at you automatically — the graph
-that appears by itself is always one you asked for.
-
-Files: [question-set.json](examples/us-china-tariffs/question-set.json) ·
-[the artifact](examples/us-china-tariffs/question-set.md) ·
-[the briefing](examples/us-china-tariffs/research-briefing.md)
-
-## What's in here
-
-| Path | What |
+| Path | What · 内容 |
 |---|---|
-| `skills/dont-stop-research/SKILL.md` | The skill. Four stages: triage, generate, brief, emit JSON — plus expansion |
-| `skills/dont-stop-research/shared/` | The rules, the question ladder, the card format, the two output formats |
-| `schema/question-set.schema.json` | The JSON contract the viewer depends on |
-| `viewer/` | Static force-directed graph. d3 from a CDN; nothing else |
-| `scripts/serve.py` | Companion server: watches `question-sets/`, and runs the skill when the CLI is available. Binds to 127.0.0.1 only |
-| `examples/us-china-tariffs/` | The worked example, all three files |
-| `scripts/validate.py` | Checks a set against the schema and the project's invariants |
+| `skills/dont-stop-research/` | The Claude Code skill · Claude Code 技能 |
+| `portable/dont-stop-research.md` | The same tool as one pasteable prompt, for any assistant · 同一工具的单文件提示词版，适用于任何助手 |
+| `viewer/` | The interactive graph. Static; d3 from a CDN · 交互式图谱，纯静态 |
+| `scripts/serve.py` | Companion server: watches `question-sets/`, runs the skill when a CLI is available. Binds 127.0.0.1 only · 陪伴服务器，只绑定本机 |
+| `scripts/validate.py` | Checks a set against `schema/question-set.schema.json` · 按 schema 校验问题集 |
+| `start.bat` | Double-click launcher for Windows · Windows 双击启动 |
 
-## The seven question types
+## What it will not do · 它不会做的事
 
-A set must cover all seven, weighted toward **Mechanism** and **Tension** — the two places research
-reliably dies, at every level of expertise. Readers collect *what* and never reach *why*; and a set
-with no real disagreement in it produces a summary rather than a position, however many sources it
-cites.
+No essay, no outline, no draft, no summarising a source so the reading can be skipped, no telling
+you which side to take. The test: if you end up with a position you cannot defend out loud,
+something went wrong.
 
-| | Type | The move it teaches |
-|---|---|---|
-| 1 | Meaning | What are we actually asking? Which words are doing work? |
-| 2 | Landscape | Who has looked at this, what did they find? |
-| 3 | **Mechanism** | *Why* would that happen? What's the story underneath? |
-| 4 | **Tension** | Who disagrees, and what is their strongest point? |
-| 5 | Evidence | How would anyone know? What would count as proof? |
-| 6 | Scope | Where does this stop being true? |
-| 7 | Stake | Who cares, what changes if the answer flips? |
+不写文章，不给大纲，不出草稿，不通过总结材料让阅读可以被跳过，不告诉你该站哪一边。检验标准：如果你最后
+拿到的是自己没法当面辩护的立场，那就是出了问题。
 
-The Tension card must present a **real** disagreement at its strongest. Where a topic has no live
-expert dispute, the skill is instructed to say so rather than manufacture one.
+## Honest limits · 诚实的局限
 
-## The briefing
+Verification confirms a source exists and says what we claim — at abstract level, not full text, so
+it can be defeated by a source that is real, well-indexed, and wrong. Difficulty is calibrated from
+one paragraph of self-description, which is a guess. And nothing enforces that anyone actually
+reads: the tool changes incentives and makes gaps visible out loud; it enforces nothing.
 
-Every set comes with a companion briefing written for someone with **no knowledge of the subject** —
-because on any given question, that's most people, including experts in adjacent fields. It's
-layered: read the first screen and you can act in ten minutes; read the rest if you want the
-reasoning.
+核实只能确认来源存在、且其摘要支持所附说法——不是全文核读，所以一个真实、收录良好却错误的来源可以骗过
+它。难度校准依据只是一段自述，本质上是猜测。它也无法强制任何人真的去读：它改变激励、让空洞在开口解释时
+暴露，但不强制任何事。
 
-It gives you three questions that can be asked cold by someone who knows nothing, what a genuine
-answer sounds like versus a recited one, a glossary of words that will show up in the answer, and —
-the part that makes it trustworthy — instructions for checking our citations, starting with the one
-we could not confirm.
+## Contributing · 参与贡献
 
-In solo mode it opens with a spoiler warning, because two of its sections contain the answers you're
-likely to reach for first, and reading those early spoils the work.
+Found a citation we got wrong? That's the most valuable issue you can file — say what was wrong and
+how you checked. See [CONTRIBUTING.md](CONTRIBUTING.md). · 发现引用错误是最有价值的贡献——请说明错在
+哪里、你如何核实。
 
-## What it will not do
+## Licence · 许可
 
-No essay. No argument outline. No draft. No telling you which side to take. No summarising a source
-so the reading can be skipped.
-
-The falsifiable test: **if you end up with work you cannot defend out loud, something went wrong** —
-and the three teach-back questions are how you'd find out.
-
-## Limitations worth knowing before you rely on it
-
-1. **The evidence base is strong for the parts and untested for the whole.** Lateral reading,
-   elaborative interrogation, central-question design and learning-by-teaching are each
-   well-evidenced. Assembling them into this is a reasoned bet, not a validated intervention.
-2. **Verification is only as good as the search behind it.** The skill confirms a source exists and
-   that its abstract supports the claim attached to it. It cannot read paywalled full text, and it can
-   be defeated by a source that is real, well-indexed and wrong.
-3. **Numbers travel worse than citations.** On technical topics the bigger risk is not a fake
-   reference but a real figure quoted without its scope — "$14bn lost" was one half of one year, goods
-   only. The briefing says so explicitly.
-4. **Calibration comes from one paragraph of free text.** Better than assuming an age, still a guess.
-   A specialist who describes themselves modestly gets a set pitched too low. Say more than feels
-   necessary.
-5. **In solo mode the spoiler boundary is self-enforced.** The JSON withholds the anticipated answers;
-   the artifact and briefing contain them, and nothing stops you reading ahead.
-6. **It cannot tell whether anyone read anything.** It changes incentives and makes gaps visible when
-   you try to explain yourself. It enforces nothing.
-7. **There is no content policy for sensitive topics.** For an adult researching their own question
-   that's appropriate. If you're using `guided` mode with a young person, choosing the topic and
-   reviewing the sources first is your job — the skill does not do it for you.
-
-## Contributing
-
-Bug reports, new question sets, and translations are all welcome. Run `python scripts/validate.py`
-before opening a pull request. See [CONTRIBUTING.md](CONTRIBUTING.md).
-
-If you find a citation we got wrong, that is the most valuable issue you can file. Please say what
-was wrong and how you checked.
-
-## Evidence base
-
-Bargh & Schul (1980) · Beck et al. (2013) · Bjork et al. (2013) · Breakstone et al. (2021) ·
-Caulfield (2019) · Chin (2007) · Fisher & Frey (2012) · Ji et al. (2023) · Nystrand et al. (1997) ·
-Paul & Elder (2008) · Pressley et al. (1992) · Reisman (2012) · Roscoe & Chi (2007) ·
-Shanahan et al. (2012) · Wiggins & McTighe (2005) · Wineburg & McGrew (2017, 2019) ·
-Woloshyn et al. (1994)
-
-Citation is not endorsement: none of these researchers has reviewed or approved this tool.
-
-## Licence
-
-[MIT](LICENSE). The readings a generated set points to remain the property of their authors and
-publishers; this project links to them and never reproduces them.
+[MIT](LICENSE). The readings a set points to remain their authors' and publishers' property; this
+project links and never reproduces. · 问题集指向的阅读材料版权归原作者与出版方；本项目只做链接，绝不
+复制内容。

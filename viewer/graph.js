@@ -2,7 +2,6 @@
    Renders a question set emitted by the dont-stop-research skill.
    Reads visibility:both fields only; the schema forbids spoiler fields in this file. */
 
-const EXAMPLE_DATA = '../examples/us-china-tariffs/question-set.json';
 const SKILL = '/dont-stop-research';
 const POLL_MS = 4000;
 
@@ -119,7 +118,7 @@ function askPrompt() {
 }
 
 function expandPrompt(node, question) {
-  const rel = (loaded.url || EXAMPLE_DATA).replace(/^\//, '');
+  const rel = (loaded.url || './question-sets/your-set.json').replace(/^\//, '');
   return `${SKILL} expand_from: ${rel}#${node}\n\n` +
     `Expand this node: "${question}"\n` +
     `Generate up to nine verified follow-up questions (fewer if any would be padding), each with ` +
@@ -298,8 +297,7 @@ function syncPicker() {
   el.pick.hidden = false;
   const current = loaded.url;
   el.pick.innerHTML = sets.map(s =>
-    `<option value="${esc(s.url)}"${s.url === current ? ' selected' : ''}>` +
-    `${esc(s.name)}${s.origin === 'examples' ? ' (example)' : ''}</option>`
+    `<option value="${esc(s.url)}"${s.url === current ? ' selected' : ''}>${esc(s.name)}</option>`
   ).join('');
 }
 
@@ -414,14 +412,6 @@ document.getElementById('newq').addEventListener('click', () => {
   el.q.value = '';
   el.ctx.value = '';
   showAsk();
-});
-
-document.getElementById('demo').addEventListener('click', async e => {
-  const entry = ((HELPER && HELPER.sets) || []).find(s => s.origin === 'examples')
-    || { url: EXAMPLE_DATA, mtime: 0 };
-  if (!(await loadSet(entry))) {
-    banner('The example needs the page served over HTTP — run python scripts/serve.py.', 'error');
-  }
 });
 
 document.getElementById('fit').addEventListener('click', () => {

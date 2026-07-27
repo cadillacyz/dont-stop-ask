@@ -2,7 +2,7 @@
 """Validate a dont-stop-ask question set against schema/question-set.schema.json.
 
 Usage:
-    python scripts/validate.py                       # validate every example
+    python scripts/validate.py                       # validate every set in question-sets/
     python scripts/validate.py path/to/set.json ...  # validate specific files
 
 Uses jsonschema when installed for full schema validation. The project-specific
@@ -141,10 +141,18 @@ def schema_check(data):
 def main(argv):
     paths = [pathlib.Path(a) for a in argv[1:]]
     if not paths:
-        paths = sorted((ROOT / "examples").rglob("*.json"))
+        sets_dir = ROOT / "question-sets"
+        paths = sorted(sets_dir.rglob("question-set*.json")) if sets_dir.exists() else []
     if not paths:
-        print("no question sets found")
-        return 1
+        # Always check that the schema itself is at least valid JSON, so CI
+        # still guards the contract when no sets are present.
+        try:
+            json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as err:
+            print(f"FAIL {SCHEMA_PATH}\n  schema unreadable: {err}")
+            return 1
+        print(f"OK   {SCHEMA_PATH} (schema parses; no question sets to validate)")
+        return 0
 
     failed = False
     for path in paths:

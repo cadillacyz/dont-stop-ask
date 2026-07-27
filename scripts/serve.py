@@ -35,7 +35,7 @@ import uuid
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SETS_DIR = ROOT / "question-sets"
-SCAN = [("question-sets", SETS_DIR), ("examples", ROOT / "examples")]
+SCAN = [("question-sets", SETS_DIR)]
 PORT = int(os.environ.get("DSA_PORT", "8000"))
 SKILL = "/dont-stop-research"
 
