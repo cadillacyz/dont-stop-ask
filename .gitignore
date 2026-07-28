@@ -1,6 +1,6 @@
-# Generated question sets — these contain student context and belong to the person
-# who generated them, not to the repository. Publish one deliberately, into examples/.
-question-sets/
+# Generated question sets are tracked in this repository by its owner's choice —
+# it is private and shared with a co-author. If you fork this for yourself,
+# consider re-ignoring the folder: sets can carry personal context.
 *.local.json
 
 # Python
