@@ -95,6 +95,22 @@ Windows 下也可以直接双击 `start.bat`，然后打开 <http://127.0.0.1:80
 `question-sets/`——**无论 JSON 是怎么写出来的，图谱都会自己加载**，自动跟随展开、就地重载修改。
 点圆点看阅读材料；点展开把一个问题长成最多九个新问题（展开指令适用于你正在用的任何 AI）。
 
+### Optional: skip the copy-paste · 可选：省掉复制粘贴
+
+If any agent CLI is on your PATH — `claude`, `codex`, or `gemini` — the viewer's Ask and Expand
+buttons run it directly instead of handing you a prompt, and the graph appears when it finishes.
+The server uses whichever it finds; the status light names it. Nothing requires this, and the
+paste path stays for everyone else.
+
+如果你的 PATH 里有任意一个代理命令行工具——`claude`、`codex` 或 `gemini`——查看器的 Ask 和展开
+按钮会直接运行它，而不是把提示词交给你；跑完图谱自动出现。服务器会用它找到的那一个，状态灯会显示是
+哪个。这不是必需的，粘贴那条路径对其他人始终可用。
+
+`DSA_AGENT` picks one by name when several are installed; `DSA_AGENT_CMD` (a JSON list using
+`{prompt}`) replaces the whole invocation if a flag is wrong for your version. Only the
+invocation shape is claimed here, not that every build accepts it — a failed run shows the
+command's own error in the panel.
+
 ## What's in here · 仓库结构
 
 | Path | What · 内容 |

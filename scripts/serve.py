@@ -9,10 +9,10 @@ Two jobs:
    loads the newest one by itself, then watches for changes. Generate or expand a
    set and the graph updates without anyone picking a file.
 
-2. **Generation, when possible.** If the `claude` CLI is on PATH, the Ask box in
-   the viewer can run the skill directly. If it is not — for example when Claude
-   Code is installed as the desktop app only — the server says so and the viewer
-   falls back to handing you the command to paste.
+2. **Generation, when possible.** If any supported agent CLI is on PATH —
+   claude, codex, or gemini — the Ask box in the viewer runs the tool directly.
+   If none is (for example when Claude Code is installed as a desktop app only)
+   the server says so and the viewer hands you a prompt to paste instead.
 
 Binds to 127.0.0.1 by design: it can start a local process, so it must not be
 reachable from the network.
@@ -38,22 +38,47 @@ SETS_DIR = ROOT / "question-sets"
 SCAN = [("question-sets", SETS_DIR)]
 PORT = int(os.environ.get("DSA_PORT", "8000"))
 
-# Overridable so a broken default flag never blocks anyone:
-#   set DSA_CLAUDE_CMD to a JSON list, using {prompt} where the prompt goes.
-DEFAULT_CMD = ["claude", "-p", "{prompt}", "--permission-mode", "acceptEdits"]
+# Any coding-agent CLI that can take a prompt, use its tools, and write files
+# can run the tool. First one found on PATH wins; DSA_AGENT picks a specific
+# one by name, and DSA_AGENT_CMD (a JSON list using {prompt}) overrides the
+# invocation entirely — so a wrong flag here never blocks anyone.
+#
+# Only the invocation shape is claimed, not that every build accepts it. If a
+# run fails, the log shows why and DSA_AGENT_CMD is the fix.
+AGENT_CLIS = [
+    ("claude", "Claude Code",
+     ["claude", "-p", "{prompt}", "--permission-mode", "acceptEdits"]),
+    ("codex", "OpenAI Codex",
+     ["codex", "exec", "{prompt}", "--sandbox", "workspace-write",
+      "--ask-for-approval", "never"]),
+    ("gemini", "Gemini CLI",
+     ["gemini", "-p", "{prompt}", "--yolo"]),
+]
 
 JOBS = {}
 JOBS_LOCK = threading.Lock()
 
 
-def claude_path():
-    return shutil.which("claude")
+def find_agent():
+    """(binary, label, template) for the first usable CLI, or None."""
+    if os.environ.get("DSA_AGENT_CMD"):
+        template = json.loads(os.environ["DSA_AGENT_CMD"])
+        return (template[0], f"custom ({template[0]})", template)
+
+    wanted = (os.environ.get("DSA_AGENT") or "").strip().lower()
+    for binary, label, template in AGENT_CLIS:
+        if wanted and binary != wanted:
+            continue
+        if shutil.which(binary):
+            return (binary, label, template)
+    return None
 
 
-def claude_cmd(prompt):
-    raw = os.environ.get("DSA_CLAUDE_CMD")
-    template = json.loads(raw) if raw else DEFAULT_CMD
-    return [part.replace("{prompt}", prompt) for part in template]
+def agent_cmd(prompt):
+    found = find_agent()
+    if not found:
+        return None
+    return [part.replace("{prompt}", prompt) for part in found[2]]
 
 
 def list_sets():
@@ -132,7 +157,7 @@ def start_job(prompt):
         SETS_DIR.mkdir(parents=True, exist_ok=True)
         try:
             proc = subprocess.Popen(
-                claude_cmd(prompt),
+                agent_cmd(prompt),
                 cwd=str(ROOT),
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -145,7 +170,7 @@ def start_job(prompt):
         except OSError as err:
             with JOBS_LOCK:
                 JOBS[job_id]["state"] = "failed"
-                JOBS[job_id]["log"].append(f"could not start the claude CLI: {err}")
+                JOBS[job_id]["log"].append(f"could not start the agent CLI: {err}")
             return
 
         for line in proc.stdout:
@@ -201,13 +226,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         route = urllib.parse.urlparse(self.path).path
         if route == "/api/status":
-            cli = claude_path()
+            found = find_agent()
             return self.send_json({
                 "helper": True,
                 "root": ROOT.as_posix(),
                 "sets_dir": SETS_DIR.as_posix(),
-                "cli": bool(cli),
-                "cli_path": cli,
+                "cli": bool(found),
+                "cli_path": shutil.which(found[0]) if found else None,
+                "agent": found[1] if found else None,
                 "tool": "portable/dont-stop-research.md",
                 "sets": list_sets(),
             })
@@ -241,11 +267,12 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self.send_json({"error": "not found"}, 404)
 
         body = self.read_json()
-        if not claude_path():
+        if not find_agent():
             return self.send_json({
                 "error": "no-cli",
-                "message": ("The claude CLI is not on PATH, so this server cannot run the skill "
-                            "for you. Copy the prompt into Claude Code instead."),
+                "message": ("No agent CLI (claude, codex, gemini) is on PATH, so this server "
+                            "cannot run the tool for you. Paste the prompt into your AI tool "
+                            "instead."),
                 "prompt": (build_prompt(body.get("question", ""), body.get("context", ""),
                                         body.get("mode", "solo"))
                            if route == "/api/ask" else
@@ -281,16 +308,17 @@ def main():
             pass
 
     mimetypes.add_type("application/json", ".json")
-    cli = claude_path()
+    found = find_agent()
     print("dont-stop-ask · 不停问")
     print(f"  serving   {ROOT}")
     print(f"  open      http://127.0.0.1:{PORT}/viewer/")
     print(f"  sets in   {SETS_DIR}")
-    if cli:
-        print(f"  claude    {cli} — the Ask box can generate sets directly")
+    if found:
+        print(f"  agent     {found[1]} ({shutil.which(found[0])}) — the Ask box generates directly")
     else:
-        print("  claude    not on PATH — the Ask box will hand you a prompt to paste instead")
-        print("            (install the CLI for one-click generation: npm i -g @anthropic-ai/claude-code)")
+        names = ", ".join(a[0] for a in AGENT_CLIS)
+        print(f"  agent     none found ({names}) — the Ask box will hand you a prompt to paste")
+        print("            any one of them enables one-click; DSA_AGENT_CMD overrides the call")
     print("  bound to 127.0.0.1 only. ctrl-c to stop.\n")
     try:
         with Server(("127.0.0.1", PORT), Handler) as httpd:

@@ -259,12 +259,13 @@ function setStatus() {
   }
   if (HELPER.cli) {
     el.status.className = 'status live';
-    el.status.textContent = 'live · can generate';
-    el.status.title = `Watching ${HELPER.sets_dir} · claude CLI at ${HELPER.cli_path}`;
+    el.status.textContent = `live · ${HELPER.agent || 'can generate'}`;
+    el.status.title = `Watching ${HELPER.sets_dir} · running through ${HELPER.cli_path}`;
   } else {
     el.status.className = 'status partial';
     el.status.textContent = 'live · watching';
-    el.status.title = `Watching ${HELPER.sets_dir}. No claude CLI on PATH, so asking hands you a prompt.`;
+    el.status.title = `Watching ${HELPER.sets_dir}. No agent CLI on PATH, so asking hands you a `
+      + `prompt to paste into whichever AI tool you use.`;
   }
 }
 
@@ -356,8 +357,8 @@ function showAsk() {
   if (!DATA) { el.meta.innerHTML = ''; resetPanel(); }
   el.askFoot.textContent = HELPER
     ? (HELPER.cli
-        ? 'Asking runs the skill here and the graph loads itself when it finishes.'
-        : 'No claude CLI on PATH, so asking hands you a prompt to paste. The graph still loads itself once the file appears.')
+        ? `Asking runs ${HELPER.agent || 'your agent'} here and the graph loads itself when it finishes.`
+        : 'Asking hands you a prompt to paste into your AI tool. The graph still loads itself once the file appears.')
     : 'Opened as plain files. Run python scripts/serve.py for auto-loading and folder watching.';
   setTimeout(() => el.q.focus(), 50);
 }

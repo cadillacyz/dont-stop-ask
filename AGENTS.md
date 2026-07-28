@@ -60,7 +60,7 @@ The running viewer reloads it automatically.
 |---|---|
 | `portable/dont-stop-research.md` | **The tool.** Self-contained instructions for any model |
 | `viewer/` | Static graph viewer (d3 via CDN); no build step |
-| `scripts/serve.py` | Local server: watches `question-sets/`, auto-loads new sets. Binds 127.0.0.1 |
+| `scripts/serve.py` | Local server: watches `question-sets/`, auto-loads new sets, and can run an agent CLI (`claude`, `codex`, `gemini`) when one is on PATH. Binds 127.0.0.1 |
 | `scripts/validate.py` | Validates sets against `schema/question-set.schema.json` |
 | `schema/question-set.schema.json` | The JSON contract between generator and viewer |
 | `skills/dont-stop-research/` | Optional Claude Code packaging of the same tool (adds a `/dont-stop-research` slash command). Not required by anything else |
