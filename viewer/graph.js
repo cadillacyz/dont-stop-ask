@@ -684,7 +684,7 @@ function render() {
       setHot(d, true);
       el.tip.hidden = false;
       el.tip.textContent = d.kind === 'source'
-        ? DATA.sources[d.id].citation
+        ? `${d.id} · ${splitCitation(DATA.sources[d.id].citation).title}`
         : (d.kind === 'question' ? `${d.id} · ${d.label}` : d.label);
     })
     .on('mousemove', e => {
@@ -762,6 +762,13 @@ const TIER_ZH = {
   T4: ['付费墙', 'T4 —— 有付费墙，因此另附一条免费途径']
 };
 
+/* Citations arrive as "Title · Author · Year · Venue · Kind". Split them so the
+   paper's name leads and everything else recedes into a metadata line. */
+function splitCitation(c) {
+  const parts = String(c || '').split(/\s·\s/).map(s => s.trim()).filter(Boolean);
+  return { title: parts[0] || String(c || ''), rest: parts.slice(1) };
+}
+
 function tierChip(code) {
   const map = isZh() ? TIER_ZH : TIER;
   const entry = map[code];
@@ -781,13 +788,16 @@ function verifiedChip(v) {
 function sourceLine(sid, role) {
   const s = DATA.sources[sid];
   if (!s) return `<p><span class="role">${esc(role)}</span>unknown source ${esc(sid)}</p>`;
-  const name = esc(s.citation);
+  const { title, rest } = splitCitation(s.citation);
+  const name = esc(title);
   const body = s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${name}</a>` : name;
   const mins = s.time_estimate ? `<span class="mins">${esc(s.time_estimate)} min</span>` : '';
   let out = `<div class="reading">` +
-    `<p style="margin:0"><span class="source-id" title="${esc(T('Source, numbered in this set'))}">` +
+    `<p class="reading-head"><span class="source-id" title="${esc(T('Source, numbered in this set'))}">` +
     `${esc(sid)}</span>` +
-    `<span class="role ${esc(role)}">${esc(role)}</span>${body}</p>` +
+    `<span class="role ${esc(role)}">${esc(role)}</span></p>` +
+    `<p class="reading-title">${body}</p>` +
+    (rest.length ? `<p class="cite-rest">${esc(rest.join(' · '))}</p>` : '') +
     `<p class="meta-line">${tierChip(s.access_tier)}${verifiedChip(s.verified)}${mins}</p>`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
     out += `<p class="flag" style="margin:10px 0 0">` +
@@ -936,9 +946,11 @@ function showSource(sid) {
   let h = `<h2>${T('Reading')} ${esc(sid)}</h2>` +
     `<p class="meta-line" style="margin:-4px 0 12px">${tierChip(s.access_tier)}${verifiedChip(s.verified)}` +
     `${s.time_estimate ? `<span class="mins">${esc(s.time_estimate)} min</span>` : ''}</p>`;
+  const cite = splitCitation(s.citation);
   h += `<p class="q">${s.url
-    ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.citation)}</a>`
-    : esc(s.citation)}</p>`;
+    ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(cite.title)}</a>`
+    : esc(cite.title)}</p>`;
+  if (cite.rest.length) h += `<p class="cite-rest big">${esc(cite.rest.join(' · '))}</p>`;
   h += `<div class="sec">`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
     h += `<p class="flag"><strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;

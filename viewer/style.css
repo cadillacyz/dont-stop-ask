@@ -486,7 +486,19 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
   padding: 12px 14px;
   margin: 0 0 10px;
 }
-.reading .meta-line { font-size: 13.5px; color: var(--fg-3); margin: 6px 0 0; }
+.reading .meta-line { font-size: 13.5px; color: var(--fg-3); margin: 8px 0 0; }
+.reading-head { margin: 0 0 7px !important; }
+.reading-title { margin: 0 !important; font-size: 16px; line-height: 1.45; font-weight: 500; }
+.reading-title a { font-weight: 500; }
+
+/* author · year · venue · kind — present, but out of the way of the title */
+.cite-rest {
+  margin: 5px 0 0 !important;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--fg-3);
+}
+.cite-rest.big { font-size: 14.5px; margin: -10px 0 14px !important; }
 
 .role {
   display: inline-block;
