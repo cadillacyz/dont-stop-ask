@@ -391,12 +391,21 @@ function watchJob(jobId) {
     catch { return; }
     el.progText.textContent = job.state === 'running'
       ? `Working… ${job.elapsed}s. Verifying sources takes a few minutes.`
-      : (job.state === 'done' ? 'Finished. Waiting for the file…' : 'That run failed.');
+      : (job.state === 'done' ? 'Finished. Loading…' : 'That run produced nothing.');
     el.progLog.textContent = (job.log || []).join('\n');
     el.progLog.scrollTop = el.progLog.scrollHeight;
-    if (job.state === 'failed') {
-      stopProgress();
-      banner('The generation run failed — the log above says why.', 'error');
+
+    if (job.state === 'failed' || job.state === 'empty') {
+      clearInterval(jobTimer);
+      jobTimer = null;
+      el.go.disabled = false;
+      const tail = (job.log || []).slice(-3).join(' ').trim();
+      /* The commonest cause of a clean exit with no file is an agent CLI that
+         is installed but not signed in — name it rather than make them guess. */
+      const hint = /not logged in|\/login|unauthor|authenticat|api key/i.test(tail)
+        ? 'Your agent CLI is installed but not signed in. Sign in once in a terminal, then try again.'
+        : 'The run finished without writing a question set. What it printed is above.';
+      banner(esc(hint), 'error');
     }
   }, 1500);
 }

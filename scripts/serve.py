@@ -78,7 +78,13 @@ def agent_cmd(prompt):
     found = find_agent()
     if not found:
         return None
-    return [part.replace("{prompt}", prompt) for part in found[2]]
+    cmd = [part.replace("{prompt}", prompt) for part in found[2]]
+    # On Windows these CLIs are .CMD shims, and CreateProcess will not find a
+    # bare name — resolve it to the full path shutil.which already located.
+    resolved = shutil.which(cmd[0])
+    if resolved:
+        cmd[0] = resolved
+    return cmd
 
 
 def list_sets():
@@ -141,9 +147,14 @@ def build_expand_prompt(set_url, node, question):
     )
 
 
+def set_names():
+    return {s["name"] for s in list_sets()}
+
+
 def start_job(prompt):
-    """Run the skill through the CLI, streaming output into the job record."""
+    """Run the tool through the agent CLI, streaming output into the job record."""
     job_id = uuid.uuid4().hex[:12]
+    before = set_names()
     with JOBS_LOCK:
         JOBS[job_id] = {
             "id": job_id,
@@ -179,9 +190,18 @@ def start_job(prompt):
                 log.append(line.rstrip())
                 del log[:-400]
         code = proc.wait()
+        # A clean exit is not success: an unauthenticated or confused CLI can
+        # print a notice, exit 0, and write nothing. Judge it on the file.
+        produced = sorted(set_names() - before)
         with JOBS_LOCK:
-            JOBS[job_id]["state"] = "done" if code == 0 else "failed"
             JOBS[job_id]["exit_code"] = code
+            JOBS[job_id]["produced"] = produced
+            if code != 0:
+                JOBS[job_id]["state"] = "failed"
+            elif produced:
+                JOBS[job_id]["state"] = "done"
+            else:
+                JOBS[job_id]["state"] = "empty"
 
     threading.Thread(target=run, daemon=True).start()
     return job_id
@@ -251,6 +271,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     "id": job["id"],
                     "state": job["state"],
                     "exit_code": job.get("exit_code"),
+                    "produced": job.get("produced") or [],
                     "elapsed": int(time.time() - job["started"]),
                     "log": job["log"][-60:],
                 })
