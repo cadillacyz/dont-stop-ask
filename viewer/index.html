@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>不停问 · dont-stop-ask</title>
 <link rel="stylesheet" href="style.css" />
+<script>
+  /* Stamp the saved theme before first paint so the page never flashes the
+     wrong one. No saved choice means follow the OS. */
+  try {
+    var t = localStorage.getItem('dsa-theme');
+    if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
+  } catch (e) {}
+</script>
 </head>
 <body>
 
@@ -19,6 +27,7 @@
     <button class="btn" id="newq">Ask something else</button>
     <label class="btn" for="file">Open a file…<input id="file" type="file" accept="application/json,.json" hidden /></label>
     <button class="btn" id="fit">Fit view</button>
+    <button class="btn icon-btn" id="theme" aria-label="Switch between light and dark" title="Switch theme">◐</button>
   </div>
 </header>
 
@@ -83,11 +92,11 @@
 </main>
 
 <footer class="legend">
-  <span><i class="sw" style="background:#6fd48a"></i>easier</span>
-  <span><i class="sw" style="background:#f0b24a"></i>middle</span>
-  <span><i class="sw" style="background:#f0625d"></i>most technical</span>
-  <span><i class="sw" style="background:#8d96b8"></i>reading</span>
-  <span><i class="sw" style="background:#a78bfa"></i>your question</span>
+  <span><i class="sw" style="background:var(--easy)"></i>easier</span>
+  <span><i class="sw" style="background:var(--middle)"></i>middle</span>
+  <span><i class="sw" style="background:var(--technical)"></i>most technical</span>
+  <span><i class="sw" style="background:var(--reading)"></i>reading</span>
+  <span><i class="sw" style="background:var(--root)"></i>your question</span>
   <span class="id-key"><code>S1</code> source <span aria-hidden="true">·</span> <code>Q1</code> question</span>
   <span class="spacer"></span>
   <span class="hint">drag dots · scroll to zoom · click for readings</span>

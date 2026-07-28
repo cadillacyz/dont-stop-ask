@@ -4,13 +4,25 @@
 
 const POLL_MS = 4000;
 
-const COLOR = {
-  easy: '#6fd48a',
-  middle: '#f0b24a',
-  technical: '#f0625d',
-  reading: '#8d96b8',
-  root: '#a78bfa'
-};
+/* Marks are sized here, not in CSS, because d3 needs the numbers.
+   Hover multiplies these — see HOVER_SCALE. */
+const R = { root: 18, question: 13, loadBearing: 15, source: 7 };
+const HOVER_SCALE = 1.45;
+
+/* The palette lives in style.css so both themes stay in one place and the
+   validated hexes are never duplicated. Read it back at render time. */
+let COLOR = {};
+function readPalette() {
+  const s = getComputedStyle(document.documentElement);
+  const get = (n, fallback) => (s.getPropertyValue(n).trim() || fallback);
+  COLOR = {
+    easy: get('--easy', '#1a9d74'),
+    middle: get('--middle', '#b98c0f'),
+    technical: get('--technical', '#d84a66'),
+    reading: get('--reading', '#8d96b8'),
+    root: get('--root', '#9085e9')
+  };
+}
 
 const el = {
   svg: d3.select('#graph'),
@@ -188,6 +200,12 @@ async function loadSet(entry, opts = {}) {
 }
 
 async function boot() {
+  readPalette();
+  const btn = document.getElementById('theme');
+  const t = currentTheme();
+  btn.textContent = t === 'dark' ? '☾' : '☀';
+  btn.title = t === 'dark' ? 'Switch to light' : 'Switch to dark';
+
   const param = new URLSearchParams(location.search).get('data');
 
   try {
@@ -425,6 +443,43 @@ document.getElementById('fit').addEventListener('click', () => {
   if (fn) fn();
 });
 
+/* ---------- theme ---------- */
+
+function currentTheme() {
+  return document.documentElement.dataset.theme
+    || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+}
+
+function applyTheme(next) {
+  document.documentElement.dataset.theme = next;
+  try { localStorage.setItem('dsa-theme', next); } catch (e) {}
+  const btn = document.getElementById('theme');
+  btn.textContent = next === 'dark' ? '☾' : '☀';
+  btn.title = next === 'dark' ? 'Switch to light' : 'Switch to dark';
+  /* The marks take their colours from CSS variables, so a theme change means
+     a re-render — keep the selection and the camera where they were. */
+  if (DATA) {
+    const keep = selectedId;
+    render();
+    if (keep) reselect(keep);
+  }
+}
+
+document.getElementById('theme').addEventListener('click', () => {
+  applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+});
+
+/* Follow the OS while the user hasn't expressed a preference. */
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  let saved = null;
+  try { saved = localStorage.getItem('dsa-theme'); } catch (e) {}
+  if (!saved && DATA) {
+    const keep = selectedId;
+    render();
+    if (keep) reselect(keep);
+  }
+});
+
 el.file.addEventListener('change', e => {
   const f = e.target.files && e.target.files[0];
   if (f) readFile(f);
@@ -484,7 +539,7 @@ function buildGraph() {
   nodes.push({
     id: rootId,
     kind: 'root',
-    r: 11,
+    r: R.root,
     col: COLOR.root,
     label: (DATA.root && DATA.root.label) || 'Working question'
   });
@@ -493,7 +548,7 @@ function buildGraph() {
     nodes.push({
       id: q.id,
       kind: 'question',
-      r: q.load_bearing ? 9.5 : 8,
+      r: q.load_bearing ? R.loadBearing : R.question,
       col: COLOR[q.difficulty] || COLOR.middle,
       label: q.label || q.id,
       q
@@ -512,7 +567,7 @@ function buildGraph() {
     nodes.push({
       id: sid,
       kind: 'source',
-      r: 4.5,
+      r: R.source,
       col: COLOR.reading,
       label: s.short || sid,
       unconfirmed: s.verified === 'unconfirmed'
@@ -529,7 +584,7 @@ function anchors(nodes, W, H) {
   const parents = [...new Set(nodes.filter(n => n.kind === 'question').map(n => n.q.parent))];
   const map = {};
   const cx = W / 2, cy = H / 2;
-  const spread = Math.min(W, H) * 0.36;
+  const spread = Math.min(W, H) * 0.42;
   parents.forEach((p, i) => {
     const base = parents.length === 1 ? 0 : (-Math.PI / 2) + (i * 2 * Math.PI / parents.length);
     const px = parents.length === 1 ? cx : cx + Math.cos(base) * spread * 0.95;
@@ -546,6 +601,7 @@ function anchors(nodes, W, H) {
 }
 
 function render() {
+  readPalette();
   el.svg.selectAll('*').remove();
   const { nodes, links } = buildGraph();
   const W = el.stage.clientWidth || 900;
@@ -560,11 +616,11 @@ function render() {
   const anchorOf = n => (n.kind === 'question' ? A[`${n.q.parent}|${n.q.relevance_group}`] : null);
 
   sim = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(links).id(d => d.id).distance(l => (l.strong ? 88 : 124)).strength(0.45))
-    .force('charge', d3.forceManyBody().strength(-420).distanceMax(Math.min(W, H) * 0.8))
+    .force('link', d3.forceLink(links).id(d => d.id).distance(l => (l.strong ? 122 : 165)).strength(0.42))
+    .force('charge', d3.forceManyBody().strength(-780).distanceMax(Math.min(W, H) * 0.8))
     .force('center', d3.forceCenter(W / 2, H / 2).strength(0.06))
     /* Collide radius covers the label sitting above each dot, not just the dot. */
-    .force('collide', d3.forceCollide().radius(d => (d.kind === 'source' ? d.r + 16 : d.r + 30)))
+    .force('collide', d3.forceCollide().radius(d => (d.kind === 'source' ? d.r + 22 : d.r + 48)).iterations(2))
     .force('x', d3.forceX(d => (anchorOf(d) || { x: W / 2 }).x).strength(d => (anchorOf(d) ? 0.11 : 0.015)))
     .force('y', d3.forceY(d => (anchorOf(d) || { y: H / 2 }).y).strength(d => (anchorOf(d) ? 0.11 : 0.015)));
 
@@ -576,9 +632,9 @@ function render() {
 
   const dot = g.append('g').selectAll('circle').data(nodes).join('circle')
     .attr('class', 'dot').attr('r', d => d.r).attr('fill', d => d.col)
-    .attr('stroke', d => (d.unconfirmed ? '#f0b24a' : null))
-    .attr('stroke-width', d => (d.unconfirmed ? 1.2 : null))
-    .attr('stroke-dasharray', d => (d.unconfirmed ? '2 2' : null));
+    .attr('stroke', d => (d.unconfirmed ? COLOR.middle : null))
+    .attr('stroke-width', d => (d.unconfirmed ? 2 : null))
+    .attr('stroke-dasharray', d => (d.unconfirmed ? '3 3' : null));
 
   const label = g.append('g').selectAll('text')
     .data(nodes.filter(n => n.kind !== 'source')).join('text')
@@ -589,7 +645,17 @@ function render() {
     .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
     .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
 
+  const touches = (l, id) => (l.source.id || l.source) === id || (l.target.id || l.target) === id;
+
+  function setHot(d, on) {
+    dot.filter(n => n.id === d.id).attr('r', on ? d.r * HOVER_SCALE : d.r);
+    halo.filter(n => n.id === d.id).classed('hot', on).attr('r', n => n.r * (on ? 2.9 : 2.4));
+    label.filter(n => n.id === d.id).classed('hot', on);
+    edge.classed('hot', l => on && touches(l, d.id));
+  }
+
   dot.on('mouseenter', (e, d) => {
+      setHot(d, true);
       el.tip.hidden = false;
       el.tip.textContent = d.kind === 'source'
         ? DATA.sources[d.id].citation
@@ -597,14 +663,14 @@ function render() {
     })
     .on('mousemove', e => {
       const b = el.stage.getBoundingClientRect();
-      el.tip.style.left = `${e.clientX - b.left + 14}px`;
-      el.tip.style.top = `${e.clientY - b.top + 10}px`;
+      el.tip.style.left = `${e.clientX - b.left + 16}px`;
+      el.tip.style.top = `${e.clientY - b.top + 12}px`;
     })
-    .on('mouseleave', () => { el.tip.hidden = true; });
+    .on('mouseleave', (e, d) => { setHot(d, false); el.tip.hidden = true; });
 
   dot.on('click', function (e, d) {
-    d3.select(this).transition().duration(140).attr('r', d.r * 1.8)
-      .transition().duration(220).attr('r', d.r);
+    d3.select(this).transition().duration(130).attr('r', d.r * 1.9)
+      .transition().duration(200).attr('r', d.r * HOVER_SCALE);
     selectedId = d.id;
     dot.classed('sel', n => n.id === selectedId);
     openNode(d);
@@ -624,7 +690,7 @@ function render() {
     });
     halo.attr('cx', d => d.x).attr('cy', d => d.y);
     dot.attr('cx', d => d.x).attr('cy', d => d.y);
-    label.attr('x', d => d.x).attr('y', d => d.y - d.r - 7);
+    label.attr('x', d => d.x).attr('y', d => d.y - d.r - 11);
   });
 }
 
@@ -661,15 +727,18 @@ function sourceLine(sid, role) {
   const body = s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${name}</a>` : name;
   const tier = [s.access_tier, s.verified, s.time_estimate ? `${s.time_estimate} min` : null]
     .filter(Boolean).join(' · ');
-  let out = `<p><span class="source-id" title="${esc(T('Source ID'))}">${esc(sid)}</span>` +
-    `<span class="role ${esc(role)}">${esc(role)}</span>${body} <span class="muted">(${esc(tier)})</span></p>`;
+  let out = `<div class="reading">` +
+    `<p style="margin:0"><span class="source-id" title="${esc(T('Source ID'))}">${esc(sid)}</span>` +
+    `<span class="role ${esc(role)}">${esc(role)}</span>${body}</p>` +
+    `<p class="meta-line">${esc(tier)}</p>`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
-    out += `<p class="flag"><strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
+    out += `<p class="flag" style="margin:10px 0 0">` +
+      `<strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
   }
   if (s.access_tier === 'T4' && s.paired_with) {
-    out += `<p class="muted">${T('Free route:')} ${esc(s.paired_with)}</p>`;
+    out += `<p class="meta-line">${T('Free route:')} ${esc(s.paired_with)}</p>`;
   }
-  return out;
+  return out + `</div>`;
 }
 
 function expandButton(node, label) {
