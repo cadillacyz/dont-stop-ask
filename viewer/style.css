@@ -145,8 +145,7 @@ body { display: flex; flex-direction: column; }
 }
 
 .brand { display: flex; align-items: baseline; gap: 11px; }
-.brand .zh { font-size: 22px; letter-spacing: 0.04em; }
-.brand .en { font-size: 14px; color: var(--fg-3); letter-spacing: 0.02em; }
+.brand .name { font-size: 19px; font-weight: 500; letter-spacing: -0.01em; }
 
 .bar-actions { margin-left: auto; display: flex; gap: 9px; align-items: center; }
 
@@ -367,9 +366,85 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
   background: var(--bg);
 }
 
-.meta { border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 18px; }
-.meta h1 { font-size: 19px; font-weight: 500; margin: 0 0 10px; line-height: 1.45; letter-spacing: -0.01em; }
+.meta { border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 18px; }
 .meta p { margin: 0; font-size: 13.5px; color: var(--fg-3); }
+
+/* The working question is context, not a headline — one quiet line that
+   doubles as a way back to the root card. */
+.crumb { margin: 0 0 9px !important; }
+.crumb button {
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--fg-3);
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.crumb button:hover { color: var(--fg-2); text-decoration: underline; }
+
+/* before → after, so the improvement is the thing you see */
+.step-label {
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg-3);
+  margin: 0 0 6px !important;
+}
+.asked {
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--fg);
+  margin: 0 0 4px !important;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border-radius: var(--radius);
+}
+.step-arrow { margin: 8px 0 10px !important; color: var(--fg-3); font-size: 18px; text-align: center; }
+.panel .q.sharpened {
+  padding: 13px 15px;
+  background: var(--accent-soft);
+  border-left: 3px solid var(--root);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-bottom: 18px;
+}
+
+.crit {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-size: 14.5px;
+  color: var(--fg-2);
+}
+.crit summary { cursor: pointer; color: var(--fg-2); font-weight: 500; }
+.crit summary:hover { color: var(--fg); }
+.crit ul { margin: 12px 0 0; padding-left: 20px; line-height: 1.65; }
+.crit li { margin-bottom: 7px; }
+.crit strong { color: var(--fg); font-weight: 500; }
+
+/* reading metadata: plain words, not schema codes */
+.tier, .vfy, .mins {
+  display: inline-block;
+  font-size: 12.5px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-right: 6px;
+  border: 1px solid var(--line-strong);
+  color: var(--fg-2);
+  cursor: help;
+}
+.mins { border: 0; padding-left: 0; cursor: default; color: var(--fg-3); }
+.vfy.bad { border-color: var(--warn-line); background: var(--warn-bg); color: var(--warn-ink); }
 .pill {
   display: inline-block;
   font-size: 12.5px;

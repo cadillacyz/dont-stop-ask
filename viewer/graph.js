@@ -79,6 +79,21 @@ const ZH = {
   'Find it:': '如何找到：',
   'Unconfirmed:': '未确认：',
   'Reading': '阅读材料',
+  'Source, numbered in this set': '来源编号（本套问题内）',
+  'How the question changed': '问题是怎么变锋利的',
+  'The question': '这个问题',
+  'You asked': '你原本问的是',
+  'Sharpened to': '磨锋利之后',
+  'Why': '为什么这样改：',
+  'The six things it was tested against': '它经受检验的六项标准',
+  'Show the question and how it was sharpened': '查看问题本身，以及它是怎么被磨锋利的',
+  'A new set just appeared.': '出现了一套新的问题。',
+  'Reloaded — the file changed.': '已重新加载——文件有改动。',
+  'Reloaded — new questions were added.': '已重新加载——新增了问题。',
+  'verified': '已核实',
+  'unconfirmed': '未确认',
+  'Checked by search: it exists and says what we claim': '已通过搜索核实：它确实存在，且确实这么说',
+  'We could not confirm this one — see the note': '这一条我们没能确认——见下方说明',
   'Source ID': '来源编号',
   'no reading': '无需阅读',
   'Thinking-only card.': '纯思考卡——不需要阅读。',
@@ -109,11 +124,15 @@ function esc(s) {
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+let bannerTimer = null;
 function banner(msg, kind) {
+  clearTimeout(bannerTimer);
   if (!msg) { el.banner.hidden = true; el.banner.innerHTML = ''; return; }
   el.banner.hidden = false;
   el.banner.classList.toggle('err', kind === 'error');
   el.banner.innerHTML = msg;
+  // Informational notes clear themselves; errors and prompts stay put.
+  if (kind === 'transient') bannerTimer = setTimeout(() => banner(null), 4000);
 }
 
 async function copy(text) {
@@ -190,7 +209,7 @@ async function loadSet(entry, opts = {}) {
     const keep = opts.keepSelection ? selectedId : null;
     accept(d, entry);
     if (keep) reselect(keep);
-    if (opts.note) banner(opts.note);
+    if (opts.note) banner(opts.note, opts.transient ? 'transient' : null);
     syncPicker();
     return true;
   } catch (err) {
@@ -223,9 +242,7 @@ async function boot() {
   if (param) {
     await loadSet({ url: param, mtime: 0 });
   } else if (generated.length) {
-    await loadSet(generated[0], {
-      note: `Loaded <strong>${esc(generated[0].name)}</strong> — the newest set in question-sets/.`
-    });
+    await loadSet(generated[0]);
   } else {
     showAsk();
   }
@@ -275,7 +292,7 @@ async function poll() {
   // a freshly generated set shows up on its own.
   if (!DATA) {
     stopProgress();
-    await loadSet(newest, { note: `<strong>${esc(newest.name)}</strong> just appeared — loaded it.` });
+    await loadSet(newest, { note: T('A new set just appeared.'), transient: true });
     return;
   }
 
@@ -283,7 +300,7 @@ async function poll() {
     if (newest.mtime > loaded.mtime) {
       await loadSet(newest, {
         keepSelection: true,
-        note: `<strong>${esc(newest.name)}</strong> changed on disk — reloaded.`
+        note: T('Reloaded — the file changed.'), transient: true
       });
       stopProgress();
     }
@@ -297,7 +314,7 @@ async function poll() {
   if (newest.working_question && newest.working_question === loaded.question) {
     await loadSet(newest, {
       keepSelection: true,
-      note: `Followed <strong>${esc(newest.name)}</strong> — same question, newer file.`
+      note: T('Reloaded — new questions were added.'), transient: true
     });
     stopProgress();
   } else {
@@ -524,9 +541,18 @@ function renderMeta() {
   if (nExp) bits.push(`<span class="pill">${nExp} ${isZh() ? T('expansion') : 'expansion' + (nExp > 1 ? 's' : '')}</span>`);
 
   el.meta.innerHTML =
-    `<h1>${esc(m.working_question || '(no working question)')}</h1>` +
+    `<p class="crumb"><button type="button" id="tocrumb" title="${esc(T('Show the question and how it was sharpened'))}">` +
+    `${esc(m.working_question || '(no working question)')}</button></p>` +
     `<p>${bits.join(' ')}</p>` +
-    (draft ? `<p class="muted" style="margin-top:8px">${T('Nobody has looked this set over yet.')}</p>` : '');
+    (draft ? `<p class="muted" style="margin-top:6px">${T('Nobody has looked this set over yet.')}</p>` : '');
+
+  const crumb = document.getElementById('tocrumb');
+  if (crumb) crumb.addEventListener('click', () => {
+    const dot = el.svg.node().__dots;
+    const root = dot && dot.data().find(n => n.kind === 'root');
+    if (root) { selectedId = root.id; dot.classed('sel', n => n.id === root.id); }
+    showRoot();
+  });
 }
 
 /* ---------- graph ---------- */
@@ -720,17 +746,49 @@ function resetPanel() {
     : `<p class="muted">${T('Nothing loaded yet. Ask a question, and the graph will appear here.')}</p>`;
 }
 
+/* Access tiers say how reachable a reading is. The bare codes were being read
+   as part of the citation (an ASHRAE "Technical Committee 9.9" looked like a
+   tier), so the label is plain language and the code lives in the tooltip. */
+const TIER = {
+  T1: ['Open access', 'T1 — an open-access paper or a public institutional report'],
+  T2: ['Journalism', 'T2 — reputable journalism or an explainer with a named author'],
+  T3: ['Reference', 'T3 — a textbook, encyclopedia, or established reference work'],
+  T4: ['Paywalled', 'T4 — paywalled, so a free route to the same argument is given']
+};
+const TIER_ZH = {
+  T1: ['公开获取', 'T1 —— 开放获取的论文，或公共机构报告'],
+  T2: ['新闻分析', 'T2 —— 有署名作者的严肃新闻或解释性文章'],
+  T3: ['参考工具书', 'T3 —— 教科书、百科或成熟的参考工具书'],
+  T4: ['付费墙', 'T4 —— 有付费墙，因此另附一条免费途径']
+};
+
+function tierChip(code) {
+  const map = isZh() ? TIER_ZH : TIER;
+  const entry = map[code];
+  if (!entry) return '';
+  return `<span class="tier" title="${esc(entry[1])}">${esc(entry[0])}</span>`;
+}
+
+function verifiedChip(v) {
+  if (v === 'unconfirmed') {
+    return `<span class="vfy bad" title="${esc(T('We could not confirm this one — see the note'))}">` +
+      `${esc(T('unconfirmed'))}</span>`;
+  }
+  return `<span class="vfy" title="${esc(T('Checked by search: it exists and says what we claim'))}">` +
+    `${esc(T('verified'))}</span>`;
+}
+
 function sourceLine(sid, role) {
   const s = DATA.sources[sid];
   if (!s) return `<p><span class="role">${esc(role)}</span>unknown source ${esc(sid)}</p>`;
   const name = esc(s.citation);
   const body = s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${name}</a>` : name;
-  const tier = [s.access_tier, s.verified, s.time_estimate ? `${s.time_estimate} min` : null]
-    .filter(Boolean).join(' · ');
+  const mins = s.time_estimate ? `<span class="mins">${esc(s.time_estimate)} min</span>` : '';
   let out = `<div class="reading">` +
-    `<p style="margin:0"><span class="source-id" title="${esc(T('Source ID'))}">${esc(sid)}</span>` +
+    `<p style="margin:0"><span class="source-id" title="${esc(T('Source, numbered in this set'))}">` +
+    `${esc(sid)}</span>` +
     `<span class="role ${esc(role)}">${esc(role)}</span>${body}</p>` +
-    `<p class="meta-line">${esc(tier)}</p>`;
+    `<p class="meta-line">${tierChip(s.access_tier)}${verifiedChip(s.verified)}${mins}</p>`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
     out += `<p class="flag" style="margin:10px 0 0">` +
       `<strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
@@ -796,16 +854,53 @@ async function handoffInPanel(prompt) {
     `when the new file lands.</p>`);
 }
 
+/* The six criteria every question is tested against before a set is built.
+   They are the same every time, so the viewer can state them. */
+const CRITERIA = [
+  ['Needs sources', 'It cannot be answered from general knowledge.'],
+  ['Genuinely contested', 'Careful people can look at the same evidence and disagree.'],
+  ['Specific', 'Anchored to particular cases and evidence, not a whole field.'],
+  ['Demands judgment', 'It forces weighing, not just collecting.'],
+  ['Properly scoped', 'Answerable with readings you can actually get through.'],
+  ['Worth pursuing', 'A framing you would want to chase.']
+];
+const CRITERIA_ZH = [
+  ['需要来源', '光靠常识回答不了。'],
+  ['真有分歧', '同样审慎的人看同样的证据，可以得出不同结论。'],
+  ['足够具体', '锚定在具体案例和证据上，而不是一整个领域。'],
+  ['要求判断', '它逼你权衡，而不只是收集。'],
+  ['范围合适', '用你真读得完的材料就能回答。'],
+  ['值得追问', '一个你真的想追下去的问法。']
+];
+
 function showRoot() {
   const m = DATA.meta || {};
-  el.panel.innerHTML =
-    `<h2>${T('Working question · sharpened by triage')}</h2>` +
-    `<p class="q">${esc(m.working_question || '')}</p>` +
-    (m.original_question
-      ? `<div class="sec"><p><span class="lbl">${T('Asked as:')}</span> ${esc(m.original_question)}</p>` +
-        (m.triage_summary ? `<p>${esc(m.triage_summary)}</p>` : '') + `</div>`
-      : '') +
-    expandButton('root', m.working_question || '');
+  const changed = m.original_question && m.original_question !== m.working_question;
+  let h = '';
+
+  if (changed) {
+    h += `<h2>${T('How the question changed')}</h2>`;
+    h += `<p class="step-label">${T('You asked')}</p>`;
+    h += `<p class="asked">${esc(m.original_question)}</p>`;
+    h += `<p class="step-arrow" aria-hidden="true">↓</p>`;
+    h += `<p class="step-label">${T('Sharpened to')}</p>`;
+    h += `<p class="q sharpened">${esc(m.working_question || '')}</p>`;
+  } else {
+    h += `<h2>${T('The question')}</h2>`;
+    h += `<p class="q sharpened">${esc(m.working_question || '')}</p>`;
+  }
+
+  if (m.triage_summary) {
+    h += `<div class="sec"><p><span class="lbl">${T('Why')}</span> ${esc(m.triage_summary)}</p></div>`;
+  }
+
+  const list = isZh() ? CRITERIA_ZH : CRITERIA;
+  h += `<details class="crit"><summary>${T('The six things it was tested against')}</summary><ul>` +
+    list.map(([name, why]) => `<li><strong>${esc(name)}</strong> — ${esc(why)}</li>`).join('') +
+    `</ul></details>`;
+
+  h += expandButton('root', m.working_question || '');
+  el.panel.innerHTML = h;
   wireExpand();
 }
 
@@ -838,7 +933,9 @@ function showSource(sid) {
   const users = DATA.questions
     .filter(q => (q.readings || []).some(r => r.source === sid))
     .map(q => `${q.id} (${q.readings.find(r => r.source === sid).role})`);
-  let h = `<h2>${T('Reading')} ${esc(sid)} · ${esc([s.access_tier, s.verified].filter(Boolean).join(' · '))}</h2>`;
+  let h = `<h2>${T('Reading')} ${esc(sid)}</h2>` +
+    `<p class="meta-line" style="margin:-4px 0 12px">${tierChip(s.access_tier)}${verifiedChip(s.verified)}` +
+    `${s.time_estimate ? `<span class="mins">${esc(s.time_estimate)} min</span>` : ''}</p>`;
   h += `<p class="q">${s.url
     ? `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.citation)}</a>`
     : esc(s.citation)}</p>`;
