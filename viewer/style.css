@@ -587,6 +587,113 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
 .dot { cursor: pointer; transition: r 0.13s ease-out; }
 .dot.sel { stroke: var(--fg); stroke-width: 2.5px; }
 
+/* ---------- pruning ----------
+   Deleting is deliberate but not dramatic: the controls stay quiet until you
+   are over them, and the red only arrives at the confirm step. */
+
+.btn.danger { border-color: var(--err-line); color: var(--err-ink); }
+.btn.danger:hover { background: var(--err-bg); color: var(--err-ink); border-color: var(--err-ink); }
+
+/* refused, not disabled — the cursor promises an explanation, and clicking
+   gives one, because a dead control just looks broken */
+.btn.danger.blocked, .rm.blocked { cursor: help; opacity: 0.6; }
+.btn.danger.blocked {
+  border-color: var(--warn-line);
+  color: var(--warn-ink);
+}
+.btn.danger.blocked:hover, .rm.blocked:hover {
+  opacity: 1;
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+  border-color: var(--warn-line);
+}
+
+/* Sits on the reading card's header row, opposite the role chip. It carries a
+   real border by default: with a transparent one it read as grey caption text
+   and people could not find it at all. */
+.rm {
+  float: right;
+  font: inherit;
+  font-size: 13px;
+  color: var(--fg-2);
+  background: var(--bg-2);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 2px 10px;
+  cursor: pointer;
+  transition: color 0.12s, background 0.12s, border-color 0.12s;
+}
+.rm:hover { color: var(--err-ink); background: var(--err-bg); border-color: var(--err-line); }
+.rm:focus-visible { outline: 2px solid var(--root); outline-offset: 1px; }
+/* the glyph is what makes it findable — the word alone reads as a caption */
+.rm-x { margin-right: 4px; font-size: 11px; vertical-align: 0.5px; }
+
+/* one row per card citing this reading, on the reading's own panel */
+.cited {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 7px !important;
+  padding: 6px 10px;
+  font-size: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.cited .role { margin-right: 0; }
+.cited .rm { float: none; margin-left: auto; }
+
+/* why a delete is refused — stated on the card, not hidden in a tooltip */
+.prune-why { margin: 10px 0 0; max-width: 46ch; font-size: 14px; }
+.prune-why.flash { animation: prune-flash 0.65s ease-out; }
+
+@keyframes prune-flash {
+  0%, 100% { border-left-color: var(--warn-line); background: var(--warn-bg); }
+  30% { border-left-color: var(--err-ink); background: var(--err-bg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prune-why.flash { animation: none; }
+}
+
+.prune {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid var(--err-line);
+  border-radius: var(--radius);
+  background: var(--err-bg);
+}
+.prune .lbl { color: var(--err-ink); }
+.prune-row { margin: 0 0 7px !important; font-size: 14px; line-height: 1.55; }
+.prune-row .muted { font-size: 13px; }
+
+.prune-pick { display: flex; flex-direction: column; gap: 5px; margin: 0 0 9px; }
+.prune-pick label {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.prune-reason {
+  width: 100%;
+  font: inherit;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--fg);
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin: 0 0 9px;
+  resize: vertical;
+}
+.prune-reason:focus { outline: none; border-color: var(--root); }
+
+.prune-actions { display: flex; align-items: center; gap: 9px; margin: 11px 0 0 !important; }
+.prune-actions .btn { padding: 6px 14px; font-size: 13.5px; }
+
 @media (max-width: 900px) {
   main { flex-direction: column; }
   .side { width: auto; border-left: none; border-top: 1px solid var(--line); max-height: 46vh; }

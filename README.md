@@ -95,6 +95,30 @@ Windows 下也可以直接双击 `start.bat`，然后打开 <http://127.0.0.1:80
 `question-sets/`——**无论 JSON 是怎么写出来的，图谱都会自己加载**，自动跟随展开、就地重载修改。
 点圆点看阅读材料；点展开把一个问题长成最多九个新问题（展开指令适用于你正在用的任何 AI）。
 
+### Pruning a set · 修剪问题集
+
+A generated set is a first draft. A card can miss and a reading can be wrong, so each question
+carries a delete button and each reading a **remove** control. Bookkeeping is not your problem:
+sources nothing cites any more go with the card that cited them, teach-back questions stop pointing
+at what is gone, expansion children move up rather than disappear, and every write leaves a file
+that still passes `scripts/validate.py`. Deleting shows an **Undo** for as long as the server is
+running; `git` is the longer memory.
+
+Pruning is recorded, in `meta.pruned`, and the viewer shows the count next to the date. That record
+is what lets a pruned set keep all seven rungs of the ladder as an *advisory* note rather than a
+failure — your set, your call — while a freshly generated set that is short a rung is still a bug
+and still fails. What a delete cannot do is leave nothing behind: the last question and the last
+reading stay.
+
+生成出来的问题集只是初稿。卡片可能不准，材料可能不对，所以每个问题都有删除按钮，每份阅读材料都有
+**移除**按钮。杂活不用你操心：没有别的卡片再引用的来源会跟着一起走，复述题不再指向已经删掉的卡片，
+被展开的子问题会上移而不是消失，每次写入后的文件仍然通过 `scripts/validate.py`。删除后会出现**撤销**，
+只要服务器还开着就有效；更长久的后悔药是 `git`。
+
+修剪会被记录在 `meta.pruned` 里，查看器会在日期旁边显示修剪次数。正因为有这条记录，被手动修剪过的
+问题集即使少了阶梯上的某一档，也只是**提示**而不是错误——你的问题集，你说了算；而刚生成出来就缺一档的
+集合仍然算 bug，仍然报错。删除唯一做不到的事情是把东西删空：最后一个问题和最后一份阅读材料会留下。
+
 ### Optional: skip the copy-paste · 可选：省掉复制粘贴
 
 If any agent CLI is on your PATH — `claude`, `codex`, or `gemini` — the viewer's Ask and Expand

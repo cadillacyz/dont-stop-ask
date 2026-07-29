@@ -18,6 +18,7 @@ Binds to 127.0.0.1 by design: it can start a local process, so it must not be
 reachable from the network.
 """
 
+import copy
 import http.server
 import json
 import mimetypes
@@ -33,6 +34,11 @@ import time
 import urllib.parse
 import uuid
 
+# Pruning is guarded by the real validator rather than a second copy of the
+# rules, so scripts/ has to be importable however this file was launched.
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import validate  # noqa: E402
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SETS_DIR = ROOT / "question-sets"
 SCAN = [("question-sets", SETS_DIR)]
@@ -45,9 +51,14 @@ PORT = int(os.environ.get("DSA_PORT", "8000"))
 #
 # Only the invocation shape is claimed, not that every build accepts it. If a
 # run fails, the log shows why and DSA_AGENT_CMD is the fix.
+# WebSearch and WebFetch are named explicitly because the tool's first rule is
+# that every source is verified by live search, and acceptEdits covers file
+# writes only — a headless run with no one to approve them gets them denied,
+# and then the agent correctly refuses to write anything at all.
 AGENT_CLIS = [
     ("claude", "Claude Code",
-     ["claude", "-p", "{prompt}", "--permission-mode", "acceptEdits"]),
+     ["claude", "-p", "{prompt}", "--allowed-tools", "WebSearch WebFetch",
+      "--permission-mode", "acceptEdits"]),
     ("codex", "OpenAI Codex",
      ["codex", "exec", "{prompt}", "--sandbox", "workspace-write",
       "--ask-for-approval", "never"]),
@@ -147,14 +158,320 @@ def build_expand_prompt(set_url, node, question):
     )
 
 
-def set_names():
-    return {s["name"] for s in list_sets()}
+def set_stamps():
+    """name -> (mtime, size) for every set on disk.
+
+    Judging a run by which *names* are new would call every expansion a
+    failure, because an expansion writes the union of old and new nodes back
+    to the same file. Stamps catch a rewrite as well as a new file, and
+    mtime_ns keeps a fast rewrite from hiding inside a one-second mtime.
+    """
+    stamps = {}
+    for _, base in SCAN:
+        if not base.exists():
+            continue
+        for path in base.rglob("*.json"):
+            if not path.name.startswith("question-set"):
+                continue
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            stamps[path.name] = (stat.st_mtime_ns, stat.st_size)
+    return stamps
+
+
+# --------------------------------------------------------------------------
+# Pruning a set
+#
+# A generated set is a first draft: a card can miss, a reading can be wrong.
+# Deleting either is a write, and a write has to leave a file that still passes
+# scripts/validate.py — question-sets/ is tracked and CI validates it. So the
+# mutation runs on a copy, the real validator judges the result, and the delete
+# is refused when it would introduce a problem the file did not already have.
+# Nothing here is duplicated in the viewer; the browser only renders verdicts.
+# --------------------------------------------------------------------------
+
+INLINE_WIDTH = 88
+UNDO_CAP = 20
+UNDO = {}
+UNDO_LOCK = threading.Lock()
+# Requests are served on threads, so read-decide-write has to be one step or a
+# second delete arriving mid-flight would be computed against stale bytes and
+# silently undo the first.
+WRITE_LOCK = threading.Lock()
+
+
+def _inline(obj):
+    if isinstance(obj, dict):
+        if not obj:
+            return "{}"
+        body = ", ".join(f"{json.dumps(k, ensure_ascii=False)}: {_inline(v)}"
+                         for k, v in obj.items())
+        return "{ " + body + " }"
+    if isinstance(obj, list):
+        return "[" + ", ".join(_inline(v) for v in obj) + "]" if obj else "[]"
+    return json.dumps(obj, ensure_ascii=False)
+
+
+def set_style(raw):
+    """True when this file keeps short leaf objects on one line.
+
+    Sets are written by whichever agent generated them and the two styles are
+    both in the wild. Rewriting a file in the other one turns a one-card delete
+    into a hundred-line diff, so each file keeps its own shape.
+    """
+    return bool(re.search(r'^\s*(?:"[^"]+":\s*)?\{ "', raw, re.M))
+
+
+def dump_set(doc, compact):
+    def flat(obj):
+        values = obj.values() if isinstance(obj, dict) else obj
+        return all(not isinstance(v, (dict, list)) for v in values)
+
+    def go(obj, depth):
+        pad, inner = "  " * depth, "  " * (depth + 1)
+        if isinstance(obj, (dict, list)) and obj:
+            if compact and flat(obj) and len(pad) + len(_inline(obj)) <= INLINE_WIDTH:
+                return _inline(obj)
+            if isinstance(obj, dict):
+                body = ",\n".join(f"{inner}{json.dumps(k, ensure_ascii=False)}: {go(v, depth + 1)}"
+                                  for k, v in obj.items())
+                return "{\n" + body + "\n" + pad + "}"
+            return "[\n" + ",\n".join(inner + go(v, depth + 1) for v in obj) + "\n" + pad + "]"
+        if isinstance(obj, dict):
+            return "{}"
+        if isinstance(obj, list):
+            return "[]"
+        return json.dumps(obj, ensure_ascii=False)
+
+    return go(doc, 0) + "\n"
+
+
+def resolve_set(url):
+    """The file a client-supplied set url names, or None if it is not ours.
+
+    This is the only path that writes, so it refuses anything that does not
+    resolve to a real question-set file inside question-sets/. resolve()
+    settles both traversal and symlinks before the containment test.
+    """
+    if not isinstance(url, str) or not url.strip():
+        return None
+    wanted = urllib.parse.unquote(urllib.parse.urlparse(url).path).lstrip("/")
+    try:
+        path = (ROOT / wanted).resolve()
+        base = SETS_DIR.resolve()
+    except (OSError, ValueError):
+        return None
+    if base not in path.parents:
+        return None
+    if not path.name.startswith("question-set") or path.suffix != ".json":
+        return None
+    return path if path.is_file() else None
+
+
+def read_set(path):
+    raw = path.read_text(encoding="utf-8")
+    return json.loads(raw), raw
+
+
+def write_atomic(path, text):
+    """Replace path in one step, so a reader never sees a half-written set."""
+    tmp = path.with_name(f".{path.name}.tmp-{uuid.uuid4().hex[:8]}")
+    try:
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, path)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
+    return int(path.stat().st_mtime)
+
+
+def push_undo(path, raw):
+    """Keep the exact bytes we replaced, so undo restores them verbatim."""
+    with UNDO_LOCK:
+        stack = UNDO.setdefault(str(path), [])
+        stack.append(raw)
+        del stack[:-UNDO_CAP]
+
+
+def apply_delete(doc, qid, source=None, reason=None, promote=None):
+    """Return (new_doc, effects), or (None, {"error": ...}). Never mutates doc."""
+    out = copy.deepcopy(doc)
+    questions = out.get("questions") or []
+    target = next((q for q in questions if q.get("id") == qid), None)
+    if target is None:
+        return None, {"error": f"there is no {qid} in this set"}
+
+    effects = {"question": qid, "source": source, "reparented": [],
+               "pruned_sources": [], "teach_back": [], "expansions": []}
+
+    if source is None:
+        # Children keep their work and move up a level. Only direct children
+        # point at this node, so one pass is the whole cascade.
+        parent = target.get("parent")
+        for q in questions:
+            if q.get("parent") == qid:
+                q["parent"] = parent
+                effects["reparented"].append(q.get("id"))
+        out["questions"] = [q for q in questions if q.get("id") != qid]
+
+        for tb in out.get("teach_back") or []:
+            anchors = tb.get("anchors") or []
+            if qid in anchors:
+                # Keep the teach-back itself: it tests cards that still exist,
+                # and dropping it would delete work nobody asked to delete.
+                tb["anchors"] = [a for a in anchors if a != qid]
+                effects["teach_back"].append(tb.get("id"))
+
+        meta = out.get("meta") or {}
+        expansions = meta.get("expansions")
+        if expansions:
+            kept = [e for e in expansions if e.get("node") != qid]
+            if len(kept) != len(expansions):
+                effects["expansions"].append(qid)
+            if kept:
+                meta["expansions"] = kept
+            else:
+                del meta["expansions"]
+    else:
+        readings = target.get("readings") or []
+        if not any(r.get("source") == source for r in readings):
+            return None, {"error": f"{qid} does not cite {source}"}
+        target["readings"] = [r for r in readings if r.get("source") != source]
+        if promote:
+            for r in target["readings"]:
+                if r.get("source") == promote:
+                    r["role"] = "primary"
+        if reason and reason.strip():
+            target["single_reading_reason"] = reason.strip()
+
+    # Record the prune. This is what tells validate.py that a thinner ladder
+    # here was chosen rather than generated, and it keeps the set honest about
+    # having been edited by hand.
+    record = qid if source is None else f"{qid}/{source}"
+    out.setdefault("meta", {}).setdefault("pruned", []).append(record)
+    effects["record"] = record
+
+    # An uncited source is a validation error, so pruning is required here,
+    # not a tidy-up. A source another card still cites is left alone.
+    cited = {r.get("source")
+             for q in out.get("questions") or []
+             for r in (q.get("readings") or [])}
+    sources = out.get("sources") or {}
+    for sid in [s for s in sources if s not in cited]:
+        del sources[sid]
+        effects["pruned_sources"].append(sid)
+    effects["pruned_sources"].sort()
+
+    return out, effects
+
+
+def problems_of(doc):
+    found = list(validate.check(doc))
+    # Ladder coverage is advisory once a set records a hand prune, so the second
+    # delete is no more refused than the first. The delete that introduces the
+    # record relaxes itself, which is the intent: thinning is the reader's call.
+    soft = validate.advisory(doc, found)
+    found = [p for p in found if p not in soft]
+    schema_problems = validate.schema_check(doc)
+    if schema_problems:
+        found = [f"schema: {p}" for p in schema_problems] + found
+    return found
+
+
+COVERAGE = re.compile(r"^cluster under '(.+?)' is missing ladder types: (.+)$")
+
+
+def explain(problems):
+    """(structured, english) for a refusal.
+
+    Structured, because a set written in Chinese gets a Chinese viewer and a
+    refusal is the one moment the reader most needs to understand. The English
+    string stays for API callers that are not the viewer.
+    """
+    codes, said = [], []
+    for p in problems:
+        found = COVERAGE.match(p)
+        if found:
+            where, missing = found.group(1), [m.strip() for m in found.group(2).split(",")]
+            codes.append({"code": "coverage", "where": where, "missing": missing})
+            said.append(
+                f"that would leave {'this set' if where == 'root' else 'the cluster under ' + where}"
+                f" with no {', '.join(missing)} {'cards' if len(missing) > 1 else 'card'} —"
+                " every cluster carries all seven rungs of the ladder"
+            )
+        elif p == "no questions in set":
+            codes.append({"code": "last_question"})
+            said.append("that is the last question in the set")
+        elif p == "no sources in set":
+            codes.append({"code": "last_source"})
+            said.append("that is the last reading in the set")
+        else:
+            codes.append({"code": "other", "text": p})
+            said.append(p)
+    return codes, "; ".join(said)
+
+
+# Two validator rules describe a card that is now under-specified rather than a
+# set that is broken, and the person deleting can answer both on the spot. They
+# are asked for instead of refused; everything else is a refusal.
+def needs_for(qid):
+    return {
+        f"{qid}: fewer than two readings without a single_reading_reason": "single_reading_reason",
+        f"{qid}: has readings but no primary": "promote",
+    }
+
+
+def probe(doc, before, qid, source, reason=None, promote=None):
+    """Simulate one delete and report what the validator makes of the result."""
+    new, effects = apply_delete(doc, qid, source, reason, promote)
+    if new is None:
+        return {"ok": False, "error": effects["error"], "needs": [],
+                "reason": effects["error"], "blocked": [{"code": "other", "text": effects["error"]}]}
+
+    askable = needs_for(qid)
+    needs, blocking = [], []
+    for p in problems_of(new):
+        if p in before:
+            continue
+        if p in askable:
+            needs.append(askable[p])
+        else:
+            blocking.append(p)
+
+    codes, english = explain(blocking)
+    return {
+        "ok": not needs and not blocking,
+        "needs": needs,
+        "blocked": codes,
+        "reason": english or None,
+        "effects": effects,
+        "doc": new,
+    }
+
+
+def deletable_map(doc):
+    """Every question and every reading, judged once, for the panel to render."""
+    before = problems_of(doc)
+    out = {}
+    for q in doc.get("questions") or []:
+        qid = q.get("id")
+        if not qid:
+            continue
+        out[qid] = {k: v for k, v in probe(doc, before, qid, None).items() if k != "doc"}
+        for r in q.get("readings") or []:
+            sid = r.get("source")
+            if sid:
+                verdict = probe(doc, before, qid, sid)
+                out[f"{qid}/{sid}"] = {k: v for k, v in verdict.items() if k != "doc"}
+    return out
 
 
 def start_job(prompt):
     """Run the tool through the agent CLI, streaming output into the job record."""
     job_id = uuid.uuid4().hex[:12]
-    before = set_names()
+    before = set_stamps()
     with JOBS_LOCK:
         JOBS[job_id] = {
             "id": job_id,
@@ -191,8 +508,10 @@ def start_job(prompt):
                 del log[:-400]
         code = proc.wait()
         # A clean exit is not success: an unauthenticated or confused CLI can
-        # print a notice, exit 0, and write nothing. Judge it on the file.
-        produced = sorted(set_names() - before)
+        # print a notice, exit 0, and write nothing. Judge it on the file —
+        # written or rewritten both count, since expansions rewrite in place.
+        after = set_stamps()
+        produced = sorted(n for n, s in after.items() if before.get(n) != s)
         with JOBS_LOCK:
             JOBS[job_id]["exit_code"] = code
             JOBS[job_id]["produced"] = produced
@@ -226,6 +545,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def open_set(self, url):
+        """(path, doc, raw), or None once the error response has been sent."""
+        path = resolve_set(url)
+        if not path:
+            self.send_json({"error": "that is not a question set in question-sets/"}, 400)
+            return None
+        try:
+            doc, raw = read_set(path)
+        except (OSError, ValueError) as err:
+            self.send_json({"error": f"could not read that set: {err}"}, 400)
+            return None
+        return path, doc, raw
+
     def read_json(self):
         try:
             length = int(self.headers.get("Content-Length") or 0)
@@ -255,10 +587,17 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "cli_path": shutil.which(found[0]) if found else None,
                 "agent": found[1] if found else None,
                 "tool": "portable/dont-stop-research.md",
+                "prune": True,
                 "sets": list_sets(),
             })
         if route == "/api/sets":
             return self.send_json({"sets": list_sets()})
+        if route == "/api/deletable":
+            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+            opened = self.open_set((query.get("set") or [""])[0])
+            if not opened:
+                return
+            return self.send_json({"targets": deletable_map(opened[1])})
         if route.startswith("/api/jobs/"):
             job_id = route.rsplit("/", 1)[-1]
             if not re.fullmatch(r"[0-9a-f]{12}", job_id):
@@ -282,12 +621,68 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         return super().do_GET()
 
+    def api_delete(self, body):
+        qid = (body.get("question") or "").strip()
+        source = (body.get("source") or "").strip() or None
+        if not re.fullmatch(r"[A-Za-z]+[0-9]*", qid):
+            return self.send_json({"error": "bad question id"}, 400)
+        if source is not None and not re.fullmatch(r"[A-Za-z0-9_.-]{1,40}", source):
+            return self.send_json({"error": "bad source id"}, 400)
+
+        with WRITE_LOCK:
+            opened = self.open_set(body.get("set"))
+            if not opened:
+                return
+            path, doc, raw = opened
+
+            # The browser's dry run is a courtesy for the panel, never the
+            # authority: judge it again against the file as it is right now.
+            verdict = probe(doc, problems_of(doc), qid, source,
+                            reason=body.get("single_reading_reason"),
+                            promote=(body.get("promote") or "").strip() or None)
+            if verdict.get("error"):
+                return self.send_json({"error": verdict["error"]}, 400)
+            if not verdict["ok"]:
+                return self.send_json({
+                    "error": verdict["reason"] or "that delete needs a little more from you",
+                    "needs": verdict["needs"],
+                    "blocked": verdict["blocked"],
+                }, 409)
+
+            push_undo(path, raw)
+            mtime = write_atomic(path, dump_set(verdict["doc"], set_style(raw)))
+
+        return self.send_json({"ok": True, "mtime": mtime, "effects": verdict["effects"]})
+
+    def api_undo(self, body):
+        path = resolve_set(body.get("set"))
+        if not path:
+            return self.send_json({"error": "that is not a question set in question-sets/"}, 400)
+        with WRITE_LOCK:
+            with UNDO_LOCK:
+                stack = UNDO.get(str(path)) or []
+                raw = stack.pop() if stack else None
+                depth = len(stack)
+            if raw is None:
+                return self.send_json(
+                    {"error": "nothing to undo — this server kept no earlier copy"}, 404)
+            mtime = write_atomic(path, raw)
+        return self.send_json({"ok": True, "mtime": mtime, "depth": depth})
+
     def do_POST(self):
         route = urllib.parse.urlparse(self.path).path
-        if route not in ("/api/ask", "/api/expand"):
+        if route not in ("/api/ask", "/api/expand", "/api/delete", "/api/undo"):
             return self.send_json({"error": "not found"}, 404)
 
         body = self.read_json()
+
+        # Pruning is local file surgery — no agent CLI is involved, so it works
+        # in the same sessions where asking only hands you a prompt.
+        if route == "/api/delete":
+            return self.api_delete(body)
+        if route == "/api/undo":
+            return self.api_undo(body)
+
         if not find_agent():
             return self.send_json({
                 "error": "no-cli",

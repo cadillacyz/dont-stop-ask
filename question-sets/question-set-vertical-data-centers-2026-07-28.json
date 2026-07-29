@@ -10,7 +10,22 @@
     "working_question": "Under what land, power, structural, cooling, networking, and operational conditions does a multi-story data center outperform a low-rise campus—and where do the costs and failure risks of stacking erase the land advantage?",
     "triage_summary": "The original was engaging but left ‘vertical’ undefined and could be answered with a quick list of engineering obstacles. The revision treats vertical as a multi-story facility, replaces a yes/no framing with an evidence-dependent comparison, names the systems that must be evaluated together, and asks where the conclusion changes rather than assuming tall or low-rise is inherently better.",
     "purpose": "Personal curiosity; no deadline supplied.",
-    "staleness_note": "Re-check operator facility pages, current data-center design guidance, and Singapore policy if using this set after 2027-01-28 or if any linked page changes."
+    "expansions": [
+      {
+        "node": "Q6",
+        "generated_at": "2026-07-27",
+        "working_question": "What measurements and comparison design would let an owner tell whether a vertical facility is better overall—rather than merely cheaper per square metre or more efficient on one metric—than a low-rise alternative delivering the same usable IT capacity and resilience target?",
+        "note": "Triage is inherited from the parent set; the E-cards were generated against Q6 treated as the working question, and their relevance groups are relative to this cluster rather than to the root."
+      }
+    ],
+    "staleness_note": "Re-check operator facility pages, current data-center design guidance, and Singapore policy if using this set after 2027-01-28 or if any linked page changes. The Q6 cluster additionally leans on moving targets: the EU reporting scheme and its technical reports, the annual Uptime outage analysis, the annual supplement to NIST Handbook 135, and one arXiv preprint that may since have been published—re-check each before quoting a number from it.",
+    "pruned": [
+      "Q8",
+      "E6/S19",
+      "E6/S18",
+      "E3/S16",
+      "E1/S11"
+    ]
   },
   "root": {
     "id": "root",
@@ -223,10 +238,203 @@
       "level": "Middle, 40–55 minutes. The challenge is conditional reasoning across unlike evidence; resist turning Singapore’s constraints or U.S. hazard guidance into universal rules."
     },
     {
-      "id": "Q8",
-      "parent": "root",
-      "label": "Who absorbs the tradeoff?",
-      "question": "If multi-story data centers become more common, which benefits and risks shift among operators, customers, utilities, neighbors, emergency responders, and construction or maintenance crews—and whose costs should decide whether a project is ‘better’?",
+      "id": "E1",
+      "parent": "Q6",
+      "label": "What must be held equal",
+      "question": "Before any comparison can mean anything, what has to be fixed identically on both sides—delivered IT capacity, the resilience class, the study period, the metering boundary—and who gets to decide when two facilities count as offering the ‘same’ capacity and the ‘same’ resilience?",
+      "type": {
+        "n": 1,
+        "name": "Meaning",
+        "move": "clarification"
+      },
+      "relevance_group": "core",
+      "difficulty": "middle",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S12"
+        },
+        {
+          "role": "background",
+          "source": "S8"
+        }
+      ],
+      "check_first": "Search ‘Uptime Institute Tier certification’ together with ‘self-declared’ or ‘Tier compliant’ and work out who may award a Tier and who is merely claiming one; then search ‘NIST Handbook 135’ with ‘10 CFR 436’ to see whose rules the life-cycle cost method encodes and for whom it was written.",
+      "read_for": "In S11, note what each Tier promises as an outcome—maintainability, fault tolerance—rather than as equipment. In S12, take only the steps of an LCC analysis and the definitions of study period and residual value. In S8, take only the metering-boundary discussion. Then write the two candidate facilities’ shared assumptions out as one explicit list.",
+      "level": "Middle, 40–55 minutes. The difficulty is that three documents use ‘the same’ in different senses—same service outcome, same economic study period, same metering boundary—and a defensible comparison has to fix all three at once."
+    },
+    {
+      "id": "E2",
+      "parent": "Q6",
+      "label": "Who already tried to compare",
+      "question": "Where a regulator or a national laboratory has already tried to measure a whole population of data centres, what turned out to be comparable and what did not—and which gaps come from missing instruments rather than missing rules?",
+      "type": {
+        "n": 2,
+        "name": "Landscape",
+        "move": "probing reasons and evidence"
+      },
+      "relevance_group": "supporting",
+      "difficulty": "middle",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S13"
+        },
+        {
+          "role": "supporting",
+          "source": "S21"
+        }
+      ],
+      "check_first": "Search ‘Delegated Regulation (EU) 2024/1364’ with ‘Annex II’ to see which indicators are mandatory and above what size threshold; then search each contractor named on the report cover—EY, AIT, Borderstep—with ‘data centre’ to see what each has published in this field before.",
+      "read_for": "In S13, read Task 1.1 on data quality and completeness, plus Annex 1’s table of valid data points per KPI, before you read a single result. In S21, read the data-centre classification section and the closing limitations section. Keep a running list of the fields that were reported but turned out unusable, and why.",
+      "level": "Middle, 50–70 minutes. Both are long official reports and neither is written to be read whole; what you need sits in the methodology and limitations sections rather than in the headline figures."
+    },
+    {
+      "id": "E3",
+      "parent": "Q6",
+      "label": "One metric up, whole worse",
+      "question": "Why can a facility’s headline efficiency number improve while its total energy, water, or cost gets worse—and why does the same number move when the measurement boundary, the load level, or the averaging period changes rather than the building?",
+      "type": {
+        "n": 3,
+        "name": "Mechanism",
+        "move": "contrastive why"
+      },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S15"
+        },
+        {
+          "role": "background",
+          "source": "S8"
+        }
+      ],
+      "check_first": "Search ‘PUE’ with ‘ISO/IEC 30134-2’ and ‘measurement category’ to find how many defined variants of the same metric exist; then search each source’s authors with their institution to establish whether they measure facilities, design them, or regulate them.",
+      "read_for": "In S15, follow the argument about what the metric excludes and which operator actions move it in the wrong direction. In S16, trace the worked calculation and mark every point where the authors must pick a boundary, a load, or an assumption. Use S8 only to ask which meters would have settled each of those choices.",
+      "level": "Technical, 60–80 minutes. S16 carries equations and psychrometric detail; skip the derivations and track the choices instead—what sat inside the boundary, at what load, over what period."
+    },
+    {
+      "id": "E4",
+      "parent": "Q6",
+      "label": "Costs metering never sees",
+      "question": "Which costs of adding floors land in materials, structure, and building services rather than in operating energy—and under what conditions would counting those change the ranking of a tall facility against a low-rise one?",
+      "type": {
+        "n": 3,
+        "name": "Mechanism",
+        "move": "causal why"
+      },
+      "relevance_group": "core",
+      "difficulty": "middle",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S20"
+        },
+        {
+          "role": "supporting",
+          "source": "S17"
+        },
+        {
+          "role": "background",
+          "source": "S2"
+        }
+      ],
+      "check_first": "Search MECLA with ‘members’ and with ‘funding’ and note which operators, materials suppliers, and agencies sit inside the alliance; then search ‘EN 15978’ with its A, B and C module labels so you know which life-cycle stages any figure you meet actually covers.",
+      "read_for": "In S20, read section 2.3 on structure and substructure next to section 2.2 on mechanical, electrical and plumbing, then section 3.3 on data lacunas—mark where a recommendation rests on measured data and where it rests on expert judgment. In S17, check which building attributes the dataset records at all (storeys above grade, structural system, floor area) and whether any project in it resembles a data centre. Use S2 for the structural and rolling-load demands a stacked data hall imposes.",
+      "level": "Middle, 55–75 minutes. The challenge is unit discipline: carbon per square metre, per IT kilowatt, and per building are not interchangeable, and these sources do not share a denominator."
+    },
+    {
+      "id": "E5",
+      "parent": "Q6",
+      "label": "Can indicators rank facilities?",
+      "question": "One position is that common mandated indicators are enough to rate and compare data centres; another is that such indicators cannot support a comparison between facilities at all. What is the strongest version of each, and what evidence would decide between them?",
+      "type": {
+        "n": 4,
+        "name": "Tension",
+        "move": "viewpoints and perspectives"
+      },
+      "relevance_group": "core",
+      "difficulty": "middle",
+      "load_bearing": true,
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S14"
+        },
+        {
+          "role": "supporting",
+          "source": "S13"
+        },
+        {
+          "role": "background",
+          "source": "S15"
+        }
+      ],
+      "check_first": "Search the Commission page for the proposed EU rating scheme and for consultation responses to it, and note which industry and civil-society bodies objected on what grounds. Then search the S15 authors with ‘data centre’ to see whether their later work shifted position. Do not treat a legal requirement as evidence that the measurement works, nor a 2017 critique as evidence that it still fails.",
+      "read_for": "On S14, establish precisely what the scheme claims to enable—reporting, rating, or comparison—and on which indicators. Then set that claim beside S13’s measured data quality per KPI. Use S15 for the strongest technical statement of what such an indicator cannot capture, and decide which side the EU’s own findings support.",
+      "level": "Middle, 50–65 minutes. The hard part is that the two sides answer different questions—one about policy feasibility, one about physical meaning—so state each claim precisely before judging it."
+    },
+    {
+      "id": "E6",
+      "parent": "Q6",
+      "label": "Evidence about rare failures",
+      "question": "When serious outages are rare and mostly unpublished, what evidence could show an owner that one building form is more available than another—and at what point does modelled availability stop standing in for observed failures?",
+      "type": {
+        "n": 5,
+        "name": "Evidence",
+        "move": "probing reasons and evidence"
+      },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "load_bearing": true,
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S1"
+        }
+      ],
+      "check_first": "Search ‘Uptime Institute’ with ‘survey methodology’ and with ‘publicly reported outages database’ and work out who gets counted and who never appears; then search the arXiv identifier, or the authors’ names with a venue, to check whether the preprint has since been peer reviewed.",
+      "read_for": "In S19’s executive summary, separate the survey-derived findings from the publicly-reported-outage findings, and note which building-level variables are recorded in neither. In S18, read how expected downtime is computed and which failure-rate inputs it needs. Use S1 for the hazard and resilience framing that outage counts leave out.",
+      "level": "Technical, 60–80 minutes. The barrier is inference from thin data: one source is survey-based and sits behind a download form, the other is a model whose answer is only as good as the failure rates fed into it.",
+      "single_reading_reason": "delete"
+    },
+    {
+      "id": "E7",
+      "parent": "Q6",
+      "label": "When the design breaks",
+      "question": "Which assumptions—study period, discount rate, phased build-out, utilisation ramp, rack density, later retrofit—would have to move before a comparison that favoured one form flips to the other, and which of them can an owner actually pin down at decision time?",
+      "type": {
+        "n": 6,
+        "name": "Scope",
+        "move": "implications and consequences"
+      },
+      "relevance_group": "context",
+      "difficulty": "middle",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S12"
+        },
+        {
+          "role": "supporting",
+          "source": "S7"
+        },
+        {
+          "role": "background",
+          "source": "S21"
+        }
+      ],
+      "check_first": "Search ‘NIST Handbook 135’ with ‘annual supplement’ and check which year’s discount and energy-escalation rates the handbook’s examples use before copying any number from them; then search Arup with ‘data centre’ and the author’s name to see which markets the commentary is drawn from.",
+      "read_for": "In S12, use the chapters on the study period, residual value, and uncertainty and sensitivity analysis—treat each as one row in a table of assumptions. In S7, harvest the location-specific constraints that would never appear in a cash-flow model. In S21, read the future-scenario ranges to see how wide the load assumption alone can be.",
+      "level": "Middle, 55–70 minutes. The work is bookkeeping rather than theory: change one assumption at a time and record the switching point, instead of hunting for a single right answer."
+    },
+    {
+      "id": "E8",
+      "parent": "Q6",
+      "label": "Whose ledger counts",
+      "question": "If the comparison is run on the owner’s costs alone, which effects on utilities, water systems, neighbours, tenants, and maintenance crews fall outside it—and on what grounds could an owner be required to count them?",
       "type": {
         "n": 7,
         "name": "Stake",
@@ -241,12 +449,16 @@
         },
         {
           "role": "supporting",
-          "source": "S6"
+          "source": "S21"
+        },
+        {
+          "role": "background",
+          "source": "S13"
         }
       ],
-      "check_first": "Search IMDA’s name with ‘data centre resilience security guidelines’ and search Nxera DC Tuas beyond the launch release; list which affected groups appear in the documents and which are absent.",
-      "read_for": "Read S9 for the public resource and operating frame, then inspect S6 for the project’s stated users, network role, resource systems, and performance claims. Make a stakeholder ledger without assigning a verdict yet.",
-      "level": "Easy, 30–40 minutes. The language is accessible; the work is noticing missing perspectives and keeping operator benefits separate from public, worker, utility, and responder consequences."
+      "check_first": "Search each organisation with ‘mandate’ or ‘remit’ and establish whether it regulates, funds, researches, or represents the sector; then search whether your own jurisdiction imposes any comparable disclosure, and on whom.",
+      "read_for": "In S9, note which resources the standard treats as public constraints rather than operator choices. In S21, use the water and emissions sections to find impacts that are estimated nationally but never attributed to an individual building. In S13, check who may see the reported data and at what granularity. Build a ledger of who bears each effect and who currently measures it.",
+      "level": "Easy, 35–50 minutes. The language is accessible; the difficulty is resisting the slide from ‘this is measured’ to ‘this matters’, and keeping the unmeasured effects on the list."
     }
   ],
   "sources": {
@@ -349,6 +561,76 @@
       "verified_how": "Checked Equinix’s investor-relations copy of the filed Form 8-K for the company name, 27–28 March 2013 dates, seven-story SG3 description, approximate area, lease term, disclosed obligation, and expected service date.",
       "complexity": "Short legal filing with precise transaction language but little engineering explanation.",
       "time_estimate": 10
+    },
+    "S12": {
+      "citation": "Life Cycle Costing Manual for the Federal Energy Management Program · Joshua Kneifel & David Webb · 2025 · NIST Handbook 135e2025 · government methodology manual",
+      "short": "NIST life-cycle costing manual",
+      "access_tier": "T1",
+      "url": "https://nvlpubs.nist.gov/nistpubs/hb/2025/NIST.HB.135e2025.pdf",
+      "verified": "confirmed",
+      "verified_how": "Followed DOI 10.6028/NIST.HB.135e2025 to the NIST PDF and read the cover, citation page, abstract and preface: exact title, both authors, August 2025 date, supersession of the 2022 edition update 1, free availability, and coverage of the LCC method, the 40-year maximum study period, residual value, uncertainty, non-monetary costs and benefits, and whole-building evaluation. The preface also states that the worked examples still use 2019 supplement data.",
+      "complexity": "Three hundred pages of federal economic-analysis procedure; the examples deliberately carry outdated rate data, so the method transfers but the numbers do not.",
+      "time_estimate": 45
+    },
+    "S13": {
+      "citation": "Assessment of the energy performance and sustainability of data centres in EU — First technical report · Dennis Heatubun, Ionut Dragan, Marco Bolchi & Patricia Lopes Bautista (EY Belgium), Simon Hinterholzer & Ralph Hintemann (Borderstep Institute), Nicolas Marx & Patrik Furda (AIT) · 2025 · European Commission, Directorate-General for Energy · technical assessment report",
+      "short": "EU first technical report",
+      "access_tier": "T1",
+      "url": "https://op.europa.eu/publication-detail/-/publication/83be4c3e-5c79-11f0-a9d0-01aa75ed71a1",
+      "verified": "confirmed",
+      "verified_how": "Downloaded the Publications Office PDF and read the cover, author page, contents and introduction: exact title with its ‘First technical report’ subtitle, July 2025 date, DG Energy publisher, the EY/AIT/Borderstep authorship, the stated purpose of assessing the Delegated Regulation 2024/1364 reporting scheme, and the sections on data quality and completeness, results by KPI, reporting-scheme user experience, and recommendations to improve the scheme.",
+      "complexity": "A contractor report to a regulator, organised around the reporting scheme’s own indicator list; its data-quality annexes matter more here than its result tables.",
+      "time_estimate": 45
+    },
+    "S14": {
+      "citation": "Energy performance of data centres · European Commission, Directorate-General for Energy · n.d., maintained page describing Delegated Regulation (EU) 2024/1364 under the Energy Efficiency Directive · official policy page",
+      "short": "EC data-centre reporting scheme",
+      "access_tier": "T1",
+      "url": "https://energy.ec.europa.eu/topics/energy-efficiency/energy-efficiency-targets-directive-and-rules/energy-efficiency-directive/energy-performance-data-centres_en",
+      "verified": "confirmed",
+      "verified_how": "Opened the official Commission page and confirmed that it describes the reporting obligation under the Energy Efficiency Directive, names Delegated Regulation (EU) 2024/1364 of 14 March 2024, covers energy performance and water footprint, and links the 2023 option studies and the two 2025 assessment reports. The page shows no publication date, so none was invented; the size threshold and the full indicator list are stated in the regulation itself rather than on this page.",
+      "complexity": "A regulator describing its own scheme; separate what the law requires to be reported from what the page claims the scheme will achieve.",
+      "time_estimate": 15
+    },
+    "S15": {
+      "citation": "Analysis of performance metrics for data center efficiency – should the Power Utilization Effectiveness PUE still be used as the main indicator? (Part 1) · T. van de Voort, V. Zavrel, J. I. Torrens Galdiz & J. L. M. Hensen · 2017 · REHVA Journal 01/2017, pp. 5–11 · professional journal article",
+      "short": "REHVA critique of PUE",
+      "access_tier": "T2",
+      "url": "https://www.rehva.eu/rehva-journal/chapter/analysis-of-performance-metrics-for-data-center-efficiency-should-the-power-utilization-effectiveness-pue-still-be-used-as-the-main-indicator-part-1",
+      "verified": "confirmed",
+      "verified_how": "Opened the REHVA Journal page and confirmed the exact title, the four Eindhoven University of Technology authors, issue 01/2017 and pages 5–11, free access without registration, the argument that the metric can improve without energy use falling, and the complementary indicators it proposes (CUE, WUE, ERF, OEF/OEM, ITEE/ITEU). The title marks it Part 1; a Part 2 was not separately verified.",
+      "complexity": "Short, but assumes familiarity with the metric family; the argument is about definitions rather than about any particular building.",
+      "time_estimate": 25
+    },
+    "S17": {
+      "citation": "A Harmonized Dataset of High-Resolution Embodied Life Cycle Assessment Results for Buildings in North America · Brad Benke, Manuel Chafart, Yang Shen, Milad Ashtiani, Stephanie Carlisle & Kathrina Simonen · 2025 · Scientific Data · open-access data descriptor",
+      "short": "Harmonized building LCA dataset",
+      "access_tier": "T1",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12218139/",
+      "verified": "confirmed",
+      "verified_how": "Opened the PubMed Central full text and confirmed the exact title, six authors, 2025 publication in Scientific Data, DOI 10.1038/s41597-025-05216-0, CC BY licence, the 292 North American projects, the recorded attributes including stories above grade and structural system, the A1–A3, A4, B4–B5 and C2–C4 life-cycle stages, and the harmonisation problems it describes across LCA tools and classification schemas.",
+      "complexity": "A data descriptor rather than an argument; its use here is showing which building variables are recorded at all, and how much work comparability costs.",
+      "time_estimate": 35
+    },
+    "S20": {
+      "citation": "The Next Frontier: Reducing Embodied Carbon in Data Centre Development · Alexi Barnstone (author), Kathy Verheyen & Hudson Worsley (editors) · 2026 · Materials & Embodied Carbon Leaders’ Alliance (MECLA), managed by Climate-KIC Australia with Presync and WWF · industry research report",
+      "short": "MECLA data-centre embodied carbon",
+      "access_tier": "T1",
+      "url": "https://mecla.org.au/wp-content/uploads/2026/04/MECLA-Report-on-Reducing-Embodied-Carbon-in-Data-Centre-Delivery.pdf",
+      "verified": "confirmed",
+      "verified_how": "Downloaded the MECLA PDF and read the cover, credits and contents: exact title, named author and editors, 2026, MECLA publication managed by Climate-KIC Australia, and sections on embodied carbon in mechanical/electrical/plumbing, in structure and substructure, and in computational infrastructure, on measurement and disclosure including data lacunas and Scope 3, and on the water and energy-efficiency nexus. The Climate-KIC Australia item of 30 April 2026 was checked separately and reports the 23 April 2026 launch, the MEP and structure shares, and the single-storey on-grade reduction option.",
+      "complexity": "An alliance report whose members include operators and materials suppliers; recommendations and evidence are interleaved, and the regulatory framing is Australian.",
+      "time_estimate": 45
+    },
+    "S21": {
+      "citation": "2024 United States Data Center Energy Usage Report · Arman Shehabi, Sarah J. Smith, Alex Hubbard, Alex Newkirk, Nuoa Lei, Md Abu Bakar Siddik, Billie Holecek, Jonathan Koomey, Eric Masanet & Dale Sartor · 2024 · Lawrence Berkeley National Laboratory, LBNL-2001637 · national laboratory report",
+      "short": "LBNL 2024 US energy report",
+      "access_tier": "T1",
+      "url": "https://escholarship.org/uc/item/32d6m0d1",
+      "verified": "confirmed",
+      "verified_how": "Downloaded the eScholarship PDF and read the cover, citation page and contents: exact title, all ten authors, December 2024 date, report number LBNL-2001637, DOE sponsorship, and the sections on data-centre classifications, infrastructure electricity and water modelling, total electricity use, water and emission impacts, and the closing conclusions-and-limitations chapter.",
+      "complexity": "National-scale modelling built on purchased market data; site-level conclusions have to be inferred from population assumptions rather than read off.",
+      "time_estimate": 45
     }
   },
   "teach_back": [
@@ -357,7 +639,9 @@
       "question": "If someone says ‘building upward saves land,’ what would you ask them to count before accepting that as a net saving?",
       "anchors": [
         "Q1",
-        "Q3"
+        "Q3",
+        "E1",
+        "E4"
       ]
     },
     {
@@ -366,7 +650,9 @@
       "anchors": [
         "Q4",
         "Q5",
-        "Q6"
+        "Q6",
+        "E3",
+        "E6"
       ]
     },
     {
@@ -375,7 +661,10 @@
       "anchors": [
         "Q2",
         "Q7",
-        "Q8"
+        "E2",
+        "E5",
+        "E7",
+        "E8"
       ]
     }
   ]
