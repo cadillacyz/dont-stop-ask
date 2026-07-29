@@ -125,6 +125,22 @@ def check(data):
     return problems
 
 
+COVERAGE_PREFIX = "cluster under "
+
+
+def advisory(data, problems):
+    """The subset of problems that are advisory for THIS document.
+
+    A set someone pruned by hand has deliberately given up a rung of the
+    ladder. Saying so is useful; failing CI over a choice the reader made is
+    not. Generated sets carry no meta.pruned record, so nothing is relaxed for
+    them — a thin ladder straight out of the generator is still a bug.
+    """
+    if not (data.get("meta") or {}).get("pruned"):
+        return set()
+    return {p for p in problems if p.startswith(COVERAGE_PREFIX)}
+
+
 def schema_check(data):
     try:
         import jsonschema
@@ -164,6 +180,9 @@ def main(argv):
             continue
 
         problems = check(data)
+        soft = advisory(data, problems)
+        problems = [p for p in problems if p not in soft]
+
         schema_problems = schema_check(data)
         if schema_problems is None:
             note = "  (install jsonschema for full schema validation)"
@@ -180,6 +199,9 @@ def main(argv):
                 print(f"  - {p}")
         else:
             print(f"OK   {path}  ({n_q} questions, {n_s} sources){note}")
+        # Reported either way, and never fatal: this set was thinned on purpose.
+        for p in sorted(soft):
+            print(f"  note {p} — pruned by hand, so coverage here is advisory")
 
     return 1 if failed else 0
 

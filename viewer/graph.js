@@ -51,6 +51,7 @@ const el = {
 
 let DATA = null;
 let HELPER = null;          // /api/status payload, or null when served as plain static files
+let DELETABLE = {};         // "Q3" / "Q3/S2" -> the server's verdict on deleting it
 let sim = null;
 let zoom = null;
 let selectedId = null;
@@ -105,6 +106,26 @@ const ZH = {
   'Copy expansion prompt': '复制展开指令',
   'Copied — paste into your AI tool': '已复制——粘贴进你的 AI 工具',
   'expansion': '次展开',
+  'Delete this question': '删除这个问题',
+  'remove': '移除',
+  'Delete': '删除',
+  'Cancel': '取消',
+  'Removes': '删除',
+  'Children move up to': '子问题上移到',
+  'Readings that go with it': '一并移除的阅读材料',
+  'Teach-backs updated': '连带修改的复述题',
+  'Nothing else cites them.': '没有别的卡片再引用它们。',
+  'Why one reading is enough': '为什么一份材料就够了',
+  'Which reading leads now?': '现在由哪一份材料领衔？',
+  'Say why before deleting.': '删除前请说明理由。',
+  'pruned': '处修剪',
+  'Removed by hand:': '手动移除',
+  'Deleted.': '已删除。',
+  'Undo': '撤销',
+  'Restored.': '已还原。',
+  'Nothing to undo.': '没有可撤销的操作。',
+  'Deleting is off — this set was opened as a file, not through the local server.':
+    '无法删除——这套问题是以文件方式打开的，没有经过本地服务器。',
   'Meaning': '含义', 'Landscape': '全景', 'Mechanism': '机制', 'Tension': '张力',
   'Evidence': '证据', 'Scope': '边界', 'Stake': '意义'
 };
@@ -196,6 +217,7 @@ function accept(d, source) {
     if (!d || !Array.isArray(d.questions)) return;
   }
   DATA = d;
+  DELETABLE = {};   // verdicts belong to the file we just replaced
   if (source) loaded = { url: source.url, mtime: source.mtime || 0, question: (d.meta || {}).working_question };
   hideAsk();
   renderMeta();
@@ -208,6 +230,8 @@ async function loadSet(entry, opts = {}) {
     const d = await fetchJson(entry.url);
     const keep = opts.keepSelection ? selectedId : null;
     accept(d, entry);
+    // Before reselecting: the panel it reopens renders the prune controls.
+    await refreshDeletable();
     if (keep) reselect(keep);
     if (opts.note) banner(opts.note, opts.transient ? 'transient' : null);
     syncPicker();
@@ -399,12 +423,23 @@ function watchJob(jobId) {
       clearInterval(jobTimer);
       jobTimer = null;
       el.go.disabled = false;
-      const tail = (job.log || []).slice(-3).join(' ').trim();
-      /* The commonest cause of a clean exit with no file is an agent CLI that
-         is installed but not signed in — name it rather than make them guess. */
-      const hint = /not logged in|\/login|unauthor|authenticat|api key/i.test(tail)
-        ? 'Your agent CLI is installed but not signed in. Sign in once in a terminal, then try again.'
-        : 'The run finished without writing a question set. What it printed is above.';
+      /* A clean exit with no file has a handful of causes and they need
+         different fixes, so read the whole log, not just the tail — the agent
+         usually explains itself early and then talks about something else. */
+      const said = (job.log || []).join(' ').trim();
+      let hint;
+      if (/not logged in|\/login|unauthor|authenticat|api key/i.test(said)) {
+        hint = 'Your agent CLI is installed but not signed in. Sign in once in a terminal, then try again.';
+      } else if (/websearch|webfetch|web search/i.test(said)
+                 && /deni|permission|not allowed|refus|blocked/i.test(said)) {
+        /* Not a malfunction: no search means no verified sources, and the tool
+           stops rather than invent them. Say what actually needs changing. */
+        hint = 'The agent ran but had no web access, so it stopped rather than cite anything it '
+          + 'could not verify — that is the tool working, not failing. Allow WebSearch and WebFetch '
+          + 'for it, then ask again; or paste the prompt into an AI tool that can search.';
+      } else {
+        hint = 'The run finished without writing a question set. What it printed is above.';
+      }
       banner(esc(hint), 'error');
     }
   }, 1500);
@@ -549,6 +584,13 @@ function renderMeta() {
   if (m.mode) bits.push(`<span class="pill">${esc(m.mode)}</span>`);
   const nExp = (m.expansions || []).length;
   if (nExp) bits.push(`<span class="pill">${nExp} ${isZh() ? T('expansion') : 'expansion' + (nExp > 1 ? 's' : '')}</span>`);
+  /* Say when a set has been thinned by hand. It is why the ladder may be short
+     of a rung, and hiding it would make the set look generated as it stands. */
+  const cut = m.pruned || [];
+  if (cut.length) {
+    bits.push(`<span class="pill" title="${esc(T('Removed by hand:'))} ${esc(cut.join(', '))}">` +
+      `${cut.length} ${T('pruned')}</span>`);
+  }
 
   el.meta.innerHTML =
     `<p class="crumb"><button type="button" id="tocrumb" title="${esc(T('Show the question and how it was sharpened'))}">` +
@@ -795,7 +837,9 @@ function verifiedChip(v) {
     `${esc(T('verified'))}</span>`;
 }
 
-function sourceLine(sid, role) {
+/* qid is passed when the reading is shown on its own card, where it can be
+   removed from it; the source panel shows the same citation with no controls. */
+function sourceLine(sid, role, qid) {
   const s = DATA.sources[sid];
   if (!s) return `<p><span class="role">${esc(role)}</span>unknown source ${esc(sid)}</p>`;
   const { title, rest } = splitCitation(s.citation);
@@ -805,7 +849,7 @@ function sourceLine(sid, role) {
   let out = `<div class="reading">` +
     `<p class="reading-head"><span class="source-id" title="${esc(T('Source, numbered in this set'))}">` +
     `${esc(sid)}</span>` +
-    `<span class="role ${esc(role)}">${esc(role)}</span></p>` +
+    `<span class="role ${esc(role)}">${esc(role)}</span>${removeControl(qid, sid)}</p>` +
     `<p class="reading-title">${body}</p>` +
     (rest.length ? `<p class="cite-rest">${esc(rest.join(' · '))}</p>` : '') +
     `<p class="meta-line">${tierChip(s.access_tier)}${verifiedChip(s.verified)}${mins}</p>`;
@@ -874,6 +918,273 @@ async function handoffInPanel(prompt) {
     `when the new file lands.</p>`);
 }
 
+/* ---------- pruning ----------
+   A generated set is a first draft, so a card or a reading can be deleted. The
+   rules live in scripts/validate.py and the server applies them; the viewer
+   only asks what a delete would do and renders the answer. Nothing is pruned
+   without the server agreeing the file stays valid afterwards. */
+
+function canPrune() {
+  // Needs the helper (nothing else can write) and a set that came from disk —
+  // a dropped file or ?data= has nowhere to write back to.
+  return !!(HELPER && HELPER.prune && loaded.url);
+}
+
+async function refreshDeletable() {
+  DELETABLE = {};
+  if (!canPrune()) return;
+  try {
+    const res = await fetchJson(`/api/deletable?set=${encodeURIComponent(loaded.url)}`);
+    DELETABLE = res.targets || {};
+  } catch {
+    DELETABLE = {};   // no verdicts means no controls, which is the safe way to fail
+  }
+}
+
+function verdictFor(qid, sid) {
+  return DELETABLE[sid ? `${qid}/${sid}` : qid] || null;
+}
+
+function isBlocked(v) {
+  return !!(v && v.blocked && v.blocked.length);
+}
+
+/* Refusals come back as codes, not prose, so the reason can be said in the
+   language the set was written in. */
+const BLOCK_TEXT = {
+  coverage: {
+    en: 'That would leave {where} with no {missing} {card}. Every cluster carries all seven rungs of the ladder.',
+    zh: '那会让{where}少掉{missing}这一档。每一簇都要覆盖阶梯的七个层级。'
+  },
+  last_question: {
+    en: 'That is the last question in the set.',
+    zh: '这是这套问题里最后一个问题了。'
+  },
+  last_source: {
+    en: 'That is the last reading in the set.',
+    zh: '这是这套问题里最后一份阅读材料了。'
+  },
+  other: { en: '{text}', zh: '{text}' }
+};
+
+function blockedText(blocked) {
+  const zh = isZh();
+  return (blocked || []).map(b => {
+    const tpl = (BLOCK_TEXT[b.code] || BLOCK_TEXT.other)[zh ? 'zh' : 'en'];
+    const where = b.where === 'root'
+      ? (zh ? '这套问题' : 'this set')
+      : (zh ? `${b.where} 这一簇` : `the cluster under ${b.where}`);
+    return tpl
+      .replace('{where}', where)
+      .replace('{missing}', (b.missing || []).map(m => T(m)).join(zh ? '、' : ' / '))
+      .replace('{card}', (b.missing || []).length > 1 ? 'cards' : 'card')
+      .replace('{text}', b.text || '');
+  }).join(' ');
+}
+
+/* Refused controls are marked, never `disabled`: a disabled button swallows the
+   click, so the refusal has no way to explain itself and reads as a dead
+   button. These stay clickable and answer when asked. */
+function removeControl(qid, sid) {
+  if (!qid || !canPrune()) return '';
+  const v = verdictFor(qid, sid);
+  if (!v) return '';
+  const blocked = isBlocked(v);
+  return `<button type="button" class="rm${blocked ? ' blocked' : ''}"` +
+    ` data-q="${esc(qid)}" data-s="${esc(sid)}"` +
+    (blocked ? ` aria-disabled="true" title="${esc(blockedText(v.blocked))}"` : '') +
+    `><span class="rm-x" aria-hidden="true">✕</span>${T('remove')}</button>`;
+}
+
+/* Works for both panels: the card that lists its readings, and the reading's
+   own panel listing the cards that cite it. data-q says which card to act on. */
+function wireRemoveButtons() {
+  el.panel.querySelectorAll('button.rm').forEach(b => {
+    b.addEventListener('click', () => {
+      const q = (DATA.questions || []).find(x => x.id === b.dataset.q);
+      if (!q) return;
+      const v = verdictFor(q.id, b.dataset.s);
+      if (isBlocked(v)) return refuse(v);
+      openConfirm(q, b.dataset.s);
+    });
+  });
+}
+
+function deleteQuestionControl(qid) {
+  if (!canPrune()) return '';
+  const v = verdictFor(qid, null);
+  if (!v) return '';
+  const blocked = isBlocked(v);
+  return `<button type="button" class="btn danger${blocked ? ' blocked' : ''}" id="delq"` +
+    `${blocked ? ' aria-disabled="true"' : ''} style="margin-top:6px">` +
+    `${T('Delete this question')}</button>` +
+    (blocked ? `<p class="flag prune-why" id="prunewhy">${esc(blockedText(v.blocked))}</p>` : '');
+}
+
+function wirePrune(q) {
+  if (!canPrune()) return;
+  const del = document.getElementById('delq');
+  if (del) del.addEventListener('click', () => {
+    const v = verdictFor(q.id, null);
+    if (isBlocked(v)) return refuse(v, 'prunewhy');
+    openConfirm(q, null);
+  });
+  wireRemoveButtons();
+}
+
+/* A refusal nobody can see is indistinguishable from a bug, so say it twice:
+   in the banner, and by drawing the eye to the reason already on the card. */
+function refuse(v, noteId) {
+  const msg = esc(blockedText(v.blocked));
+  banner(msg, 'error');
+  setTimeout(() => { if (el.banner.innerHTML === msg) banner(null); }, 8000);
+  const note = noteId ? document.getElementById(noteId) : null;
+  if (!note) return;
+  note.classList.remove('flash');
+  void note.offsetWidth;          // restart the animation, as #qmark does
+  note.classList.add('flash');
+  note.scrollIntoView({ block: 'nearest' });
+}
+
+/* The confirm step states the whole blast radius before anything is written,
+   and collects the one or two things the card needs in order to stay valid. */
+function openConfirm(q, sid) {
+  const v = verdictFor(q.id, sid);
+  if (!v) return;
+  const old = document.getElementById('pruneconfirm');
+  if (old) old.remove();
+
+  const eff = v.effects || {};
+  const needs = v.needs || [];
+  const rows = [];
+
+  rows.push(`<p class="prune-row"><span class="lbl">${T('Removes')}</span> ` +
+    (sid ? `${esc(sid)} — ${esc(q.id)}` : `${esc(q.id)} · ${esc(q.label || '')}`) + `</p>`);
+
+  if ((eff.reparented || []).length) {
+    rows.push(`<p class="prune-row"><span class="lbl">${T('Children move up to')}</span> ` +
+      `${esc(q.parent)} — ${esc(eff.reparented.join(', '))}</p>`);
+  }
+  if ((eff.pruned_sources || []).length) {
+    rows.push(`<p class="prune-row"><span class="lbl">${T('Readings that go with it')}</span> ` +
+      `${esc(eff.pruned_sources.join(', '))} ` +
+      `<span class="muted">${T('Nothing else cites them.')}</span></p>`);
+  }
+  if ((eff.teach_back || []).length) {
+    rows.push(`<p class="prune-row"><span class="lbl">${T('Teach-backs updated')}</span> ` +
+      `${esc(eff.teach_back.join(', '))}</p>`);
+  }
+
+  if (needs.indexOf('promote') !== -1) {
+    const left = (q.readings || []).filter(r => r.source !== sid);
+    rows.push(`<p class="prune-row"><span class="lbl">${T('Which reading leads now?')}</span></p>` +
+      `<div class="prune-pick">` + left.map((r, i) => {
+        const cite = splitCitation((DATA.sources[r.source] || {}).citation).title;
+        return `<label><input type="radio" name="promote" value="${esc(r.source)}"` +
+          `${i === 0 ? ' checked' : ''} /> ${esc(r.source)} — ${esc(cite)}</label>`;
+      }).join('') + `</div>`);
+  }
+  if (needs.indexOf('single_reading_reason') !== -1) {
+    rows.push(`<p class="prune-row"><span class="lbl">${T('Why one reading is enough')}</span></p>` +
+      `<textarea id="prunereason" class="prune-reason" rows="2"></textarea>`);
+  }
+
+  rows.push(`<p class="prune-actions">` +
+    `<button type="button" class="btn" id="prunecancel">${T('Cancel')}</button>` +
+    `<button type="button" class="btn danger" id="prunego">${T('Delete')}</button>` +
+    `<span id="prunenote" class="muted"></span></p>`);
+
+  el.panel.insertAdjacentHTML('beforeend', `<div id="pruneconfirm" class="prune">${rows.join('')}</div>`);
+  document.getElementById('pruneconfirm').scrollIntoView({ block: 'nearest' });
+  document.getElementById('prunecancel').addEventListener('click', () => {
+    const box = document.getElementById('pruneconfirm');
+    if (box) box.remove();
+  });
+  document.getElementById('prunego').addEventListener('click', () => commitDelete(q, sid));
+}
+
+async function commitDelete(q, sid) {
+  const note = document.getElementById('prunenote');
+  const go = document.getElementById('prunego');
+  const reasonBox = document.getElementById('prunereason');
+  const picked = el.panel.querySelector('input[name="promote"]:checked');
+  const reason = reasonBox ? reasonBox.value.trim() : '';
+  const needs = (verdictFor(q.id, sid) || {}).needs || [];
+
+  if (needs.indexOf('single_reading_reason') !== -1 && !reason) {
+    note.textContent = ` ${T('Say why before deleting.')}`;
+    if (reasonBox) reasonBox.focus();
+    return;
+  }
+
+  go.disabled = true;
+  note.textContent = ' …';
+
+  let res, body;
+  try {
+    res = await fetch('/api/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        set: loaded.url,
+        question: q.id,
+        source: sid || undefined,
+        single_reading_reason: reason || undefined,
+        promote: picked ? picked.value : undefined
+      })
+    });
+    body = await res.json().catch(() => ({}));
+  } catch (err) {
+    go.disabled = false;
+    note.textContent = '';
+    banner(`Could not reach the local server — ${esc(err.message)}`, 'error');
+    return;
+  }
+
+  if (!res.ok) {
+    go.disabled = false;
+    note.textContent = '';
+    banner(esc(isBlocked(body) ? blockedText(body.blocked) : (body.error || 'that delete was refused')),
+      'error');
+    return;
+  }
+
+  /* Reload from the file we just wrote, passing its mtime so the folder watcher
+     recognises this change as ours and does not announce it again. */
+  const parent = q.parent;
+  await loadSet({ url: loaded.url, mtime: body.mtime || 0 }, { keepSelection: true });
+  if (!sid && parent) reselect(parent);
+  offerUndo();
+}
+
+function offerUndo() {
+  banner(`${T('Deleted.')} <a href="#" id="undodel">${T('Undo')}</a>`);
+  const link = document.getElementById('undodel');
+  if (!link) return;
+  setTimeout(() => { if (document.getElementById('undodel')) banner(null); }, 20000);
+  link.addEventListener('click', async ev => {
+    ev.preventDefault();
+    let res, body;
+    try {
+      res = await fetch('/api/undo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ set: loaded.url })
+      });
+      body = await res.json().catch(() => ({}));
+    } catch (err) {
+      banner(`Could not reach the local server — ${esc(err.message)}`, 'error');
+      return;
+    }
+    if (!res.ok) {
+      banner(esc(body.error || T('Nothing to undo.')), 'error');
+      return;
+    }
+    await loadSet({ url: loaded.url, mtime: body.mtime || 0 }, { keepSelection: true });
+    banner(T('Restored.'), 'transient');
+  });
+}
+
 /* The six criteria every question is tested against before a set is built.
    They are the same every time, so the viewer can state them. */
 const CRITERIA = [
@@ -932,7 +1243,7 @@ function showQuestion(q) {
   h += `<div class="sec">`;
   if (q.readings && q.readings.length) {
     h += `<p class="lbl">${T('Readings, ranked')}</p>`;
-    q.readings.forEach(r => { h += sourceLine(r.source, r.role); });
+    q.readings.forEach(r => { h += sourceLine(r.source, r.role, q.id); });
   } else {
     h += `<p><span class="role background">${T('no reading')}</span>${esc(q.single_reading_reason || T('Thinking-only card.'))}</p>`;
   }
@@ -944,15 +1255,16 @@ function showQuestion(q) {
   h += `<p>${esc(q.level)}</p>`;
   h += `</div>`;
   h += expandButton(q.id, q.question);
+  h += deleteQuestionControl(q.id);
   el.panel.innerHTML = h;
   wireExpand();
+  wirePrune(q);
 }
 
 function showSource(sid) {
   const s = DATA.sources[sid];
-  const users = DATA.questions
-    .filter(q => (q.readings || []).some(r => r.source === sid))
-    .map(q => `${q.id} (${q.readings.find(r => r.source === sid).role})`);
+  const citing = DATA.questions.filter(q => (q.readings || []).some(r => r.source === sid));
+  const roleOn = q => (q.readings.find(r => r.source === sid) || {}).role;
   let h = `<h2>${T('Reading')} ${esc(sid)}</h2>` +
     `<p class="meta-line" style="margin:-4px 0 12px">${tierChip(s.access_tier)}${verifiedChip(s.verified)}` +
     `${s.time_estimate ? `<span class="mins">${esc(s.time_estimate)} min</span>` : ''}</p>`;
@@ -969,9 +1281,22 @@ function showSource(sid) {
   if (s.paired_with) h += `<p><span class="lbl">${T('Free route:')}</span> ${esc(s.paired_with)}</p>`;
   if (s.verified_how) h += `<p><span class="lbl">${T('How we checked:')}</span> ${esc(s.verified_how)}</p>`;
   if (s.complexity) h += `<p><span class="lbl">${T('What makes it hard:')}</span> ${esc(s.complexity)}</p>`;
-  h += `<p><span class="lbl">${T('Used by:')}</span> ${esc(users.join(', ') || 'nothing')}</p>`;
+  /* This panel is where someone who wants a reading gone actually looks, so the
+     control belongs here too — one per citing card, because a reading is
+     removed from a card rather than from the set. */
+  if (canPrune() && citing.length) {
+    h += `<p class="lbl" style="margin-top:10px">${T('Used by:')}</p>`;
+    h += citing.map(q =>
+      `<p class="cited"><span class="source-id">${esc(q.id)}</span>` +
+      `<span class="role ${esc(roleOn(q))}">${esc(roleOn(q))}</span>` +
+      `${removeControl(q.id, sid)}</p>`).join('');
+  } else {
+    const listed = citing.map(q => `${q.id} (${roleOn(q)})`);
+    h += `<p><span class="lbl">${T('Used by:')}</span> ${esc(listed.join(', ') || 'nothing')}</p>`;
+  }
   h += `</div>`;
   el.panel.innerHTML = h;
+  wireRemoveButtons();
 }
 
 let rt = null;

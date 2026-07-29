@@ -60,11 +60,25 @@ The running viewer reloads it automatically.
 |---|---|
 | `portable/dont-stop-research.md` | **The tool.** Self-contained instructions for any model |
 | `viewer/` | Static graph viewer (d3 via CDN); no build step |
-| `scripts/serve.py` | Local server: watches `question-sets/`, auto-loads new sets, and can run an agent CLI (`claude`, `codex`, `gemini`) when one is on PATH. Binds 127.0.0.1 |
+| `scripts/serve.py` | Local server: watches `question-sets/`, auto-loads new sets, prunes cards and readings on request, and can run an agent CLI (`claude`, `codex`, `gemini`) when one is on PATH. Binds 127.0.0.1 |
 | `scripts/validate.py` | Validates sets against `schema/question-set.schema.json` |
 | `schema/question-set.schema.json` | The JSON contract between generator and viewer |
 | `skills/dont-stop-research/` | Optional Claude Code packaging of the same tool (adds a `/dont-stop-research` slash command). Not required by anything else |
 | `question-sets/` | Generated output lands here; gitignored — it belongs to the user |
+
+## When the user asks to delete a question or a reading
+
+They can do it themselves in the viewer — a card carries a delete button and each reading a
+`remove` control — so point them there rather than hand-editing the JSON. The server simulates the
+edit, runs `scripts/validate.py` on the result, and only writes when the file stays valid: orphaned
+sources and stale teach-back anchors are pruned for them, expansion children are reparented rather
+than lost, and the delete is recorded in `meta.pruned`.
+
+That record matters. A set carrying `meta.pruned` has deliberately given up a rung of the ladder,
+so coverage of all seven types becomes an advisory note there instead of a failure. **Never write
+`meta.pruned` yourself when generating or expanding a set** — it means "a human removed this", and
+inventing it would excuse a thin ladder that is actually a generation bug. If you do edit a set by
+hand, hold the same invariants and run the validator afterwards.
 
 ## For maintenance work on the repo itself
 

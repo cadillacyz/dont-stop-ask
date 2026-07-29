@@ -37,6 +37,11 @@
             }
           }
         },
+        "pruned": {
+          "type": "array",
+          "description": "What a reader deleted by hand, in the order it happened: a question id, or 'Q3/S2' for one reading on one card. Its presence means the set was thinned deliberately, so full ladder coverage becomes advisory rather than required. Generated sets carry no such record and stay strictly checked.",
+          "items": { "type": "string", "pattern": "^[A-Z]+[0-9]+(/[A-Za-z0-9_.-]+)?$" }
+        },
         "staleness_note": { "type": "string", "description": "Advisory only. What would make this set stale and when." }
       }
     },
