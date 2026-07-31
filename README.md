@@ -14,7 +14,40 @@ the design, not a limitation.
 问题。它不总结材料，不代写文章，也不告诉你该站哪一边。这是设计，不是缺陷。
 
 **Ask in any language.** A Chinese question returns a Chinese question set, and the viewer's
-interface follows. **用任何语言提问都可以。** 中文提问返回中文问题集，查看器界面也会跟着切换。
+interface can be switched between English and Chinese. **用任何语言提问都可以。** 中文提问返回中文
+问题集，查看器界面可以在中英文之间切换。
+
+---
+
+## Quick start · 快速开始
+
+This test release is available on the `test` branch:
+
+```bash
+git clone --branch test https://github.com/cadillacyz/dont-stop-ask.git
+cd dont-stop-ask
+python scripts/serve.py
+```
+
+Then open <http://127.0.0.1:8010/viewer/>. On Windows, you can double-click `start.bat` instead.
+
+这个测试版本位于 `test` 分支。克隆后进入仓库并运行 `python scripts/serve.py`，再打开
+<http://127.0.0.1:8010/viewer/>。Windows 用户也可以直接双击 `start.bat`。
+
+### Tell an AI coding agent to run it · 让 AI 帮你运行
+
+After cloning, paste this into Codex, Claude Code, or another coding agent:
+
+> Read `AGENTS.md` and `SECURITY.md`, then start this repository's local companion app without
+> changing the code. Verify `/api/status` and the viewer, open the viewer for me if you can, and tell
+> me whether Codex or Claude Code generation is available. Keep the server on `127.0.0.1` and do not
+> expose or proxy its port.
+
+The repository-level [`AGENTS.md`](AGENTS.md) gives compatible AI agents the exact startup,
+verification, old-UI recovery, and safety instructions automatically.
+
+克隆后，把上面的提示词发给 Codex、Claude Code 或其他编程代理即可。根目录的
+[`AGENTS.md`](AGENTS.md) 也会自动告诉兼容的 AI 如何启动、检查和排查旧界面。
 
 ---
 
@@ -48,14 +81,16 @@ python scripts/serve.py
 
 Or just double-click `start.bat` on Windows. · Windows 下也可以直接双击 `start.bat`。
 
-Open <http://127.0.0.1:8000/viewer/>, type your question, hit **Ask**. If the `claude` CLI is on
-your PATH it generates right there; otherwise it hands you the exact command to paste into Claude
-Code. Either way, **the graph loads itself** the moment the file appears — the server watches
-`question-sets/`, follows expansions, and reloads edits in place.
+The helper is intentionally local-only and now serves an allowlisted surface rather than the
+repository. Do not publish or proxy its port. See [SECURITY.md](SECURITY.md) for the threat boundary
+and [docs/production-boundary.md](docs/production-boundary.md) before turning it into a hosted app.
 
-打开 <http://127.0.0.1:8000/viewer/>，输入问题，按 **Ask**。如果 `claude` 命令行工具在 PATH 里，就地
-生成；否则它把完整命令交给你，粘贴进 Claude Code 即可。无论哪种方式，**文件一出现图谱就会自己加载**——
-服务器盯着 `question-sets/`，自动跟随展开、就地重载修改。
+Open <http://127.0.0.1:8010/viewer/>, click the question world, type your question, and hit **Ask**.
+The helper runs Codex (preferred) or Claude Code directly. **The graph loads itself** when the file
+appears — no prompt copy/paste or file picker needed. Install one of those CLIs first.
+
+打开 <http://127.0.0.1:8010/viewer/>，点击问题星球，输入问题，再按 **Ask**。本地助手会优先使用 Codex，
+也可自动使用 Claude Code，不再需要复制粘贴提示词。**文件一出现图谱就会自己加载**。
 
 ## Use it in ChatGPT or any other assistant · 在 ChatGPT 或其他助手中使用
 
@@ -74,8 +109,12 @@ The whole tool also exists as one self-contained prompt:
 3. The viewer picks it up automatically if the server is running — or drag the file onto the page.
    服务器开着的话查看器会自动加载——或者直接把文件拖到页面上。
 
-To expand a question, click its dot in the viewer, copy the expansion prompt, and paste it into the
-same chat. · 想展开某个问题：在查看器里点它的圆点，复制展开指令，粘贴回同一个对话。
+To expand a question, click its dot and choose **Expand into nine more**. The local agent runs it
+automatically. · 想展开某个问题：点击圆点，再选择 **Expand into nine more**，本地代理会自动运行。
+
+To remove a question from the visible map, select its dot and choose **Archive branch**. Descendant
+questions and readings used nowhere else leave the graph together, while every record remains in the
+JSON with `archived_at` and `archived_with` metadata.
 
 ## What's in here · 仓库结构
 
@@ -113,6 +152,14 @@ reads: the tool changes incentives and makes gaps visible out loud; it enforces 
 Found a citation we got wrong? That's the most valuable issue you can file — say what was wrong and
 how you checked. See [CONTRIBUTING.md](CONTRIBUTING.md). · 发现引用错误是最有价值的贡献——请说明错在
 哪里、你如何核实。
+
+Before a release, run the validator and the local security/UI contract tests:
+
+```bash
+python -m unittest discover -s tests -v
+python scripts/validate.py
+node --check viewer/graph.js
+```
 
 ## Licence · 许可
 

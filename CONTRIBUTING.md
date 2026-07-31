@@ -29,7 +29,9 @@ downgraded to unconfirmed" is a perfectly good outcome.
 ## Before opening a pull request
 
 ```bash
+python -m unittest discover -s tests -v
 python scripts/validate.py
+node --check viewer/graph.js
 ```
 
 This checks every JSON in `question-sets/` against `schema/question-set.schema.json` plus the
@@ -42,7 +44,7 @@ pip install jsonschema
 Then open the viewer and click through what you changed:
 
 ```bash
-python -m http.server 8000   # http://localhost:8000/viewer/
+python scripts/serve.py   # http://127.0.0.1:8010/viewer/
 ```
 
 ## Hard rules for any contributed question set

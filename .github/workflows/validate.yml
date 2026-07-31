@@ -2,7 +2,7 @@ name: validate
 
 on:
   push:
-    branches: [main]
+    branches: [main, test]
   pull_request:
 
 jobs:
@@ -14,5 +14,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install jsonschema
+      - name: Check Python and browser JavaScript syntax
+        run: |
+          python -m py_compile scripts/serve.py scripts/validate.py
+          node --check viewer/graph.js
+      - name: Run unit and server-boundary tests
+        run: python -m unittest discover -s tests -v
       - name: Validate every question set
         run: python scripts/validate.py

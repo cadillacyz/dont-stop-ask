@@ -13,6 +13,7 @@ unverified source breaks Rule 1.
 
 import json
 import pathlib
+import re
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -87,6 +88,16 @@ def check(data):
     for p in parents - known:
         problems.append(f"parent {p!r} is not root and not a question in this set")
 
+    archived_ids = {q.get("id") for q in questions if q.get("archived_at")}
+    for q in questions:
+        if not q.get("archived_at") and q.get("parent") in archived_ids:
+            problems.append(f"{q.get('id')}: active question has archived parent {q.get('parent')}")
+        if not q.get("archived_at"):
+            for reading in q.get("readings") or []:
+                source = sources.get(reading.get("source")) or {}
+                if source.get("archived_at"):
+                    problems.append(f"{q.get('id')}: active question cites archived source {reading.get('source')}")
+
     # Ladder coverage: all seven types must appear at least once per cluster.
     clusters = {}
     for q in questions:
@@ -107,6 +118,8 @@ def check(data):
             problems.append(f"{sid}: T4 source without a paired_with free route")
         if not s.get("url") and not s.get("reachable_at"):
             problems.append(f"{sid}: no url and no reachable_at — the reader cannot find it")
+        if s.get("url") and not re.match(r"^https?://", s["url"], re.IGNORECASE):
+            problems.append(f"{sid}: url must use http or https")
         if not s.get("citation"):
             problems.append(f"{sid}: missing citation")
 

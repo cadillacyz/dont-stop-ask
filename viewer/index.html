@@ -4,70 +4,117 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>不停问 · dont-stop-ask</title>
+<link rel="preload" href="assets/galaxy-nebula.webp" as="image" type="image/webp" />
 <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="intro-mode">
+
+<section id="intro" class="intro" aria-label="Explore the question galaxy" data-i18n-aria-label="Explore the question galaxy">
+  <div class="cosmos" aria-hidden="true">
+    <span class="nebula nebula-one"></span>
+    <span class="nebula nebula-two"></span>
+    <span class="starlight starfield-one"></span>
+    <span class="starlight starfield-two"></span>
+  </div>
+
+  <header class="cosmos-head">
+    <a class="cosmos-brand" href="https://github.com/cadillacyz/dont-stop-ask" target="_blank" rel="noopener noreferrer" aria-label="Do Not Stop Ask on GitHub" data-i18n-aria-label="Do Not Stop Ask on GitHub">
+      <strong>Do Not Stop Ask</strong>
+    </a>
+    <div class="cosmos-tools">
+      <div class="language-switch" role="group" aria-label="Interface language" data-i18n-aria-label="Interface language">
+        <button data-language="en" type="button" aria-pressed="true">EN</button>
+        <button data-language="zh" type="button" aria-pressed="false">中文</button>
+      </div>
+      <label class="brightness-control">
+        <span data-i18n="Brightness">Brightness</span>
+        <input data-brightness type="range" min="45" max="100" value="68" aria-label="Scene brightness" data-i18n-aria-label="Scene brightness" />
+      </label>
+    </div>
+  </header>
+
+  <div class="cosmos-copy">
+    <p class="cosmos-kicker" data-i18n="Choose a world to begin">Choose a world to begin</p>
+    <h1 data-i18n="Every question is a world.">Every question is a world.</h1>
+    <p class="cosmos-intro" data-i18n="Drift toward whatever pulls at your attention. Each world opens a different way into the unknown.">Drift toward whatever pulls at your attention. Each world opens a different way into the unknown.</p>
+  </div>
+
+  <div class="planetary-system single-world" aria-label="Begin with one question world" data-i18n-aria-label="Begin with one question world">
+    <span class="orbit-line orbit-line-one" aria-hidden="true"></span>
+
+    <button id="portal" class="planet planet-vesper" type="button" aria-label="Click here to begin" data-i18n-aria-label="Click here to begin">
+      <span class="planet-halo" aria-hidden="true"></span>
+      <span class="planet-body" aria-hidden="true"></span>
+      <span class="planet-name"><b data-i18n="Click here to begin">Click here to begin</b><small data-i18n="Every question is a world">Every question is a world</small></span>
+    </button>
+  </div>
+
+</section>
 
 <header class="bar">
-  <div class="brand">
-    <span class="zh">不停问</span>
-    <span class="en">dont-stop-ask</span>
-  </div>
+  <a class="brand" href="https://github.com/cadillacyz/dont-stop-ask" target="_blank" rel="noopener noreferrer" aria-label="Do Not Stop Ask on GitHub" data-i18n-aria-label="Do Not Stop Ask on GitHub">
+    <span class="en">Do Not Stop Ask</span>
+  </a>
   <div class="bar-actions">
-    <span id="status" class="status" title="Local helper status"></span>
-    <select id="setpick" class="pick" aria-label="Which question set" hidden></select>
-    <button class="btn" id="newq">Ask something else</button>
-    <label class="btn" for="file">Open a file…<input id="file" type="file" accept="application/json,.json" hidden /></label>
-    <button class="btn" id="fit">Fit view</button>
+    <div class="language-switch compact" role="group" aria-label="Interface language" data-i18n-aria-label="Interface language">
+      <button data-language="en" type="button" aria-pressed="true">EN</button>
+      <button data-language="zh" type="button" aria-pressed="false">中文</button>
+    </div>
+    <label class="brightness-control compact">
+      <span data-i18n="Brightness">Brightness</span>
+      <input data-brightness type="range" min="45" max="100" value="68" aria-label="Scene brightness" data-i18n-aria-label="Scene brightness" />
+    </label>
+    <span id="status" class="status" title="Local helper status" data-i18n-title="Local helper status"></span>
+    <label class="history-control">
+      <span data-i18n="Past questions">Past questions</span>
+      <select id="setpick" class="pick" aria-label="Open a past question" data-i18n-aria-label="Open a past question">
+        <option value="">Checking for past questions…</option>
+      </select>
+    </label>
+    <button class="btn" id="newq" data-i18n="Ask something else">Ask something else</button>
+    <button class="btn" id="fit" data-i18n="Fit view">Fit view</button>
   </div>
 </header>
 
-<div id="banner" class="banner" hidden></div>
+<div id="banner" class="banner" role="status" aria-live="polite" hidden></div>
 
 <main>
   <section id="stage" class="stage">
-    <svg id="graph" aria-label="Question graph"></svg>
+    <svg id="graph" aria-label="Question graph" data-i18n-aria-label="Question graph"></svg>
     <div id="tip" class="tip" hidden></div>
 
-    <div id="ask" class="ask">
-      <button id="qmark" class="qmark" aria-label="dont-stop-ask">
-        <svg viewBox="0 0 160 160" aria-hidden="true">
-          <circle class="q-halo" cx="80" cy="80" r="62" />
-          <circle class="q-ring" cx="80" cy="80" r="52" />
-          <text class="q-glyph" x="80" y="79" text-anchor="middle" dominant-baseline="central">?</text>
-        </svg>
-      </button>
-
-      <h1 class="ask-title">What do you want to know?</h1>
-      <p class="ask-sub">Ask something you actually wonder about. It comes back as a map of sharper
-        questions, each with readings worth opening — never as an answer.</p>
+    <div id="ask" class="ask" hidden>
+      <div class="ask-kicker"><span></span><b data-i18n="Begin with uncertainty">Begin with uncertainty</b></div>
+      <h1 class="ask-title" data-i18n="What question have you been thinking about?">What question have you been thinking about?</h1>
+      <p class="ask-sub" data-i18n="Ask the unfinished question. We’ll turn it into a map of sharper questions and readings worth opening.">Ask the unfinished question. We’ll turn it into a map of sharper questions and readings worth opening.</p>
 
       <form id="askform" class="askform" autocomplete="off">
-        <input id="q" class="q-input" type="text" required
-               placeholder="How do I teach my kids to speak English more naturally?" />
+        <label class="field-label" for="q" data-i18n="Your question">Your question</label>
+        <textarea id="q" class="q-input q-main" required rows="3"
+               placeholder="What do you want to understand?" data-i18n-placeholder="What do you want to understand?" maxlength="4000"></textarea>
         <input id="ctx" class="q-input q-ctx" type="text"
-               placeholder="What you already know, and why you're asking (optional, but it sharpens the set)" />
+               placeholder="What you already know, and why you're asking (optional, but it sharpens the set)" data-i18n-placeholder="What you already know, and why you're asking (optional, but it sharpens the set)" />
         <div class="askrow">
-          <label class="seg" title="Who the briefing is written for">
+          <label class="seg" title="Who the briefing is written for" data-i18n-title="Who the briefing is written for">
             <select id="mode">
-              <option value="solo">researching it myself</option>
-              <option value="guided">helping someone else research it</option>
+              <option value="solo" data-i18n="researching it myself">researching it myself</option>
+              <option value="guided" data-i18n="helping someone else research it">helping someone else research it</option>
             </select>
           </label>
-          <button class="btn primary" id="go" type="submit">Ask</button>
+          <label class="seg agent-choice" title="Local agent used to research the question" data-i18n-title="Local agent used to research the question">
+            <span data-i18n="with">with</span>
+            <select id="agent" aria-label="Agent" data-i18n-aria-label="Agent">
+              <option value="auto">best available agent</option>
+            </select>
+          </label>
+          <button class="btn primary" id="go" type="submit"><span data-i18n="Ask">Ask</span><i aria-hidden="true">↗</i></button>
         </div>
       </form>
 
-      <div id="handoff" class="handoff" hidden>
-        <p class="handoff-lead">Paste this into Claude Code — it's on your clipboard already.</p>
-        <pre id="handoffcmd" class="handoff-cmd"></pre>
-        <p class="handoff-note">The graph will load itself the moment the file appears.
-          <span id="watching"></span></p>
-      </div>
-
-      <div id="progress" class="progress" hidden>
+      <div id="progress" class="progress" role="status" aria-live="polite" hidden>
         <p class="prog-lead"><span class="spinner"></span> <span id="progtext">Working…</span></p>
         <pre id="proglog" class="prog-log"></pre>
+        <button class="btn cancel" id="canceljob" type="button" data-i18n="Cancel">Cancel</button>
       </div>
 
       <p class="ask-foot" id="askfoot"></p>
@@ -76,23 +123,25 @@
 
   <aside id="side" class="side">
     <div id="meta" class="meta"></div>
-    <div id="panel" class="panel">
+    <div id="panel" class="panel" aria-live="polite">
       <p class="muted">Click a question to see its readings and how to work it.</p>
     </div>
   </aside>
 </main>
 
 <footer class="legend">
-  <span><i class="sw" style="background:#6fd48a"></i>easier</span>
-  <span><i class="sw" style="background:#f0b24a"></i>middle</span>
-  <span><i class="sw" style="background:#f0625d"></i>most technical</span>
-  <span><i class="sw" style="background:#8d96b8"></i>reading</span>
-  <span><i class="sw" style="background:#a78bfa"></i>your question</span>
+  <span><i class="sw" style="background:#6fd48a"></i><b data-i18n="easier">easier</b></span>
+  <span><i class="sw" style="background:#f0b24a"></i><b data-i18n="middle">middle</b></span>
+  <span><i class="sw" style="background:#f0625d"></i><b data-i18n="most technical">most technical</b></span>
+  <span><i class="sw" style="background:#8d96b8"></i><b data-i18n="reading">reading</b></span>
+  <span><i class="sw" style="background:#a78bfa"></i><b data-i18n="your question">your question</b></span>
   <span class="spacer"></span>
-  <span class="hint">drag dots · scroll to zoom · click for readings</span>
+  <span class="hint" data-i18n="drag dots · scroll to zoom · click for readings">drag dots · scroll to zoom · click for readings</span>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"
+        integrity="sha512-vc58qvvBdrDR4etbxMdlTt4GBQk1qjvyORR2nrsPsFPyrs+/u5c3+1Ct6upOgdZoIl7eq6k3a1UPDSNAQi/32A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="graph.js"></script>
 </body>
 </html>

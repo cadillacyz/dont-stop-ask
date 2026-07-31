@@ -76,6 +76,8 @@
           "relevance_group": { "type": "string", "enum": ["core", "supporting", "context"], "description": "Distance from the working question, NOT difficulty" },
           "difficulty": { "type": "string", "enum": ["easy", "middle", "technical"], "description": "Coarse three-way rating for sorting and colour-coding. Does not replace level." },
           "load_bearing": { "type": "boolean", "description": "True for the Tension card the set is built around, and for the hardest card" },
+          "archived_at": { "type": "string", "format": "date-time", "description": "When this question was hidden from the active graph. The record remains in the document." },
+          "archived_with": { "type": "string", "pattern": "^[A-Z]+[0-9]+$", "description": "Id of the branch root whose archive action hid this question" },
           "readings": {
             "type": "array",
             "maxItems": 3,
@@ -108,14 +110,16 @@
           "citation": { "type": "string", "description": "Title, author, year, venue, kind" },
           "short": { "type": "string", "description": "Compact label for dense UI" },
           "access_tier": { "type": "string", "enum": ["T1", "T2", "T3", "T4"] },
-          "url": { "type": "string", "description": "A real URL that was checked. Omit rather than guess." },
+          "url": { "type": "string", "format": "uri", "pattern": "^https?://", "description": "A real HTTP(S) URL that was checked. Omit rather than guess." },
           "reachable_at": { "type": "string", "description": "Used when there is no single URL: a searchable description of where to find it" },
           "verified": { "type": "string", "enum": ["confirmed", "unconfirmed"] },
           "verified_how": { "type": "string", "description": "What was checked and against what" },
           "unconfirmed_detail": { "type": "string", "description": "REQUIRED when verified is unconfirmed: exactly what could not be confirmed and what to check" },
           "paired_with": { "type": "string", "description": "REQUIRED when access_tier is T4: a free route to the same argument" },
           "complexity": { "type": "string", "description": "Primary complexity challenge" },
-          "time_estimate": { "type": "integer", "description": "Minutes" }
+          "time_estimate": { "type": "integer", "minimum": 1, "maximum": 1440, "description": "Minutes" },
+          "archived_at": { "type": "string", "format": "date-time", "description": "When this source became unused by every active question" },
+          "archived_with": { "type": "string", "pattern": "^[A-Z]+[0-9]+$", "description": "Question branch whose archive action hid this source" }
         },
         "allOf": [
           {
