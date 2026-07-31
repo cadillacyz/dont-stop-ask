@@ -1,5 +1,7 @@
 <h1>不停问 · dont-stop-ask</h1>
 
+![Do Not Stop Ask galaxy landing page](docs/assets/dont-stop-ask-galaxy.png)
+
 **A research tool that never answers the question.**
 **一个从不替你回答问题的研究工具。**
 
