@@ -14,6 +14,7 @@
   --ember: #ffbd73;
   --warn: #f0b24a;
   --scene-brightness: .68;
+  --reader-scale: 1;
 }
 
 * { box-sizing: border-box; }
@@ -113,13 +114,46 @@ body { display: flex; flex-direction: column; overflow: hidden; }
 .cosmos-brand:focus-visible { outline: 1px solid rgba(255,255,255,.7); outline-offset: 8px; }
 .cosmos-head > p { margin: 0; color: rgba(225,224,246,.5); font: 500 9px/1.2 ui-monospace, monospace; letter-spacing: .18em; text-transform: uppercase; }
 .cosmos-tools { display: flex; align-items: center; gap: 18px; }
-.cosmos-copy {
-  position: absolute; z-index: 4; left: clamp(24px, 7vw, 106px); top: 50%; width: min(390px, 34vw);
-  transform: translateY(-52%);
+.entry-focus {
+  position: absolute;
+  z-index: 4;
+  inset: clamp(112px, 13vh, 180px) clamp(28px, 7vw, 106px) clamp(50px, 8vh, 100px);
+  display: grid;
+  grid-template-columns: minmax(320px, 440px) minmax(300px, 460px);
+  justify-content: center;
+  align-items: center;
+  gap: clamp(36px, 7vw, 112px);
 }
-.cosmos-kicker { margin: 0 0 20px; color: #8ccfff; font-size: 10px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; }
-.cosmos-copy h1 { margin: 0; font: 400 clamp(52px, 6.1vw, 104px)/.82 "Iowan Old Style", Baskerville, Georgia, serif; letter-spacing: -.065em; text-wrap: balance; }
-.cosmos-intro { max-width: 340px; margin: 30px 0 0; color: #cfe6ff; font-size: clamp(12px, 1.05vw, 15px); line-height: 1.75; }
+.entry-focus::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 8% -7%;
+  pointer-events: none;
+  background: radial-gradient(ellipse, rgba(3, 5, 24, .66), transparent 69%);
+  filter: blur(18px);
+}
+.cosmos-copy { position: relative; z-index: 2; width: auto; }
+.cosmos-kicker {
+  margin: 0 0 18px;
+  color: #9bd8ff;
+  font: 650 12px/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: .07em;
+}
+.cosmos-copy h1 {
+  max-width: 7.5ch;
+  margin: 0;
+  font: 400 clamp(56px, 5.4vw, 82px)/.91 "Iowan Old Style", Baskerville, Georgia, serif;
+  letter-spacing: -.05em;
+  text-wrap: balance;
+}
+.cosmos-intro {
+  max-width: 39ch;
+  margin: 28px 0 0;
+  color: #d8e9fb;
+  font-size: clamp(15px, 1.2vw, 17px);
+  line-height: 1.7;
+}
 .planetary-system { position: absolute; z-index: 3; inset: 6% 2% 3% 38%; }
 .orbit-line {
   position: absolute; left: 47%; top: 50%; translate: -50% -50%; border: 1px solid rgba(192,199,255,.1);
@@ -155,23 +189,47 @@ body { display: flex; flex-direction: column; overflow: hidden; }
     radial-gradient(circle at 36% 31%, #eccaff 0 4%, #a85ee5 18%, #3d177f 48%, #12092d 79%);
 }
 .planet-vesper .planet-body::before { background: repeating-radial-gradient(ellipse at 46% 34%, transparent 0 9%, rgba(255,215,255,.2) 10% 12%, transparent 14% 20%); }
-.single-world.planetary-system { inset: 0; min-height: 0; pointer-events: none; }
+.single-world.planetary-system {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: min(54vh, 560px);
+  min-height: 390px;
+  pointer-events: none;
+}
 .single-world .orbit-line-one {
-  left: 50%; top: 58%; width: clamp(310px, 38vw, 600px); aspect-ratio: 2.25;
+  left: 50%; top: 50%; width: clamp(330px, 36vw, 560px); aspect-ratio: 2.25;
   transform: rotate(-12deg);
 }
 .single-world .planet-vesper {
-  --size: clamp(176px, 17vw, 250px);
+  --size: clamp(190px, 17vw, 250px);
   left: calc(50% - var(--size) / 2);
-  top: calc(58% - var(--size) / 2);
+  top: calc(50% - var(--size) / 2);
   pointer-events: auto;
 }
-.single-world .planet-name { top: calc(100% + 22px); min-width: 260px; }
+.single-world .planet-name { top: calc(100% + 24px); min-width: 220px; }
 .single-world .planet-name b {
-  font-size: clamp(17px, 1.5vw, 22px);
-  letter-spacing: .03em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(174, 205, 244, .3);
+  border-radius: 999px;
+  background: rgba(8, 11, 34, .78);
+  color: #f4f8ff;
+  font: 650 15px/1.2 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  box-shadow: 0 12px 36px rgba(0,0,0,.26);
+  backdrop-filter: blur(14px);
 }
-.single-world .planet-name small { margin-top: 8px; font-size: 8px; letter-spacing: .2em; }
+.single-world .planet-name small {
+  margin-top: 9px;
+  color: #c5dcf2;
+  font: 600 11px/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: .035em;
+  text-transform: none;
+}
 .planet-cryon { --size: clamp(76px, 6.6vw, 106px); --delay: -4s; left: 9%; top: 20%; color: #74dbff; }
 .planet-cryon .planet-body { background: conic-gradient(from 24deg, #e9ffff, #287ca6 19%, #a8eaff 28%, #164a7c 48%, #d4fbff 59%, #2f73a2 76%, #d9fdff); }
 .planet-cryon .planet-body::before {
@@ -506,6 +564,53 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
   overflow-y: auto;
   padding: 14px 16px 28px;
 }
+.observatory-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(178, 185, 238, .14);
+}
+.observatory-name {
+  flex: 1;
+  color: #cfe9ff;
+  font: 650 12px/1.2 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: .035em;
+}
+.reader-controls {
+  display: flex;
+  border: 1px solid rgba(167, 197, 235, .24);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.reader-controls button,
+.observatory-close {
+  min-width: 35px;
+  min-height: 32px;
+  border: 0;
+  color: #dcecff;
+  background: transparent;
+  font: 650 12px/1 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  cursor: pointer;
+}
+.reader-controls button + button { border-left: 1px solid rgba(167, 197, 235, .2); }
+.reader-controls button:hover,
+.observatory-close:hover { color: #fff; background: rgba(145, 190, 232, .1); }
+.reader-controls button:focus-visible,
+.observatory-close:focus-visible {
+  outline: 2px solid #9dd8ff;
+  outline-offset: -2px;
+}
+.reader-controls button:disabled { color: #7086a0; cursor: default; background: transparent; }
+.observatory-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 0 8px;
+  border-radius: 999px;
+}
 
 .meta { border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 14px; }
 .meta h1 { font-size: 15px; font-weight: 500; margin: 0 0 6px; line-height: 1.45; }
@@ -812,55 +917,268 @@ body.ask-mode { background: transparent; }
 }
 
 .graph-mode .side {
-  width: min(390px, 31vw);
-  padding: 22px 23px 32px;
-  border-left-color: rgba(178, 185, 238, .12);
-  background: linear-gradient(150deg, rgba(15, 10, 39, .88), rgba(5, 5, 22, .82));
-  backdrop-filter: blur(22px) saturate(.75);
+  position: relative;
+  width: clamp(520px, 42vw, 640px);
+  padding: 20px clamp(28px, 3vw, 44px) 42px;
+  border-left-color: rgba(163, 199, 236, .18);
+  background:
+    linear-gradient(150deg, rgba(12, 16, 35, .985), rgba(6, 9, 24, .98)),
+    #080d1f;
+  box-shadow: -28px 0 70px rgba(2, 3, 15, .38);
+  backdrop-filter: blur(24px) saturate(.7);
+  scrollbar-color: rgba(143, 188, 226, .35) transparent;
+}
+.graph-mode .side::before {
+  content: "";
+  position: fixed;
+  z-index: 2;
+  top: 17%;
+  right: calc(clamp(520px, 42vw, 640px) - 1px);
+  width: 1px;
+  height: 66%;
+  pointer-events: none;
+  background: linear-gradient(transparent, #87c9ff 24%, #c69bff 62%, transparent);
+  box-shadow: 0 0 18px rgba(132, 190, 255, .52);
 }
 .graph-mode .meta {
-  padding-bottom: 18px;
-  margin-bottom: 19px;
+  padding-bottom: 16px;
+  margin-bottom: 28px;
   border-bottom-color: rgba(178, 185, 238, .12);
 }
 .graph-mode .meta::before {
   content: "CURRENT ORBIT";
   display: block;
-  margin-bottom: 10px;
-  color: #92ccff;
-  font: 600 8px/1 ui-monospace, monospace;
-  letter-spacing: .2em;
+  margin-bottom: 9px;
+  color: #a8d8ff;
+  font: 650 11px/1.2 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: .08em;
 }
 .graph-mode .meta h1 {
-  font: 400 clamp(20px, 2vw, 29px)/1.17 "Iowan Old Style", Baskerville, Georgia, serif;
-  letter-spacing: -.025em;
+  font: 500 16px/1.5 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: 0;
 }
 .graph-mode .pill {
   margin-top: 8px;
   border-color: rgba(177, 181, 238, .18);
-  border-radius: 2px;
+  border-radius: 999px;
   background: rgba(115, 89, 199, .08);
   color: #d9ccff;
-  font: 600 8px/1.4 ui-monospace, monospace;
-  letter-spacing: .08em;
-  text-transform: uppercase;
+  font: 600 12px/1.4 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: 0;
 }
-.graph-mode .panel h2 {
-  color: #92ccff;
-  font: 600 8px/1.2 ui-monospace, monospace;
-  letter-spacing: .17em;
-  text-transform: uppercase;
+.graph-mode .panel {
+  font-size: calc(16px * var(--reader-scale));
 }
-.graph-mode .panel .q {
-  margin: 10px 0 17px;
-  color: #f6f2ff;
-  font: 400 20px/1.4 "Iowan Old Style", Baskerville, Georgia, serif;
+.graph-mode .observatory-heading { margin-bottom: 26px; }
+.graph-mode .observatory-eyebrow {
+  margin: 0 0 10px;
+  color: #a8d8ff;
+  font: 650 13px/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
 }
-.graph-mode .panel .sec {
-  border-top-color: rgba(178, 185, 238, .12);
-  color: #d6e6ff;
+.graph-mode .question-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 13px;
+}
+.graph-mode .question-meta span {
+  padding: 4px 9px;
+  border: 1px solid rgba(161, 198, 234, .2);
+  border-radius: 999px;
+  color: #c6ddf5;
+  font: 650 12px/1.25 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+}
+.graph-mode .panel .question-title {
+  max-width: 34ch;
+  margin: 0;
+  color: #fbf8ff;
+  font: 400 calc(25px * var(--reader-scale))/1.36 "Iowan Old Style", Baskerville, Georgia, serif;
+  letter-spacing: -.022em;
+  text-wrap: balance;
+}
+.graph-mode .panel .source-title {
+  max-width: 34ch;
+  margin: 0;
+  color: #f4f7ff;
+  font: 600 calc(21px * var(--reader-scale))/1.45 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+}
+.graph-mode .panel .source-title a {
+  color: inherit;
+  text-decoration-color: rgba(157, 216, 255, .45);
+  text-underline-offset: 4px;
+}
+.guidance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+.guidance-card {
+  min-width: 0;
+  padding: 18px 19px 20px;
+  border: 1px solid rgba(151, 194, 233, .17);
+  border-radius: 12px;
+  background: rgba(135, 178, 222, .055);
+}
+.guidance-card::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 2px;
+  margin-bottom: 14px;
+  background: #83cfff;
+  box-shadow: 0 0 10px rgba(131, 207, 255, .36);
+}
+.guidance-card.look-card::before { background: #c2a4ff; box-shadow: 0 0 10px rgba(194, 164, 255, .34); }
+.guidance-card h3,
+.section-title,
+.detail-row h3 {
+  margin: 0 0 9px;
+  color: #edf6ff;
+  font: 650 calc(14px * var(--reader-scale))/1.35 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+}
+.guidance-card p,
+.detail-row p {
+  margin: 0;
+  color: #d6e6f8;
+  font-size: calc(16px * var(--reader-scale));
   line-height: 1.65;
 }
+.reading-section {
+  padding-top: 25px;
+  border-top: 1px solid rgba(178, 185, 238, .13);
+}
+.section-title { margin-bottom: 14px; font-size: calc(16px * var(--reader-scale)); }
+.reading-list { display: grid; gap: 11px; }
+.reading-card {
+  padding: 17px 18px;
+  border: 1px solid rgba(155, 196, 233, .16);
+  border-radius: 12px;
+  background: rgba(20, 30, 56, .72);
+  transition: border-color .2s ease, background-color .2s ease, transform .2s ease;
+}
+.reading-card:hover {
+  border-color: rgba(157, 216, 255, .38);
+  background: rgba(25, 38, 69, .82);
+  transform: translateY(-1px);
+}
+.reading-card-head { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; }
+.reading-card .source-id,
+.reading-card .role {
+  margin: 0;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+.reading-title { margin: 0; color: #f0f5ff; font-size: calc(16px * var(--reader-scale)); line-height: 1.55; }
+.reading-title a {
+  display: block;
+  color: inherit !important;
+  border: 0 !important;
+  text-decoration: none;
+}
+.open-reading {
+  display: block;
+  margin-top: 9px;
+  color: #9dd8ff;
+  font-size: calc(13px * var(--reader-scale));
+  font-weight: 650;
+}
+.reading-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 13px;
+  margin-top: 12px;
+  color: #b8cde3;
+  font-size: calc(13px * var(--reader-scale));
+  line-height: 1.45;
+}
+.reading-facts span { position: relative; }
+.reading-facts span + span::before { content: "·"; position: absolute; left: -8px; color: #66809b; }
+.single-reading-reason,
+.reading-empty {
+  margin: 13px 0 0;
+  color: #c8daed;
+  font-size: calc(14px * var(--reader-scale));
+  line-height: 1.6;
+}
+.reading-empty { display: flex; align-items: flex-start; gap: 8px; }
+.reading-empty p { margin: 0; }
+.source-details { display: grid; gap: 12px; }
+.detail-row {
+  padding: 17px 18px;
+  border-left: 2px solid rgba(139, 205, 255, .52);
+  background: rgba(25, 35, 62, .58);
+}
+.panel-actions {
+  margin-top: 28px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(178, 185, 238, .13);
+}
+.graph-mode .panel-actions .btn {
+  min-height: 40px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.observatory-details {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(178, 185, 238, .13);
+}
+.observatory-details summary {
+  width: fit-content;
+  color: #b9d4ea;
+  font-size: calc(14px * var(--reader-scale));
+  font-weight: 650;
+  cursor: pointer;
+}
+.observatory-details summary:hover { color: #fff; }
+.observatory-details dl { display: grid; gap: 11px; margin: 17px 0 0; }
+.observatory-details dl > div { display: grid; grid-template-columns: minmax(110px, .35fr) 1fr; gap: 16px; }
+.observatory-details dt { color: #9cb9d2; font-size: calc(13px * var(--reader-scale)); }
+.observatory-details dd { margin: 0; color: #e0ecf8; font-size: calc(14px * var(--reader-scale)); line-height: 1.55; }
+.observatory-details .card-identity { margin-top: 18px; }
+.observatory-details .card-identity strong {
+  color: #d9f2ff;
+  font: 650 calc(13px * var(--reader-scale))/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.observatory-details .card-identity p { font-size: calc(13px * var(--reader-scale)); }
+.graph-mode .original-question {
+  margin: 0 0 24px;
+  padding: 19px 20px;
+  border-radius: 12px;
+}
+.graph-mode .original-question .original-label {
+  color: #a8d8ff;
+  font: 650 calc(13px * var(--reader-scale))/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.graph-mode .original-question blockquote {
+  font-size: calc(18px * var(--reader-scale));
+  line-height: 1.6;
+}
+.graph-mode .original-question .triage-summary {
+  color: #cce4f7;
+  font-size: calc(14px * var(--reader-scale));
+  line-height: 1.6;
+}
+.detail-open.graph-mode .meta {
+  margin-bottom: 22px;
+  padding-bottom: 14px;
+}
+.detail-open.graph-mode .meta h1 {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.detail-open.graph-mode .meta p { display: none; }
 .graph-mode .panel a {
   color: #9dd8ff;
   border-bottom-color: rgba(109, 174, 231, .35);
@@ -891,10 +1209,13 @@ body.ask-mode { background: transparent; }
   isolation: isolate;
 }
 .ask {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   align-items: flex-start;
+  justify-content: center;
+  padding: clamp(36px, 6vh, 72px) clamp(24px, 8vw, 118px);
   background:
-    linear-gradient(90deg, rgba(3,2,17,.18), rgba(3,3,18,.62)),
+    linear-gradient(90deg, rgba(3, 5, 21, .78), rgba(3, 5, 21, .9) 58%, rgba(3, 4, 18, .76)),
     url("assets/galaxy-nebula.webp") center / cover no-repeat,
     #03020a;
   background-color: rgb(2 3 15 / calc(1 - var(--scene-brightness)));
@@ -904,9 +1225,9 @@ body.ask-mode { background: transparent; }
   content: "";
   position: absolute;
   z-index: 0;
-  width: clamp(230px, 30vw, 470px);
+  width: clamp(190px, 24vw, 350px);
   aspect-ratio: 1;
-  right: clamp(-70px, 6vw, 110px);
+  right: clamp(-110px, 2vw, 38px);
   top: 50%;
   translate: 0 -50%;
   border-radius: 50%;
@@ -920,15 +1241,16 @@ body.ask-mode { background: transparent; }
     0 0 0 1px rgba(197,170,255,.18),
     0 0 90px rgba(145,88,255,.38),
     0 45px 90px rgba(0,0,0,.55);
-  opacity: .88;
+  opacity: .34;
+  filter: saturate(.72);
 }
 .ask::after {
   content: "";
   position: absolute;
   z-index: 0;
-  right: clamp(-145px, -4vw, -35px);
+  right: clamp(-190px, -8vw, -80px);
   top: 50%;
-  width: clamp(400px, 48vw, 740px);
+  width: clamp(360px, 40vw, 620px);
   aspect-ratio: 2.25;
   translate: 0 -50%;
   border: 1px solid rgba(192, 199, 255, .14);
@@ -944,52 +1266,177 @@ body.ask-mode { background: transparent; }
 .ask-kicker,
 .ask-title,
 .ask-sub,
-.askform { width: min(610px, 54vw); }
-.ask-kicker { color: #92ccff; }
-.ask-title {
-  font: 400 clamp(48px, 6vw, 86px)/.88 "Iowan Old Style", Baskerville, Georgia, serif;
-  letter-spacing: -.06em;
+.askform { width: min(720px, 68vw); }
+.ask-kicker {
+  margin-bottom: 14px;
+  color: #a8d8ff;
+  font: 650 12px/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: .06em;
+  text-transform: none;
 }
-.ask-sub { color: #d6e6ff; }
+.ask-kicker span { width: 24px; }
+.ask-title {
+  max-width: 12ch;
+  font: 400 clamp(44px, 4.9vw, 68px)/.98 "Iowan Old Style", Baskerville, Georgia, serif;
+  letter-spacing: -.045em;
+  text-wrap: balance;
+}
+.ask-sub {
+  max-width: 54ch;
+  margin: 20px 0 26px;
+  color: #d6e6f8;
+  font-size: 16px;
+  line-height: 1.65;
+}
 .askform {
-  padding: 18px;
-  border: 1px solid rgba(179, 181, 238, .16);
-  background: linear-gradient(135deg, rgba(13, 9, 36, .82), rgba(6, 6, 25, .72));
-  backdrop-filter: blur(18px) saturate(.8);
-  box-shadow: 0 24px 70px rgba(0,0,0,.32), inset 0 1px rgba(255,255,255,.035);
+  gap: 12px;
+  padding: clamp(20px, 2.4vw, 30px);
+  border: 1px solid rgba(164, 198, 234, .2);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(11, 16, 37, .97), rgba(6, 10, 27, .96));
+  backdrop-filter: blur(24px) saturate(.72);
+  box-shadow: 0 28px 80px rgba(0,0,0,.4), inset 0 1px rgba(255,255,255,.04);
 }
 .ask .q-input,
 .ask .seg select {
-  border-color: rgba(179, 181, 238, .18);
-  border-radius: 2px;
-  background: rgba(4, 5, 22, .62);
+  border-color: rgba(164, 198, 234, .21);
+  border-radius: 9px;
+  background: rgba(3, 7, 22, .74);
 }
+.ask .field-label {
+  color: #dbeeff;
+  font: 650 14px/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ask .q-main {
+  min-height: 150px;
+  padding: 18px 19px;
+  color: #f7f9ff;
+  font: 400 20px/1.55 "Iowan Old Style", Baskerville, Georgia, serif;
+}
+.ask .q-input::placeholder { color: #9ebbd3; opacity: 1; }
 .ask .q-input:focus {
   border-color: rgba(142, 203, 255, .7);
-  box-shadow: 0 0 0 2px rgba(130, 175, 255, .12), 0 0 24px rgba(128, 92, 230, .13);
+  box-shadow: 0 0 0 3px rgba(130, 175, 255, .12), 0 0 24px rgba(128, 92, 230, .1);
 }
+.ask-primary-row {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.ask-primary-row p {
+  flex: 1;
+  margin: 0;
+  color: #a9c4dc;
+  font-size: 13px;
+}
+.ask-options {
+  margin-top: 2px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(164, 198, 234, .13);
+}
+.ask-options summary {
+  width: fit-content;
+  color: #b9d4ea;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ask-options summary:hover { color: #fff; }
+.ask-options-body {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  text-align: left;
+}
+.optional-field {
+  display: grid;
+  gap: 7px;
+  color: #b9d4ea;
+  font-size: 13px;
+}
+.ask .q-ctx { padding: 12px 14px; font-size: 15px; }
+.ask .askrow { gap: 12px; }
+.ask .seg,
+.ask .agent-choice {
+  flex: 1;
+  display: grid;
+  gap: 7px;
+  padding: 0;
+  border: 0;
+  color: #b9d4ea;
+  font-size: 13px;
+}
+.ask .seg select { min-height: 44px; color: #e2edf8; font-size: 14px; }
+.ask .agent-choice select { padding-left: 10px; background: rgba(3, 7, 22, .74); }
 .ask .btn.primary {
-  border-color: rgba(165, 178, 244, .34);
-  border-radius: 2px;
-  background: rgba(129, 96, 227, .24);
+  min-width: 132px;
+  min-height: 48px;
+  border-color: rgba(157, 205, 245, .42);
+  border-radius: 9px;
+  background: linear-gradient(135deg, rgba(96, 150, 218, .28), rgba(135, 94, 205, .3));
+  color: #f8fbff;
+  font-size: 14px;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+.ask .btn.primary:hover { background: linear-gradient(135deg, rgba(96, 150, 218, .4), rgba(135, 94, 205, .42)); }
+.ask-foot {
+  width: min(720px, 68vw);
+  max-width: 720px;
+  margin-top: 14px;
+  color: #b7cee3;
+  font-size: 13px;
+  text-align: left;
 }
 .ask .progress {
-  width: min(610px, 54vw);
+  width: min(720px, 68vw);
   border-color: rgba(179, 181, 238, .18);
-  border-radius: 2px;
+  border-radius: 10px;
   background: rgba(8, 6, 28, .88);
   backdrop-filter: blur(18px);
 }
+.ask-mode .bar { min-height: 64px; padding-block: 12px; }
+.ask-mode .bar-actions { gap: 12px; }
+.ask-mode .status { color: #bdd5e9; font-size: 12px; }
+.ask-mode .history-control {
+  color: #b9d4ea;
+  font: 600 11px/1.3 "Avenir Next", Avenir, "Segoe UI", sans-serif;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ask-mode .history-control .pick {
+  min-height: 36px;
+  border-radius: 7px;
+  color: #e2edf8;
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ask-mode .brightness-control { opacity: .72; }
 
 @media (max-width: 820px) {
   .intro { overflow-y: auto; min-height: 100%; }
   .cosmos-head { position: fixed; top: 20px; left: 20px; right: 20px; }
   .cosmos-tools { gap: 9px; }
   .cosmos-head > p { display: none; }
-  .cosmos-copy { left: 24px; right: 24px; top: 104px; width: auto; transform: none; }
+  .entry-focus {
+    position: relative;
+    inset: auto;
+    min-height: 100%;
+    padding: 112px 24px 56px;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    gap: 14px;
+  }
+  .entry-focus::before { inset: 12% -10%; }
+  .cosmos-copy { left: auto; right: auto; top: auto; width: auto; transform: none; }
   .cosmos-copy h1 { font-size: clamp(48px, 14vw, 76px); }
-  .cosmos-intro { max-width: 470px; margin-top: 20px; }
-  .planetary-system { inset: 39% 0 5%; min-height: 470px; }
+  .cosmos-intro { max-width: 38ch; margin-top: 20px; font-size: 15px; }
+  .single-world.planetary-system { inset: auto; height: 340px; min-height: 340px; }
+  .single-world .planet-vesper { --size: clamp(150px, 32vw, 190px); }
+  .single-world .orbit-line-one { width: min(430px, 82vw); }
   .planet-vesper { left: 41%; top: 28%; }
   .planet-cryon { left: 8%; top: 12%; }
   .planet-pyra { right: 8%; top: 6%; }
@@ -1006,7 +1453,7 @@ body.ask-mode { background: transparent; }
   main { flex-direction: column; }
   .side { width: auto; border-left: none; border-top: 1px solid var(--line); max-height: 45vh; }
   .stage { min-height: 300px; }
-  .ask { justify-content: flex-start; overflow-y: auto; padding: 54px 18px 28px; }
+  .ask { justify-content: flex-start; overflow-y: auto; padding: 44px 18px 28px; }
   .ask-sub { margin-bottom: 14px; }
   .askrow { flex-wrap: wrap; }
   .askrow .seg { flex: 1 1 230px; }
@@ -1021,6 +1468,20 @@ body.ask-mode { background: transparent; }
     border-left: 0;
     border-top: 1px solid rgba(178, 185, 238, .12);
   }
+  .graph-mode .side::before { display: none; }
+  .detail-open.graph-mode .side {
+    position: fixed;
+    z-index: 20;
+    inset: 92px 10px 10px;
+    width: auto;
+    max-height: none;
+    padding: 18px clamp(20px, 5vw, 34px) 36px;
+    border: 1px solid rgba(163, 199, 236, .2);
+    border-radius: 14px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, .7);
+  }
+  .detail-open.graph-mode .stage { filter: brightness(.45) saturate(.65); }
+  .guidance-grid { grid-template-columns: 1fr; }
   .graph-mode .legend { margin: 0 10px; }
   .ask::before { right: -120px; top: 78%; opacity: .5; }
   .ask::after { right: -210px; top: 78%; }
@@ -1028,7 +1489,9 @@ body.ask-mode { background: transparent; }
   .ask-title,
   .ask-sub,
   .askform,
-  .ask .progress { width: min(660px, 100%); }
+  .ask .progress,
+  .ask-foot { width: min(660px, 100%); }
+  .ask-primary-row { align-items: stretch; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1043,10 +1506,12 @@ body.ask-mode { background: transparent; }
   .language-switch button { min-width: 31px; padding: 4px 7px; }
   .brightness-control { gap: 6px; font-size: 7px; letter-spacing: .1em; }
   .brightness-control input { width: 84px; }
-  .cosmos-copy { top: 86px; }
+  .entry-focus { padding: 104px 20px 42px; align-content: start; }
+  .cosmos-copy { top: auto; }
   .cosmos-copy h1 { font-size: 48px; }
-  .cosmos-intro { font-size: 12px; line-height: 1.55; max-width: 310px; }
-  .planetary-system { inset: 38% 0 0; min-height: 420px; }
+  .cosmos-intro { font-size: 14px; line-height: 1.6; max-width: 32ch; }
+  .single-world.planetary-system { inset: auto; height: 290px; min-height: 290px; }
+  .single-world .planet-vesper { --size: 142px; }
   .planet { --size: 68px; }
   .planet-vesper { --size: 104px; left: 36%; top: 28%; }
   .planet-cryon { --size: 66px; left: 7%; top: 11%; }
@@ -1067,7 +1532,17 @@ body.ask-mode { background: transparent; }
   .ask { padding-top: 42px; }
   .ask-title { font-size: 46px; line-height: .94; }
   .askform { padding: 13px; }
+  .ask-primary-row { flex-direction: column; gap: 10px; }
+  .ask-primary-row .primary { width: 100%; }
+  .ask .q-main { min-height: 132px; font-size: 18px; }
+  .ask-options summary { font-size: 13px; }
   .ask::before { width: 250px; right: -130px; top: 81%; }
   .graph-mode .stage::before { top: 13px; left: 14px; }
   .graph-mode .meta h1 { font-size: 20px; }
+  .detail-open.graph-mode .side { inset: 132px 6px 6px; padding: 15px 18px 30px; border-radius: 10px; }
+  .observatory-name { display: none; }
+  .observatory-bar { position: sticky; z-index: 3; top: -15px; background: #090e21; }
+  .graph-mode .panel .question-title { font-size: calc(23px * var(--reader-scale)); }
+  .graph-mode .panel .source-title { font-size: calc(19px * var(--reader-scale)); }
+  .observatory-details dl > div { grid-template-columns: 1fr; gap: 3px; }
 }

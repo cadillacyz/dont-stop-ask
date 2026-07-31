@@ -1,19 +1,32 @@
 <h1>不停问 · dont-stop-ask</h1>
 
-![Do Not Stop Ask galaxy landing page](docs/assets/dont-stop-ask-galaxy.png)
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/dont-stop-ask-entry.png" alt="Do Not Stop Ask galaxy landing page" />
+    </td>
+    <td width="50%">
+      <img src="docs/assets/dont-stop-ask-question.png" alt="Do Not Stop Ask question page" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Enter the question world</strong></td>
+    <td align="center"><strong>Ask in your own words</strong></td>
+  </tr>
+</table>
 
 **A research tool that never answers the question.**
 **一个从不替你回答问题的研究工具。**
 
 Give it something you actually wonder about, and it gives back a map of sharper questions — each
 anchored to real, verified readings, each carrying a fact-checking move to run *before* you read.
-Explore the map; when a question gets interesting, grow it into up to nine more. It does not
-summarise the sources, does not write the essay, and does not tell you which side to take. That is
-the design, not a limitation.
+Explore the map; when a question gets interesting, grow it into more — up to nine, and fewer when
+fewer are useful. It does not summarise the sources, does not write the essay, and does not tell you
+which side to take. That is the design, not a limitation.
 
 把你真正好奇的事情交给它，它会返回一张更锋利的问题地图——每个问题都挂着真实且经过核实的阅读材料，
-每个问题都附带一个开始阅读**之前**要做的核查动作。在地图上探索；遇到有意思的问题，把它展开成最多九个新
-问题。它不总结材料，不代写文章，也不告诉你该站哪一边。这是设计，不是缺陷。
+每个问题都附带一个开始阅读**之前**要做的核查动作。在地图上探索；遇到有意思的问题，就把它展开成更多问题——
+最多九个，但只生成真正有用的数量。它不总结材料，不代写文章，也不告诉你该站哪一边。这是设计，不是缺陷。
 
 **Ask in any language.** A Chinese question returns a Chinese question set, and the viewer's
 interface can be switched between English and Chinese. **用任何语言提问都可以。** 中文提问返回中文
@@ -23,17 +36,17 @@ interface can be switched between English and Chinese. **用任何语言提问�
 
 ## Quick start · 快速开始
 
-This test release is available on the `test` branch:
+Clone the current release from the default `main` branch:
 
 ```bash
-git clone --branch test https://github.com/cadillacyz/dont-stop-ask.git
+git clone https://github.com/cadillacyz/dont-stop-ask.git
 cd dont-stop-ask
 python scripts/serve.py
 ```
 
 Then open <http://127.0.0.1:8010/viewer/>. On Windows, you can double-click `start.bat` instead.
 
-这个测试版本位于 `test` 分支。克隆后进入仓库并运行 `python scripts/serve.py`，再打开
+从默认的 `main` 分支克隆当前版本。进入仓库并运行 `python scripts/serve.py`，再打开
 <http://127.0.0.1:8010/viewer/>。Windows 用户也可以直接双击 `start.bat`。
 
 ### Tell an AI coding agent to run it · 让 AI 帮你运行
@@ -111,8 +124,9 @@ The whole tool also exists as one self-contained prompt:
 3. The viewer picks it up automatically if the server is running — or drag the file onto the page.
    服务器开着的话查看器会自动加载——或者直接把文件拖到页面上。
 
-To expand a question, click its dot and choose **Expand into nine more**. The local agent runs it
-automatically. · 想展开某个问题：点击圆点，再选择 **Expand into nine more**，本地代理会自动运行。
+To expand a question, click its dot and choose **Expand into more**. Nine is the ceiling, not the
+target; the local agent generates fewer whenever more would be padding. · 想展开某个问题：点击圆点，再选择
+**Expand into more**。九个是上限，不是目标；如果继续生成只会凑数，本地代理就会少生成一些。
 
 To remove a question from the visible map, select its dot and choose **Archive branch**. Descendant
 questions and readings used nowhere else leave the graph together, while every record remains in the

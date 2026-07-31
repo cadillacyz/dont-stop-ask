@@ -41,6 +41,14 @@ class ViewerContractTests(unittest.TestCase):
         self.assertIn("What question have you", self.html)
         self.assertNotIn("What keeps pulling", self.html)
 
+    def test_entry_and_ask_pages_each_have_one_primary_path(self):
+        self.assertIn('class="entry-focus"', self.html)
+        self.assertIn('aria-label="Ask a question"', self.html)
+        self.assertIn('class="ask-primary-row"', self.html)
+        self.assertIn('class="ask-options"', self.html)
+        self.assertIn("One question is enough to begin.", self.html)
+        self.assertIn("Add context or change research settings", self.html)
+
     def test_past_questions_are_auto_discovered_without_file_upload(self):
         self.assertIn('class="history-control"', self.html)
         self.assertIn('id="setpick"', self.html)
@@ -65,6 +73,22 @@ class ViewerContractTests(unittest.TestCase):
         self.assertIn("Reading source", self.script)
         self.assertIn('class="card-identity"', self.script)
         self.assertIn("A letter prefix and number identify a question", self.script)
+
+    def test_reading_observatory_prioritizes_readable_question_content(self):
+        self.assertIn('aria-label="Reading observatory"', self.html)
+        self.assertIn('id="reader-smaller"', self.html)
+        self.assertIn('id="reader-larger"', self.html)
+        self.assertIn("dsa-reader-scale", self.script)
+        self.assertIn('class="guidance-grid"', self.script)
+        self.assertIn('class="reading-card"', self.script)
+        self.assertIn('class="observatory-details"', self.script)
+        self.assertIn(".detail-open.graph-mode .side", self.styles)
+
+    def test_expansion_count_is_a_ceiling_not_a_ui_promise(self):
+        self.assertIn("Expand into more", self.script)
+        self.assertNotIn("Expand into nine more", self.script)
+        self.assertIn("up to nine verified follow-up questions", self.script)
+        self.assertIn("fewer if any would be padding", self.script)
 
     def test_interface_language_can_switch_between_english_and_chinese(self):
         self.assertGreaterEqual(self.html.count("data-language"), 4)

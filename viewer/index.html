@@ -33,20 +33,22 @@
     </div>
   </header>
 
-  <div class="cosmos-copy">
-    <p class="cosmos-kicker" data-i18n="Choose a world to begin">Choose a world to begin</p>
-    <h1 data-i18n="Every question is a world.">Every question is a world.</h1>
-    <p class="cosmos-intro" data-i18n="Drift toward whatever pulls at your attention. Each world opens a different way into the unknown.">Drift toward whatever pulls at your attention. Each world opens a different way into the unknown.</p>
-  </div>
+  <div class="entry-focus">
+    <div class="cosmos-copy">
+      <p class="cosmos-kicker" data-i18n="Start here">Start here</p>
+      <h1 data-i18n="Every question is a world.">Every question is a world.</h1>
+      <p class="cosmos-intro" data-i18n="Start with the question you cannot stop thinking about. We will turn it into smaller questions and readings you can explore.">Start with the question you cannot stop thinking about. We will turn it into smaller questions and readings you can explore.</p>
+    </div>
 
-  <div class="planetary-system single-world" aria-label="Begin with one question world" data-i18n-aria-label="Begin with one question world">
-    <span class="orbit-line orbit-line-one" aria-hidden="true"></span>
+    <div class="planetary-system single-world" aria-label="Begin with one question world" data-i18n-aria-label="Begin with one question world">
+      <span class="orbit-line orbit-line-one" aria-hidden="true"></span>
 
-    <button id="portal" class="planet planet-vesper" type="button" aria-label="Click here to begin" data-i18n-aria-label="Click here to begin">
-      <span class="planet-halo" aria-hidden="true"></span>
-      <span class="planet-body" aria-hidden="true"></span>
-      <span class="planet-name"><b data-i18n="Click here to begin">Click here to begin</b><small data-i18n="Every question is a world">Every question is a world</small></span>
-    </button>
+      <button id="portal" class="planet planet-vesper" type="button" aria-label="Ask a question" data-i18n-aria-label="Ask a question">
+        <span class="planet-halo" aria-hidden="true"></span>
+        <span class="planet-body" aria-hidden="true"></span>
+        <span class="planet-name"><b data-i18n="Ask a question">Ask a question</b></span>
+      </button>
+    </div>
   </div>
 
 </section>
@@ -84,31 +86,43 @@
     <div id="tip" class="tip" hidden></div>
 
     <div id="ask" class="ask" hidden>
-      <div class="ask-kicker"><span></span><b data-i18n="Begin with uncertainty">Begin with uncertainty</b></div>
+      <div class="ask-kicker"><span></span><b data-i18n="Start with one question">Start with one question</b></div>
       <h1 class="ask-title" data-i18n="What question have you been thinking about?">What question have you been thinking about?</h1>
-      <p class="ask-sub" data-i18n="Ask the unfinished question. We’ll turn it into a map of sharper questions and readings worth opening.">Ask the unfinished question. We’ll turn it into a map of sharper questions and readings worth opening.</p>
+      <p class="ask-sub" data-i18n="Write it in your own words. You will get a map of smaller questions and readings to explore.">Write it in your own words. You will get a map of smaller questions and readings to explore.</p>
 
       <form id="askform" class="askform" autocomplete="off">
         <label class="field-label" for="q" data-i18n="Your question">Your question</label>
-        <textarea id="q" class="q-input q-main" required rows="3"
+        <textarea id="q" class="q-input q-main" required rows="4"
                placeholder="What do you want to understand?" data-i18n-placeholder="What do you want to understand?" maxlength="4000"></textarea>
-        <input id="ctx" class="q-input q-ctx" type="text"
-               placeholder="What you already know, and why you're asking (optional, but it sharpens the set)" data-i18n-placeholder="What you already know, and why you're asking (optional, but it sharpens the set)" />
-        <div class="askrow">
-          <label class="seg" title="Who the briefing is written for" data-i18n-title="Who the briefing is written for">
-            <select id="mode">
-              <option value="solo" data-i18n="researching it myself">researching it myself</option>
-              <option value="guided" data-i18n="helping someone else research it">helping someone else research it</option>
-            </select>
-          </label>
-          <label class="seg agent-choice" title="Local agent used to research the question" data-i18n-title="Local agent used to research the question">
-            <span data-i18n="with">with</span>
-            <select id="agent" aria-label="Agent" data-i18n-aria-label="Agent">
-              <option value="auto">best available agent</option>
-            </select>
-          </label>
+        <div class="ask-primary-row">
+          <p data-i18n="One question is enough to begin.">One question is enough to begin.</p>
           <button class="btn primary" id="go" type="submit"><span data-i18n="Ask">Ask</span><i aria-hidden="true">↗</i></button>
         </div>
+        <details class="ask-options">
+          <summary data-i18n="Add context or change research settings">Add context or change research settings</summary>
+          <div class="ask-options-body">
+            <label class="optional-field" for="ctx">
+              <span data-i18n="Context (optional)">Context (optional)</span>
+              <input id="ctx" class="q-input q-ctx" type="text"
+                     placeholder="What do you already know, and why are you asking?" data-i18n-placeholder="What do you already know, and why are you asking?" />
+            </label>
+            <div class="askrow">
+              <label class="seg" title="Who the briefing is written for" data-i18n-title="Who the briefing is written for">
+                <span data-i18n="Researching for">Researching for</span>
+                <select id="mode">
+                  <option value="solo" data-i18n="researching it myself">researching it myself</option>
+                  <option value="guided" data-i18n="helping someone else research it">helping someone else research it</option>
+                </select>
+              </label>
+              <label class="seg agent-choice" title="Local agent used to research the question" data-i18n-title="Local agent used to research the question">
+                <span data-i18n="Research with">Research with</span>
+                <select id="agent" aria-label="Agent" data-i18n-aria-label="Agent">
+                  <option value="auto">best available agent</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </details>
       </form>
 
       <div id="progress" class="progress" role="status" aria-live="polite" hidden>
@@ -121,7 +135,17 @@
     </div>
   </section>
 
-  <aside id="side" class="side">
+  <aside id="side" class="side" aria-label="Reading observatory" data-i18n-aria-label="Reading observatory">
+    <div class="observatory-bar">
+      <span class="observatory-name" data-i18n="Reading observatory">Reading observatory</span>
+      <div class="reader-controls" role="group" aria-label="Reading text size" data-i18n-aria-label="Reading text size">
+        <button id="reader-smaller" type="button" aria-label="Make reading text smaller" data-i18n-aria-label="Make reading text smaller">A−</button>
+        <button id="reader-larger" type="button" aria-label="Make reading text larger" data-i18n-aria-label="Make reading text larger">A+</button>
+      </div>
+      <button id="closepanel" class="observatory-close" type="button" aria-label="Back to question map" data-i18n-aria-label="Back to question map">
+        <span aria-hidden="true">←</span><span data-i18n="Map">Map</span>
+      </button>
+    </div>
     <div id="meta" class="meta"></div>
     <div id="panel" class="panel" aria-live="polite">
       <p class="muted">Click a question to see its readings and how to work it.</p>

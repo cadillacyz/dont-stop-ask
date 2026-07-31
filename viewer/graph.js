@@ -19,6 +19,9 @@ const el = {
   tip: document.getElementById('tip'),
   panel: document.getElementById('panel'),
   meta: document.getElementById('meta'),
+  closePanel: document.getElementById('closepanel'),
+  readerSmaller: document.getElementById('reader-smaller'),
+  readerLarger: document.getElementById('reader-larger'),
   banner: document.getElementById('banner'),
   intro: document.getElementById('intro'),
   portal: document.getElementById('portal'),
@@ -58,9 +61,14 @@ let pendingGenerationSnapshot = null;
 const ZH = {
   'Brightness': '亮度',
   'Choose a world to begin': '选择一个世界开始',
+  'Start here': '从这里开始',
   'Every question is a world.': '每个问题都是一个世界。',
   'Every question is a world': '每个问题都是一个世界',
   'Drift toward whatever pulls at your attention. Each world opens a different way into the unknown.': '靠近那个一直吸引你注意的问题。每个世界都提供一种进入未知的方式。',
+  'Start with the question you cannot stop thinking about. We will turn it into smaller questions and readings you can explore.': '从那个你一直放不下的问题开始。我们会把它变成更小的问题和可探索的阅读材料。',
+  'Ask a question': '提出问题',
+  'Begin here': '从这里进入',
+  'Start with one question': '从一个问题开始',
   'Click here to begin': '点击这里开始',
   'Past questions': '历史问题',
   'Ask something else': '提出新问题',
@@ -68,9 +76,16 @@ const ZH = {
   'Begin with uncertainty': '从不确定开始',
   'What question have you been thinking about?': '你最近一直在思考什么问题？',
   'Ask the unfinished question. We’ll turn it into a map of sharper questions and readings worth opening.': '写下这个还没有答案的问题。我们会把它变成更清晰的问题地图，并推荐值得阅读的资料。',
+  'Write it in your own words. You will get a map of smaller questions and readings to explore.': '用你自己的话写下来。你会得到一张由更小的问题和阅读材料组成的探索地图。',
   'Your question': '你的问题',
   'What do you want to understand?': '你想理解什么？',
   "What you already know, and why you're asking (optional, but it sharpens the set)": '你已经知道什么，以及为什么会问这个问题（可选，但有助于把问题说清楚）',
+  'One question is enough to begin.': '一个问题就足以开始。',
+  'Add context or change research settings': '添加背景或更改研究设置',
+  'Context (optional)': '背景信息（可选）',
+  'What do you already know, and why are you asking?': '你已经知道什么？为什么会问这个问题？',
+  'Researching for': '研究对象',
+  'Research with': '研究工具',
   'researching it myself': '我自己研究',
   'helping someone else research it': '帮助别人研究',
   'with': '使用',
@@ -93,6 +108,12 @@ const ZH = {
   'Do Not Stop Ask on GitHub': '在 GitHub 上查看 Do Not Stop Ask',
   'Interface language': '界面语言',
   'Scene brightness': '场景亮度',
+  'Reading observatory': '阅读观测站',
+  'Reading text size': '阅读文字大小',
+  'Make reading text smaller': '缩小阅读文字',
+  'Make reading text larger': '放大阅读文字',
+  'Back to question map': '返回问题地图',
+  'Map': '地图',
   'Begin with one question world': '从一个问题世界开始',
   'Local helper status': '本地服务状态',
   'Open a past question': '打开一个历史问题',
@@ -112,8 +133,19 @@ const ZH = {
   'A letter prefix and number identify a question in this set.': '字母前缀和数字共同标识这套问题中的一个问题。',
   'S identifies a reading source used by questions.': 'S 表示问题引用的一条阅读来源。',
   'Readings, ranked': '阅读材料（按相关度排序）',
-  'Check first:': '读前先查：',
-  'Read for:': '读什么：',
+  'Check before reading': '阅读前先核查',
+  'Look for while reading': '阅读时留意',
+  'Recommended readings': '推荐阅读',
+  'Question details': '问题详情',
+  'Reading details': '阅读详情',
+  'Why one reading': '为什么只有一份阅读',
+  'Open reading': '打开阅读材料',
+  'Difficulty': '难度',
+  'Question group': '问题组',
+  'Question type': '问题类型',
+  'Verification': '核实情况',
+  'Access': '获取方式',
+  'Estimated time': '预计时间',
   'Used by:': '被引用于：',
   'Free route:': '免费途径：',
   'How we checked:': '我们如何核实：',
@@ -128,7 +160,7 @@ const ZH = {
   'core group': '核心组',
   'supporting group': '支撑组',
   'context group': '外围组',
-  'Expand into nine more': '展开成更多问题',
+  'Expand into more': '展开成更多问题',
   'Copy expansion prompt': '复制展开指令',
   'Copied — paste into Claude Code': '已复制——粘贴进 Claude Code',
   'expansion': '次展开',
@@ -496,6 +528,7 @@ function showAsk() {
   el.intro.hidden = true;
   el.ask.hidden = false;
   el.progress.hidden = true;
+  banner(null);
   document.body.className = 'ask-mode';
   if (!DATA) { el.meta.innerHTML = ''; resetPanel(); }
   updateAskFoot();
@@ -904,6 +937,9 @@ function reselect(id) {
 
 function resetPanel() {
   selectedId = null;
+  document.body.classList.remove('detail-open');
+  const dots = el.svg.node() && el.svg.node().__dots;
+  if (dots) dots.classed('sel', false);
   el.panel.innerHTML = DATA
     ? `<p class="muted">${T('Click a question to see its readings and how to work it.')}</p>`
     : `<p class="muted">${T('Nothing loaded yet. Ask a question, and the graph will appear here.')}</p>`;
@@ -911,25 +947,33 @@ function resetPanel() {
 
 function sourceLine(sid, role) {
   const s = DATA.sources[sid];
-  if (!s) return `<p><span class="role">${esc(role)}</span>unknown source ${esc(sid)}</p>`;
+  if (!s) return `<article class="reading-card"><p><span class="role">${esc(role)}</span>unknown source ${esc(sid)}</p></article>`;
   const name = esc(s.citation);
   const url = safeHttpUrl(s.url);
-  const body = url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${name}</a>` : name;
-  const tier = [s.access_tier, s.verified, s.time_estimate ? `${s.time_estimate} min` : null]
-    .filter(Boolean).join(' · ');
-  let out = `<p><span class="source-id" title="${esc(T('Source ID'))}">${esc(sid)}</span>` +
-    `<span class="role ${esc(role)}">${esc(role)}</span>${body} <span class="muted">(${esc(tier)})</span></p>`;
+  const title = url
+    ? `<a href="${esc(url)}" target="_blank" rel="noopener">${name}<span class="open-reading">${T('Open reading')} ↗</span></a>`
+    : name;
+  const facts = [
+    s.access_tier ? `<span>${T('Access')}: ${esc(s.access_tier)}</span>` : '',
+    s.verified ? `<span>${T('Verification')}: ${esc(s.verified)}</span>` : '',
+    s.time_estimate ? `<span>${T('Estimated time')}: ${esc(s.time_estimate)} min</span>` : ''
+  ].filter(Boolean).join('');
+  let out = `<article class="reading-card">` +
+    `<div class="reading-card-head"><span class="source-id" title="${esc(T('Source ID'))}">${esc(sid)}</span>` +
+    `<span class="role ${esc(role)}">${esc(role)}</span></div>` +
+    `<p class="reading-title">${title}</p>` +
+    (facts ? `<div class="reading-facts">${facts}</div>` : '');
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
     out += `<p class="flag"><strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
   }
   if (s.access_tier === 'T4' && s.paired_with) {
     out += `<p class="muted">${T('Free route:')} ${esc(s.paired_with)}</p>`;
   }
-  return out;
+  return out + `</article>`;
 }
 
 function expandButton(node, label) {
-  const verb = T('Expand into nine more');
+  const verb = T('Expand into more');
   return `<button class="btn" id="expand" data-node="${esc(node)}" data-q="${esc(label)}"
     style="margin-top:6px">${verb}</button><span id="expandnote" class="muted"></span>`;
 }
@@ -1048,14 +1092,17 @@ function showRoot() {
   const m = DATA.meta || {};
   const original = m.original_question || m.working_question || '';
   el.panel.innerHTML =
-    `<h2>${T('Refined question')}</h2>` +
-    `<p class="q">${esc(m.working_question || '')}</p>` +
+    `<header class="observatory-heading">` +
+      `<p class="observatory-eyebrow">${T('Refined question')}</p>` +
+      `<h2 class="question-title">${esc(m.working_question || '')}</h2>` +
+    `</header>` +
     `<section class="original-question">` +
       `<p class="original-label">${T('Original question')}</p>` +
       `<blockquote>${esc(original)}</blockquote>` +
       (m.triage_summary ? `<p class="triage-summary">${esc(m.triage_summary)}</p>` : '') +
     `</section>` +
     `<div class="panel-actions">${expandButton('root', m.working_question || '')}</div>`;
+  document.body.classList.add('detail-open');
   wireExpand();
 }
 
@@ -1072,22 +1119,26 @@ function cardIdentity(id, kind) {
 function showQuestion(q) {
   const groupName = T({ core: 'core group', supporting: 'supporting group', context: 'context group' }[q.relevance_group] || q.relevance_group);
   const typeName = q.type ? `${T(q.type.name)}${q.type.move ? ' · ' + q.type.move : ''}` : '';
-  let h = `<h2>${esc(q.id)} · ${esc(groupName)}${typeName ? ' · ' + esc(typeName) : ''}</h2>`;
-  h += `<p class="q">${esc(q.question)}</p>`;
-  h += `<div class="sec">`;
+  let h = `<header class="observatory-heading">` +
+    `<div class="question-meta"><span>${esc(q.id)}</span><span>${esc(groupName)}</span></div>` +
+    `<h2 class="question-title">${esc(q.question)}</h2>` +
+    `</header>`;
+  h += `<div class="guidance-grid">` +
+    `<section class="guidance-card check-card"><h3>${T('Check before reading')}</h3><p>${esc(q.check_first)}</p></section>` +
+    `<section class="guidance-card look-card"><h3>${T('Look for while reading')}</h3><p>${esc(q.read_for)}</p></section>` +
+    `</div>`;
+  h += `<section class="reading-section"><h3 class="section-title">${T('Recommended readings')}</h3>`;
   if (q.readings && q.readings.length) {
-    h += `<p class="lbl">${T('Readings, ranked')}</p>`;
+    h += `<div class="reading-list">`;
     q.readings.forEach(r => { h += sourceLine(r.source, r.role); });
+    h += `</div>`;
   } else {
-    h += `<p><span class="role background">${T('no reading')}</span>${esc(q.single_reading_reason || T('Thinking-only card.'))}</p>`;
+    h += `<div class="reading-empty"><span class="role background">${T('no reading')}</span><p>${esc(q.single_reading_reason || T('Thinking-only card.'))}</p></div>`;
   }
   if (q.readings && q.readings.length === 1 && q.single_reading_reason) {
-    h += `<p class="muted">${T('One reading because:')} ${esc(q.single_reading_reason)}</p>`;
+    h += `<p class="single-reading-reason"><strong>${T('Why one reading')}:</strong> ${esc(q.single_reading_reason)}</p>`;
   }
-  h += `<p style="margin-top:9px"><span class="lbl">${T('Check first:')}</span> ${esc(q.check_first)}</p>`;
-  h += `<p><span class="lbl">${T('Read for:')}</span> ${esc(q.read_for)}</p>`;
-  h += `<p>${esc(q.level)}</p>`;
-  h += `</div>`;
+  h += `</section>`;
   h += `<div class="panel-actions">${expandButton(q.id, q.question)}`;
   if (HELPER && loaded.url && loaded.url.startsWith('/question-sets/')) {
     h += `<button class="btn archive-btn" id="archive" data-node="${esc(q.id)}" type="button">${T('Archive branch')}</button>`;
@@ -1098,8 +1149,13 @@ function showQuestion(q) {
     `<button class="btn" id="archivecancel" type="button">${T('Keep it')}</button>` +
     `<button class="btn archive-commit" id="archivecommit" type="button">${T('Archive branch')}</button>` +
     `</div></div>`;
-  h += cardIdentity(q.id, 'question');
+  h += `<details class="observatory-details"><summary>${T('Question details')}</summary>` +
+    `<dl><div><dt>${T('Difficulty')}</dt><dd>${esc(q.level)}</dd></div>` +
+    `<div><dt>${T('Question group')}</dt><dd>${esc(groupName)}</dd></div>` +
+    (typeName ? `<div><dt>${T('Question type')}</dt><dd>${esc(typeName)}</dd></div>` : '') +
+    `</dl>${cardIdentity(q.id, 'question')}</details>`;
   el.panel.innerHTML = h;
+  document.body.classList.add('detail-open');
   wireExpand();
   wireArchive();
 }
@@ -1110,23 +1166,51 @@ function showSource(sid) {
   const users = DATA.questions
     .filter(q => !q.archived_at && (q.readings || []).some(r => r.source === sid))
     .map(q => `${q.id} (${q.readings.find(r => r.source === sid).role})`);
-  let h = `<h2>${T('Reading')} ${esc(sid)} · ${esc([s.access_tier, s.verified].filter(Boolean).join(' · '))}</h2>`;
-  h += `<p class="q">${url
+  let h = `<header class="observatory-heading">` +
+    `<div class="question-meta"><span>${T('Reading')} ${esc(sid)}</span></div>` +
+    `<h2 class="source-title">${url
     ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(s.citation)}</a>`
-    : esc(s.citation)}</p>`;
-  h += `<div class="sec">`;
+    : esc(s.citation)}</h2>` +
+    `</header>`;
+  h += `<section class="source-details">`;
   if (s.verified === 'unconfirmed' && s.unconfirmed_detail) {
     h += `<p class="flag"><strong>${T('Unconfirmed:')}</strong> ${esc(s.unconfirmed_detail)}</p>`;
   }
-  if (!url && s.reachable_at) h += `<p><span class="lbl">${T('Find it:')}</span> ${esc(s.reachable_at)}</p>`;
-  if (s.paired_with) h += `<p><span class="lbl">${T('Free route:')}</span> ${esc(s.paired_with)}</p>`;
-  if (s.verified_how) h += `<p><span class="lbl">${T('How we checked:')}</span> ${esc(s.verified_how)}</p>`;
-  if (s.complexity) h += `<p><span class="lbl">${T('What makes it hard:')}</span> ${esc(s.complexity)}</p>`;
-  h += `<p><span class="lbl">${T('Used by:')}</span> ${esc(users.join(', ') || 'nothing')}</p>`;
-  h += `</div>`;
-  h += cardIdentity(sid, 'source');
+  if (!url && s.reachable_at) h += `<div class="detail-row"><h3>${T('Find it:')}</h3><p>${esc(s.reachable_at)}</p></div>`;
+  if (s.paired_with) h += `<div class="detail-row"><h3>${T('Free route:')}</h3><p>${esc(s.paired_with)}</p></div>`;
+  if (s.verified_how) h += `<div class="detail-row"><h3>${T('How we checked:')}</h3><p>${esc(s.verified_how)}</p></div>`;
+  if (s.complexity) h += `<div class="detail-row"><h3>${T('What makes it hard:')}</h3><p>${esc(s.complexity)}</p></div>`;
+  h += `</section>`;
+  h += `<details class="observatory-details"><summary>${T('Reading details')}</summary>` +
+    `<dl><div><dt>${T('Access')}</dt><dd>${esc(s.access_tier || '—')}</dd></div>` +
+    `<div><dt>${T('Verification')}</dt><dd>${esc(s.verified || '—')}</dd></div>` +
+    `<div><dt>${T('Used by:')}</dt><dd>${esc(users.join(', ') || 'nothing')}</dd></div></dl>` +
+    `${cardIdentity(sid, 'source')}</details>`;
   el.panel.innerHTML = h;
+  document.body.classList.add('detail-open');
 }
+
+let readerScale = 1;
+try { readerScale = Number(localStorage.getItem('dsa-reader-scale')) || 1; } catch {}
+readerScale = Math.min(1.2, Math.max(.9, readerScale));
+
+function applyReaderScale(next) {
+  readerScale = Math.min(1.2, Math.max(.9, Math.round(next * 10) / 10));
+  document.documentElement.style.setProperty('--reader-scale', String(readerScale));
+  el.readerSmaller.disabled = readerScale <= .9;
+  el.readerLarger.disabled = readerScale >= 1.2;
+  try { localStorage.setItem('dsa-reader-scale', String(readerScale)); } catch {}
+}
+
+el.readerSmaller.addEventListener('click', () => applyReaderScale(readerScale - .1));
+el.readerLarger.addEventListener('click', () => applyReaderScale(readerScale + .1));
+el.closePanel.addEventListener('click', () => {
+  const dots = el.svg.node() && el.svg.node().__dots;
+  const previous = dots && dots.filter(node => node.id === selectedId).node();
+  resetPanel();
+  if (previous) previous.focus({ preventScroll: true });
+});
+applyReaderScale(readerScale);
 
 let rt = null;
 window.addEventListener('resize', () => {
