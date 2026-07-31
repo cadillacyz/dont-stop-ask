@@ -1,0 +1,382 @@
+{
+  "meta": {
+    "researcher": "Anonymous",
+    "context": "No subject background was supplied; calibrated for an intelligent general reader new to data-center facility engineering.",
+    "mode": "solo",
+    "generated_by": "dont-stop-research portable v1.0",
+    "generated_at": "2026-07-28",
+    "status": "draft",
+    "original_question": "Dumb Question, but why not data centers, but vertical?",
+    "working_question": "Under what land, power, structural, cooling, networking, and operational conditions does a multi-story data center outperform a low-rise campus—and where do the costs and failure risks of stacking erase the land advantage?",
+    "triage_summary": "The original was engaging but left ‘vertical’ undefined and could be answered with a quick list of engineering obstacles. The revision treats vertical as a multi-story facility, replaces a yes/no framing with an evidence-dependent comparison, names the systems that must be evaluated together, and asks where the conclusion changes rather than assuming tall or low-rise is inherently better.",
+    "purpose": "Personal curiosity; no deadline supplied.",
+    "staleness_note": "Re-check operator facility pages, current data-center design guidance, and Singapore policy if using this set after 2027-01-28 or if any linked page changes."
+  },
+  "root": {
+    "id": "root",
+    "label": "When should data centers go vertical?",
+    "note": "The question was narrowed from whether vertical data centers are possible to when stacking improves the whole facility after land, infrastructure, operations, and resilience are counted together."
+  },
+  "questions": [
+    {
+      "id": "Q1",
+      "parent": "root",
+      "label": "What counts as vertical?",
+      "question": "When comparing a ‘vertical’ data center with a low-rise campus, which parts of the facility must be counted—data halls, power rooms, cooling plant, generators, loading, storage, offices, and service yards—and what would make the comparison genuinely like-for-like?",
+      "type": {
+        "n": 1,
+        "name": "Meaning",
+        "move": "clarification"
+      },
+      "relevance_group": "supporting",
+      "difficulty": "easy",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S1"
+        },
+        {
+          "role": "supporting",
+          "source": "S2"
+        }
+      ],
+      "check_first": "Search the exact titles of both sources plus ‘data center’ and confirm that NIST is discussing whole critical facilities while ASHRAE is discussing the interdependent spaces and systems inside them.",
+      "read_for": "In S1, go to the data-center building-description subsection; in S2, start with the facility overview and the spatial-and-envelope discussion. Make your own boundary list before comparing forms.",
+      "level": "Easy, 25–35 minutes. The main difficulty is scope: both texts use ‘data center’ at several physical levels, so keep separate notes for the data hall, support plant, and complete site."
+    },
+    {
+      "id": "Q2",
+      "parent": "root",
+      "label": "Where tall centers exist",
+      "question": "Across the multi-story facilities in Singapore and Chennai, which local constraints or advantages appear repeatedly, and which features look specific to one operator or site rather than to vertical data centers in general?",
+      "type": {
+        "n": 2,
+        "name": "Landscape",
+        "move": "probing reasons and evidence"
+      },
+      "relevance_group": "core",
+      "difficulty": "easy",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S4"
+        },
+        {
+          "role": "supporting",
+          "source": "S5"
+        },
+        {
+          "role": "background",
+          "source": "S6"
+        }
+      ],
+      "check_first": "Search each facility name with the operator name and ‘stories’ or ‘storeys’; then search the operator name plus ‘investor relations’ or ‘about’ so you know whose claims you are reading.",
+      "read_for": "Build a three-column comparison from the facility specifications and key-facts sections: building form, site/network setting, and power/cooling arrangement. Leave blank any field the operator does not disclose.",
+      "level": "Easy, 30–40 minutes. The prose is accessible, but these are first-party facility descriptions; the challenge is separating disclosed specifications from promotional framing and missing data."
+    },
+    {
+      "id": "Q3",
+      "parent": "root",
+      "label": "What land savings move",
+      "question": "Why can stacking data halls reduce the building footprint without reducing every other spatial demand, and which support spaces or access routes become the real site constraint as floors are added?",
+      "type": {
+        "n": 3,
+        "name": "Mechanism",
+        "move": "causal why"
+      },
+      "relevance_group": "core",
+      "difficulty": "middle",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S3"
+        },
+        {
+          "role": "supporting",
+          "source": "S2"
+        },
+        {
+          "role": "background",
+          "source": "S10"
+        }
+      ],
+      "check_first": "Search the guide authors with NREL and verify their affiliations; then search the Equinix filing number and date on the SEC or Equinix investor site before using its area and lease terms.",
+      "read_for": "In S3, trace the sections on cooling equipment, electrical systems, and benchmarking; in S2, inspect the typical facility-space plan and maintenance-space guidance; use S10 only to test what a real seven-story deal discloses and omits.",
+      "level": "Middle, 45–60 minutes. The difficulty is systems accounting: sketch the same site twice and assign every support function a location rather than treating ‘white space’ as the whole building."
+    },
+    {
+      "id": "Q4",
+      "parent": "root",
+      "label": "Vertical distribution and failure",
+      "question": "Why might stacking power, cooling liquid, air paths, fiber, and controls create different losses and failure domains than spreading them horizontally, and under what design could the vertical arrangement instead improve isolation or maintainability?",
+      "type": {
+        "n": 3,
+        "name": "Mechanism",
+        "move": "contrastive why"
+      },
+      "relevance_group": "core",
+      "difficulty": "technical",
+      "load_bearing": true,
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S3"
+        },
+        {
+          "role": "supporting",
+          "source": "S2"
+        },
+        {
+          "role": "background",
+          "source": "S1"
+        }
+      ],
+      "check_first": "Search ‘single point of failure data center commissioning’ and ‘concurrent maintainability data center’ with ASHRAE or NIST, then note whether each result addresses components, pathways, or whole-building hazards.",
+      "read_for": "Follow one hypothetical rack backward through the electrical path and forward through the heat-removal path. Use the electrical, liquid-cooling, redundancy, commissioning, and hazard sections; mark every shared riser, valve, shaft, switch, pump, and control point you encounter.",
+      "level": "Technical, 60–90 minutes. The barrier is assumed mechanical and electrical knowledge; skip equipment-selection detail and concentrate on path diagrams, redundancy language, and what must remain available during maintenance or a fault."
+    },
+    {
+      "id": "Q5",
+      "parent": "root",
+      "label": "Why low-rise remains default",
+      "question": "Given that seven- to nine-story data centers operate at scale, what is the strongest case for still preferring a single-story or low-rise campus, and which claimed penalty would need the best evidence before it should outweigh land savings?",
+      "type": {
+        "n": 4,
+        "name": "Tension",
+        "move": "viewpoints and perspectives"
+      },
+      "relevance_group": "core",
+      "difficulty": "middle",
+      "load_bearing": true,
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S1"
+        },
+        {
+          "role": "supporting",
+          "source": "S4"
+        },
+        {
+          "role": "background",
+          "source": "S2"
+        }
+      ],
+      "check_first": "Search the NIST report title with each author, then search Equinix SG5 with ‘nine-story’ outside Equinix. Do not treat prevalence as proof of superiority or one successful project as proof of generality.",
+      "read_for": "Set NIST’s general building-form and resilience discussion beside SG5’s disclosed design and operating context. Use ASHRAE to identify which structural, rolling-load, support-space, fire, and redundancy questions neither source resolves on its own.",
+      "level": "Middle, 45–60 minutes. The hard part is steelmanning both positions from asymmetrical evidence: a broad engineering review and a successful operator case answer different questions."
+    },
+    {
+      "id": "Q6",
+      "parent": "root",
+      "label": "How would we know?",
+      "question": "What measurements and comparison design would let an owner tell whether a vertical facility is better overall—rather than merely cheaper per square metre or more efficient on one metric—than a low-rise alternative delivering the same usable IT capacity and resilience target?",
+      "type": {
+        "n": 5,
+        "name": "Evidence",
+        "move": "probing reasons and evidence"
+      },
+      "relevance_group": "supporting",
+      "difficulty": "middle",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S8"
+        },
+        {
+          "role": "supporting",
+          "source": "S7"
+        }
+      ],
+      "check_first": "Search the guide title on the Berkeley Lab domain and the Arup author’s name on Arup; then search each proposed metric with ‘definition’ and its standards body before comparing numbers from different projects.",
+      "read_for": "Use S8 to design the metering boundary and denominator; use S7’s local-adaptation questions to add schedule, capacity, maintainability, climate, codes, and utility constraints that an energy-only comparison would miss.",
+      "level": "Middle, 45–60 minutes. The difficulty is denominator discipline: define delivered IT capacity, availability target, study period, and site boundary before collecting any performance number."
+    },
+    {
+      "id": "Q7",
+      "parent": "root",
+      "label": "Where height stops helping",
+      "question": "Which combinations of land price, grid connection, network proximity, climate, water, seismic and fire rules, construction capability, and expansion plans make height valuable—and where would changing only one of those conditions reverse the choice?",
+      "type": {
+        "n": 6,
+        "name": "Scope",
+        "move": "implications and consequences"
+      },
+      "relevance_group": "context",
+      "difficulty": "middle",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S7"
+        },
+        {
+          "role": "supporting",
+          "source": "S9"
+        },
+        {
+          "role": "background",
+          "source": "S1"
+        }
+      ],
+      "check_first": "Search Nicholas Long’s title on Arup, then search the IMDA standard title on a Singapore government domain. For each, identify the geography and institutional role before borrowing its criteria elsewhere.",
+      "read_for": "Turn S7’s location-specific design questions, S9’s tropical operating constraints, and S1’s hazard framework into a decision table. Change one condition at a time and record when your preferred form flips.",
+      "level": "Middle, 40–55 minutes. The challenge is conditional reasoning across unlike evidence; resist turning Singapore’s constraints or U.S. hazard guidance into universal rules."
+    },
+    {
+      "id": "Q8",
+      "parent": "root",
+      "label": "Who absorbs the tradeoff?",
+      "question": "If multi-story data centers become more common, which benefits and risks shift among operators, customers, utilities, neighbors, emergency responders, and construction or maintenance crews—and whose costs should decide whether a project is ‘better’?",
+      "type": {
+        "n": 7,
+        "name": "Stake",
+        "move": "questions about the question"
+      },
+      "relevance_group": "context",
+      "difficulty": "easy",
+      "readings": [
+        {
+          "role": "primary",
+          "source": "S9"
+        },
+        {
+          "role": "supporting",
+          "source": "S6"
+        }
+      ],
+      "check_first": "Search IMDA’s name with ‘data centre resilience security guidelines’ and search Nxera DC Tuas beyond the launch release; list which affected groups appear in the documents and which are absent.",
+      "read_for": "Read S9 for the public resource and operating frame, then inspect S6 for the project’s stated users, network role, resource systems, and performance claims. Make a stakeholder ledger without assigning a verdict yet.",
+      "level": "Easy, 30–40 minutes. The language is accessible; the work is noticing missing perspectives and keeping operator benefits separate from public, worker, utility, and responder consequences."
+    }
+  ],
+  "sources": {
+    "S1": {
+      "citation": "Resilience for Critical Facilities · Donald R. Scott, Andrew C. Cerino, Robert G. Pekelnicky & Kevin Yu · 2023 · NIST GCR 23-037 · government technical report",
+      "short": "NIST critical-facility resilience",
+      "access_tier": "T1",
+      "url": "https://nvlpubs.nist.gov/nistpubs/gcr/2023/NIST.GCR.23-037.pdf",
+      "verified": "confirmed",
+      "verified_how": "Checked the NIST publication listing and government PDF for the exact title, four authors, January 2023 date, report number, and the dedicated data-center building and resilience discussion.",
+      "complexity": "Long cross-hazard engineering report; the data-center material is one section within a broader critical-facilities review.",
+      "time_estimate": 30
+    },
+    "S2": {
+      "citation": "Data Centers and Telecommunication Facilities, Chapter 20 · ASHRAE Technical Committee 9.9 · 2019 · ASHRAE Handbook—HVAC Applications · professional handbook chapter",
+      "short": "ASHRAE data-center chapter",
+      "access_tier": "T3",
+      "url": "https://handbook.ashrae.org/Handbooks/A19/IP/a19_ch20/a19_ch20_ip.aspx",
+      "verified": "confirmed",
+      "verified_how": "Checked the official ASHRAE Handbook page for the chapter title and TC 9.9 responsibility, and confirmed sections on facility spaces, structural and rolling loads, cooling, fire protection, redundancy, and maintainability. ASHRAE’s 2023 handbook page confirms Chapter 20 was subsequently updated.",
+      "complexity": "Dense professional reference with many subsystems and specialized reliability vocabulary.",
+      "time_estimate": 35
+    },
+    "S3": {
+      "citation": "Best Practices Guide for Energy-Efficient Data Center Design · Otto Van Geet & David Sickinger · 2024 · U.S. Department of Energy Federal Energy Management Program / NREL · technical guide",
+      "short": "DOE data-center design guide",
+      "access_tier": "T1",
+      "url": "https://www.energy.gov/sites/default/files/2024-07/best-practice-guide-data-center-design.pdf",
+      "verified": "confirmed",
+      "verified_how": "Opened the official DOE PDF and checked the cover, July 2024 revision date, author page, sponsoring program, contents, and sections on air management, cooling, liquid cooling, electrical systems, and benchmarking.",
+      "complexity": "Forty-eight-page technical guide; equations and equipment detail can be skipped when tracing system paths.",
+      "time_estimate": 45
+    },
+    "S4": {
+      "citation": "Equinix Opens Fifth Data Center in Singapore and Deepens Commitment to National Sustainability Agenda · Equinix, Inc. · 2021 · Equinix Newsroom · operator press release",
+      "short": "Equinix SG5 opening",
+      "access_tier": "T1",
+      "url": "https://newsroom.equinix.com/press-releases?item=124247",
+      "verified": "confirmed",
+      "verified_how": "Checked Equinix’s official Singapore newsroom index and release for the exact title, 25 August 2021 date, corporate author, nine-story SG5 description, capacity figures, connectivity, and cooling disclosures.",
+      "complexity": "Accessible first-party announcement; specifications and promotional claims need to be kept distinct.",
+      "time_estimate": 12
+    },
+    "S5": {
+      "citation": "Chennai 2 Data Center · NTT Global Data Centers · n.d. (page states Chennai 2A operational April 2023) · official facility page",
+      "short": "NTT Chennai 2 facility",
+      "access_tier": "T1",
+      "url": "https://services.global.ntt/en-us/services-and-products/global-data-centers/global-locations/india/chennai-2-data-center",
+      "verified": "confirmed",
+      "verified_how": "Checked NTT’s official facility page for the title, corporate publisher, two nine-storey buildings, stated April 2023 operating milestone, IT-load and rack figures, and disclosed power, cooling, and connectivity systems. No publication date is shown, so none was invented.",
+      "complexity": "Short first-party specification page with limited design rationale and no comparative cost data.",
+      "time_estimate": 10
+    },
+    "S6": {
+      "citation": "Nxera opens Singapore’s highest power-density, most energy efficient and multi-tenanted data centre, accelerating AI innovations · Singtel / Nxera · 2026 · JTC industry news · operator press release",
+      "short": "Nxera DC Tuas opening",
+      "access_tier": "T1",
+      "url": "https://www.jtc.gov.sg/about-jtc/news-and-stories/industry-news/nxera-opens-multi-tenanted-data-centre",
+      "verified": "confirmed",
+      "verified_how": "Checked the JTC-hosted release for the exact title, Singtel attribution, 9 February 2026 date, eight-storey form, disclosed capacity, cable-landing integration, liquid cooling, resource systems, and PUE claim.",
+      "complexity": "Accessible operator release hosted by a government agency; performance claims are not an independent comparative study.",
+      "time_estimate": 12
+    },
+    "S7": {
+      "citation": "Data centers: one global template doesn’t fit all · Nicholas Long · 2024 · Arup · named-author engineering analysis",
+      "short": "Arup on local adaptation",
+      "access_tier": "T2",
+      "url": "https://www.arup.com/en-us/insights/data-centres-one-global-template-doesnt-fit-all/",
+      "verified": "confirmed",
+      "verified_how": "Checked the official Arup page for the exact title, Nicholas Long byline, April 2024 update date, and discussion of climate, codes, utility networks, construction, schedule, maintainability, and local design adaptation.",
+      "complexity": "Readable engineering commentary; broad regional examples require translation into measurable comparison criteria.",
+      "time_estimate": 15
+    },
+    "S8": {
+      "citation": "Data Center Metering and Resource Guide · R. Mahdavi & S. Greenberg · 2017 · Lawrence Berkeley National Laboratory Center of Expertise for Data Center Efficiency · technical guide",
+      "short": "LBNL metering guide",
+      "access_tier": "T1",
+      "url": "https://datacenters.lbl.gov/resources/data-center-metering-and-resource-guide",
+      "verified": "confirmed",
+      "verified_how": "Checked Berkeley Lab’s official resource page for the exact title, authors, 7 February 2017 date, guide file, and stated focus on metering for decisions and PUE calculation.",
+      "complexity": "Measurement-focused guide; useful metrics still require a separately defined whole-project comparison boundary.",
+      "time_estimate": 30
+    },
+    "S9": {
+      "citation": "IMDA Introduces Sustainability Standard for Data Centres Operating in Tropical Climates · Infocomm Media Development Authority of Singapore · 2023 · government press release",
+      "short": "IMDA tropical data-center standard",
+      "access_tier": "T1",
+      "url": "https://www.imda.gov.sg/resources/press-releases-factsheets-and-speeches/press-releases/2023/imda-introduces-sustainability-standard-for-data-centres-operating-in-tropical-climates",
+      "verified": "confirmed",
+      "verified_how": "Checked the official IMDA page and search record for the title, corporate government author, 8 June 2023 date, and discussion of tropical cooling, operating temperatures, and land, water, energy, and sustainability constraints.",
+      "complexity": "Policy and standards announcement; quantified claims should be traced to its footnotes before reuse.",
+      "time_estimate": 15
+    },
+    "S10": {
+      "citation": "Form 8-K: Agreement to Develop and Lease for Equinix SG3 · Equinix, Inc. · 2013 · U.S. Securities and Exchange Commission filing",
+      "short": "Equinix SG3 SEC filing",
+      "access_tier": "T1",
+      "url": "https://investor.equinix.com/sec-filings/all-sec-filings/content/0001193125-13-132234/d511762d8k.htm",
+      "verified": "confirmed",
+      "verified_how": "Checked Equinix’s investor-relations copy of the filed Form 8-K for the company name, 27–28 March 2013 dates, seven-story SG3 description, approximate area, lease term, disclosed obligation, and expected service date.",
+      "complexity": "Short legal filing with precise transaction language but little engineering explanation.",
+      "time_estimate": 10
+    }
+  },
+  "teach_back": [
+    {
+      "id": "TB1",
+      "question": "If someone says ‘building upward saves land,’ what would you ask them to count before accepting that as a net saving?",
+      "anchors": [
+        "Q1",
+        "Q3"
+      ]
+    },
+    {
+      "id": "TB2",
+      "question": "How would you tell whether extra floors create a new single point of failure rather than just a different layout?",
+      "anchors": [
+        "Q4",
+        "Q5",
+        "Q6"
+      ]
+    },
+    {
+      "id": "TB3",
+      "question": "What facts about a city would make a tall data center sensible there but wasteful somewhere else?",
+      "anchors": [
+        "Q2",
+        "Q7",
+        "Q8"
+      ]
+    }
+  ]
+}

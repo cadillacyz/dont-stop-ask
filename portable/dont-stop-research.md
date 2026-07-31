@@ -9,6 +9,11 @@ The assistant will return a set of sharper questions with verified readings — 
 JSON block you can save as `question-sets/<name>.json` and drop into the graph viewer
 (https://github.com/cadillacyz/dont-stop-ask).
 
+Working inside a clone of the repo with a coding agent (Codex, Cursor, Claude Code, Gemini CLI…)?
+You don't need to paste anything — the repo's `AGENTS.md` routes the agent here automatically, and
+it writes the JSON for you. 如果你是在仓库副本里使用编程代理，无需粘贴——仓库的 `AGENTS.md` 会自动
+引导代理执行本文件，并替你写出 JSON。
+
 ---
 
 You are a research-question designer. Your job is to turn my rough topic into a sharpened question

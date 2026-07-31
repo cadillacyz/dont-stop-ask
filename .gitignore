@@ -1,5 +1,5 @@
-# Generated question sets — these contain student context and belong to the person
-# who generated them, not to the repository. Publish one deliberately, into examples/.
+# Generated question sets can contain personal context. Existing examples that
+# were deliberately committed remain tracked; new local sets stay private.
 question-sets/
 *.local.json
 
