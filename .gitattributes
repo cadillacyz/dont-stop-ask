@@ -8,4 +8,5 @@
 *.html text
 *.py   text
 *.yml  text
+*.sh   text eol=lf
 LICENSE text

@@ -30,10 +30,13 @@ deletion mechanism.
 
 ## Remaining trusted component
 
-The configured Codex or Claude Code command is a trusted local dependency. The defaults allow edits
-because the skill must write into `question-sets/`. Run the repository in a directory containing no
-unrelated sensitive files, review `DSA_CODEX_CMD`, `DSA_CLAUDE_CMD`, or `DSA_AGENT_CMD` before
-overriding one, and install each CLI only from its official distribution.
+The configured Codex, Claude Code, Cursor, or GitHub Copilot command is a trusted local dependency.
+The defaults allow edits because the skill must write into `question-sets/` — each provider is
+invoked with its own full-autonomy flag (e.g. Cursor's `--force`, Copilot's `--allow-all`), matching
+what Codex's `--full-auto` and Claude's `--permission-mode acceptEdits` already do. Run the
+repository in a directory containing no unrelated sensitive files, review `DSA_CODEX_CMD`,
+`DSA_CLAUDE_CMD`, `DSA_CURSOR_CMD`, `DSA_COPILOT_CMD`, or `DSA_AGENT_CMD` before overriding one, and
+install each CLI only from its official distribution.
 
 ## Reporting
 

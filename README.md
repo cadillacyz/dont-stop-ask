@@ -37,10 +37,23 @@ Clone the current release from the default `main` branch:
 ```bash
 git clone https://github.com/cadillacyz/dont-stop-ask.git
 cd dont-stop-ask
-python scripts/serve.py
+python3 scripts/serve.py   # macOS/Linux; use "python" instead on Windows
 ```
 
-Then open <http://127.0.0.1:8010/viewer/>. On Windows, you can double-click `start.bat` instead.
+Then open <http://127.0.0.1:8010/viewer/>. On Windows, double-click `start.bat` instead; on
+macOS/Linux, run `./start.sh` instead — both start the server and open the viewer for you, and
+both check for a real Python install before trying.
+
+**No Python found?**
+
+- **Windows:** if `python` reports "Python was not found" and opens the Microsoft Store, that's
+  the built-in App Execution Alias stub, not a real Python install — run
+  `winget install -e --id Python.Python.3.12` (or install from
+  [python.org](https://www.python.org/downloads/) with "Add python.exe to PATH" checked), then try
+  again.
+- **macOS:** `brew install python3` (or install from python.org).
+- **Linux:** use your distro's package manager, e.g. `sudo apt install python3` on Debian/Ubuntu or
+  `sudo dnf install python3` on Fedora.
 
 ### Tell an AI coding agent to run it
 
@@ -48,8 +61,8 @@ After cloning, paste this into Codex, Claude Code, or another coding agent:
 
 > Read `AGENTS.md` and `SECURITY.md`, then start this repository's local companion app without
 > changing the code. Verify `/api/status` and the viewer, open the viewer for me if you can, and tell
-> me whether Codex or Claude Code generation is available. Keep the server on `127.0.0.1` and do not
-> expose or proxy its port.
+> me which local agent generation is available (Codex, Claude Code, Cursor, or GitHub Copilot). Keep
+> the server on `127.0.0.1` and do not expose or proxy its port.
 
 The repository-level [`AGENTS.md`](AGENTS.md) gives compatible AI agents the exact startup,
 verification, old-UI recovery, and safety instructions automatically.
@@ -68,7 +81,11 @@ Every set is generated under these; they override everything else.
 | 4 | **No leading questions** — two careful people must be able to disagree defensibly |
 | 5 | **No disguised recall** — every question requires judgment, not lookup |
 
-## Use it in Claude Code
+## Use it in Claude Code, Codex, Cursor, or GitHub Copilot
+
+The companion server auto-detects whichever of these you have installed and runs it directly — no
+per-tool setup needed beyond having the CLI itself. The one optional extra is for Claude Code users
+who want the `/dont-stop-research` slash command available outside this app too:
 
 ```bash
 git clone https://github.com/cadillacyz/dont-stop-ask.git
@@ -80,18 +97,20 @@ Windows PowerShell: `Copy-Item -Recurse dont-stop-ask\skills\dont-stop-research 
 Then start the companion server and open the viewer:
 
 ```bash
-python scripts/serve.py
+python3 scripts/serve.py   # macOS/Linux; use "python" instead on Windows
 ```
 
-Or just double-click `start.bat` on Windows.
+Or just double-click `start.bat` on Windows, or run `./start.sh` on macOS/Linux.
 
 The helper is intentionally local-only and now serves an allowlisted surface rather than the
 repository. Do not publish or proxy its port. See [SECURITY.md](SECURITY.md) for the threat boundary
 and [docs/production-boundary.md](docs/production-boundary.md) before turning it into a hosted app.
 
 Open <http://127.0.0.1:8010/viewer/>, click the question world, type your question, and hit **Ask**.
-The helper runs Codex (preferred) or Claude Code directly. **The graph loads itself** when the file
-appears — no prompt copy/paste or file picker needed. Install one of those CLIs first.
+The helper runs whichever local agent it finds first — Codex, Claude Code, Cursor, or GitHub
+Copilot, in that preference order, or pick one explicitly under "Add context or change research
+settings." **The graph loads itself** when the file appears — no prompt copy/paste or file picker
+needed. Install at least one of those CLIs first.
 
 ## Use it in ChatGPT or any other assistant
 
@@ -100,9 +119,10 @@ The whole tool also exists as one self-contained prompt:
 
 1. Paste the file's contents into ChatGPT (or Gemini, or any assistant **with web search
    enabled** — verification is non-negotiable), add your question at the bottom, send.
-2. It returns the question set in chat plus a JSON code block. Save that block as
-   `question-sets/anything.json` in this folder (or anywhere).
-3. The viewer picks it up automatically if the server is running — or drag the file onto the page.
+2. It returns the question set in chat plus a JSON code block. Save that block as a file inside
+   this repository's `question-sets/` folder, named `question-set-anything.json` — the server only
+   serves files in that folder whose name starts with `question-set`.
+3. Start the server (`python scripts/serve.py`) and the viewer picks it up automatically.
 
 To expand a question, click its dot and choose **Expand into more**. Nine is the ceiling, not the
 target; the local agent generates fewer whenever more would be padding.
@@ -121,6 +141,7 @@ JSON with `archived_at` and `archived_with` metadata.
 | `scripts/serve.py` | Companion server: watches `question-sets/`, runs the skill when a CLI is available. Binds 127.0.0.1 only |
 | `scripts/validate.py` | Checks a set against `schema/question-set.schema.json` |
 | `start.bat` | Double-click launcher for Windows |
+| `start.sh` | Launcher for macOS/Linux (`./start.sh`) |
 
 ## What it will not do
 

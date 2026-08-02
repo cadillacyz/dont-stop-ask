@@ -28,7 +28,7 @@
       </div>
       <label class="brightness-control">
         <span data-i18n="Brightness">Brightness</span>
-        <input data-brightness type="range" min="45" max="100" value="68" aria-label="Scene brightness" data-i18n-aria-label="Scene brightness" />
+        <input data-brightness type="range" min="45" max="100" value="56" aria-label="Scene brightness" data-i18n-aria-label="Scene brightness" />
       </label>
     </div>
   </header>
@@ -64,7 +64,7 @@
     </div>
     <label class="brightness-control compact">
       <span data-i18n="Brightness">Brightness</span>
-      <input data-brightness type="range" min="45" max="100" value="68" aria-label="Scene brightness" data-i18n-aria-label="Scene brightness" />
+      <input data-brightness type="range" min="45" max="100" value="56" aria-label="Scene brightness" data-i18n-aria-label="Scene brightness" />
     </label>
     <span id="status" class="status" title="Local helper status" data-i18n-title="Local helper status"></span>
     <label class="history-control">
@@ -127,6 +127,10 @@
 
       <div id="progress" class="progress" role="status" aria-live="polite" hidden>
         <p class="prog-lead"><span class="spinner"></span> <span id="progtext">Working…</span></p>
+        <div class="wait-game-wrap">
+          <canvas id="waitgame" class="wait-game" width="600" height="150" aria-hidden="true"></canvas>
+          <p class="wait-game-hint" data-i18n="Space, ↑, or tap to jump while you wait.">Space, ↑, or tap to jump while you wait.</p>
+        </div>
         <pre id="proglog" class="prog-log"></pre>
         <button class="btn cancel" id="canceljob" type="button" data-i18n="Cancel">Cancel</button>
       </div>

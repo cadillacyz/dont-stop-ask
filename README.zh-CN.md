@@ -34,18 +34,29 @@
 ```bash
 git clone https://github.com/cadillacyz/dont-stop-ask.git
 cd dont-stop-ask
-python scripts/serve.py
+python3 scripts/serve.py   # macOS/Linux；Windows 上用 "python"
 ```
 
-然后打开 <http://127.0.0.1:8010/viewer/>。Windows 用户也可以直接双击 `start.bat`。
+然后打开 <http://127.0.0.1:8010/viewer/>。Windows 用户可以直接双击 `start.bat`；macOS/Linux 用户可以运行
+`./start.sh`——两者都会启动服务器并自动打开查看器，也都会先检查是否装有真正的 Python。
+
+**找不到 Python？**
+
+- **Windows：** 如果运行 `python` 时提示"未找到 Python"并跳转到 Microsoft Store，说明 PATH 里的只是
+  系统内置的 App Execution Alias 占位程序，不是真正的 Python。请运行
+  `winget install -e --id Python.Python.3.12`，或从 [python.org](https://www.python.org/downloads/)
+  下载安装（安装时勾选 "Add python.exe to PATH"），再重试。
+- **macOS：** 运行 `brew install python3`（或从 python.org 下载安装）。
+- **Linux：** 用发行版自带的包管理器安装，例如 Debian/Ubuntu 上运行 `sudo apt install python3`，
+  Fedora 上运行 `sudo dnf install python3`。
 
 ### 让 AI 帮你运行
 
 克隆后，把下面这段提示词发给 Codex、Claude Code 或其他编程代理：
 
 > 阅读 `AGENTS.md` 和 `SECURITY.md`，然后在不修改代码的前提下启动本仓库的本地陪伴应用。
-> 检查 `/api/status` 和查看器，尽量帮我打开查看器，并告诉我 Codex 或 Claude Code 生成功能是否可用。
-> 服务器保持绑定在 `127.0.0.1`，不要暴露或代理它的端口。
+> 检查 `/api/status` 和查看器，尽量帮我打开查看器，并告诉我哪个本地智能体可用于生成
+> （Codex、Claude Code、Cursor 或 GitHub Copilot）。服务器保持绑定在 `127.0.0.1`，不要暴露或代理它的端口。
 
 根目录的 [`AGENTS.md`](AGENTS.md) 会自动告诉兼容的 AI 代理确切的启动、验证、旧界面恢复和安全说明。
 
@@ -63,7 +74,11 @@ python scripts/serve.py
 | 4 | **不用引导性问题**——两个审慎的人必须能得出不同却都站得住的答案 |
 | 5 | **不做伪装的记忆题**——每个问题都要求判断，而非检索 |
 
-## 在 Claude Code 中使用
+## 在 Claude Code、Codex、Cursor 或 GitHub Copilot 中使用
+
+陪伴服务器会自动检测你装有哪一个，并直接调用它——除了安装 CLI 本身，不需要额外的单独配置。
+唯一可选的额外步骤是给 Claude Code 用户的：如果你想在这个应用之外也能用
+`/dont-stop-research` 斜杠命令，可以这样安装：
 
 ```bash
 git clone https://github.com/cadillacyz/dont-stop-ask.git
@@ -75,17 +90,18 @@ Windows PowerShell：`Copy-Item -Recurse dont-stop-ask\skills\dont-stop-research
 然后启动陪伴服务器，打开查看器：
 
 ```bash
-python scripts/serve.py
+python3 scripts/serve.py   # macOS/Linux；Windows 上用 "python"
 ```
 
-Windows 下也可以直接双击 `start.bat`。
+Windows 下也可以直接双击 `start.bat`，macOS/Linux 下可以运行 `./start.sh`。
 
 本地助手刻意只在本机运行，且只提供白名单内的接口，而不是整个仓库。不要公开或代理它的端口。
 把它改造成托管应用之前，请先阅读 [SECURITY.md](SECURITY.md) 了解威胁边界，以及
 [docs/production-boundary.md](docs/production-boundary.md)。
 
-打开 <http://127.0.0.1:8010/viewer/>，点击问题星球，输入问题，再按 **Ask**。本地助手会优先使用 Codex，
-也可自动使用 Claude Code，不再需要复制粘贴提示词。**文件一出现图谱就会自己加载**。请先安装其中一个 CLI。
+打开 <http://127.0.0.1:8010/viewer/>，点击问题星球，输入问题，再按 **Ask**。本地助手会按 Codex、
+Claude Code、Cursor、GitHub Copilot 的顺序自动使用找到的第一个，也可以在"添加背景信息或修改研究设置"
+里手动指定，不再需要复制粘贴提示词。**文件一出现图谱就会自己加载**。请先安装其中至少一个 CLI。
 
 ## 在 ChatGPT 或其他助手中使用
 
@@ -93,9 +109,10 @@ Windows 下也可以直接双击 `start.bat`。
 
 1. 把文件内容粘贴进 ChatGPT（或 Gemini，或任何**开启了联网搜索**的助手——核实来源是硬性要求），
    在末尾加上你的问题，发送。
-2. 它会在对话里给出问题集，外加一个 JSON 代码块。把代码块存成本文件夹（或任意位置）下的
-   `question-sets/任意名字.json`。
-3. 服务器开着的话查看器会自动加载——或者直接把文件拖到页面上。
+2. 它会在对话里给出问题集，外加一个 JSON 代码块。把代码块存成本仓库 `question-sets/` 文件夹下的
+   文件，文件名以 `question-set` 开头，例如 `question-set-任意名字.json`——服务器只会提供这个
+   文件夹里、文件名以此开头的文件。
+3. 启动服务器（`python scripts/serve.py`），查看器会自动加载它。
 
 想展开某个问题：点击圆点，再选择 **Expand into more**。九个是上限，不是目标；如果继续生成只会凑数，
 本地代理就会少生成一些。
@@ -114,6 +131,7 @@ Windows 下也可以直接双击 `start.bat`。
 | `scripts/serve.py` | 陪伴服务器：监听 `question-sets/`，在有可用 CLI 时运行技能，只绑定 127.0.0.1 |
 | `scripts/validate.py` | 按 `schema/question-set.schema.json` 校验问题集 |
 | `start.bat` | Windows 双击启动 |
+| `start.sh` | macOS/Linux 启动脚本（`./start.sh`） |
 
 ## 它不会做的事
 

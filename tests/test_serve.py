@@ -108,7 +108,9 @@ class ServerSecurityTests(unittest.TestCase):
         response = json.loads(body)
         self.assertEqual(code, 501)
         self.assertEqual(response["error"], "no-cli")
-        self.assertIn("Codex or Claude Code", response["message"])
+        self.assertIn("Codex", response["message"])
+        self.assertIn("Cursor", response["message"])
+        self.assertIn("GitHub Copilot", response["message"])
         self.assertNotIn("prompt", response)
 
     def test_auto_agent_prefers_codex_then_claude(self):
@@ -121,6 +123,33 @@ class ServerSecurityTests(unittest.TestCase):
             self.assertEqual(SERVE.select_agent("claude")["id"], "claude")
         finally:
             SERVE.available_agents = original
+
+    def test_cursor_and_copilot_are_registered_providers(self):
+        ids = {p["id"] for p in SERVE.PROVIDERS}
+        self.assertIn("cursor", ids)
+        self.assertIn("copilot", ids)
+
+    def test_ask_accepts_any_registered_agent_id_and_rejects_unknown_ones(self):
+        _, status = self.status()
+        headers = self.auth_headers(status["token"])
+        for agent_id in ("cursor", "copilot", "codex", "claude"):
+            code, _, body = self.request(
+                "/api/ask", "POST",
+                {"question": "How should cities adapt to extreme heat?", "context": "", "mode": "solo", "agent": agent_id},
+                headers,
+            )
+            # No CLI is available in this test server, so a registered agent id
+            # reaches the "no-cli" branch (501) rather than being rejected (400).
+            self.assertEqual(json.loads(body)["error"], "no-cli", f"agent={agent_id}")
+            self.assertEqual(code, 501, f"agent={agent_id}")
+
+        code, _, body = self.request(
+            "/api/ask", "POST",
+            {"question": "How should cities adapt to extreme heat?", "context": "", "mode": "solo", "agent": "not-a-real-agent"},
+            headers,
+        )
+        self.assertEqual(code, 400)
+        self.assertIn("agent must be one of", json.loads(body)["error"])
 
     def test_unlaunchable_desktop_binary_is_not_advertised_as_an_agent(self):
         original_path = SERVE.provider_path

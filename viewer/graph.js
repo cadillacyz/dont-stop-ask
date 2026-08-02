@@ -167,8 +167,9 @@ const ZH = {
   'Archive branch': '归档分支',
   'Keep it': '保留',
   'Ask once. Your local agent researches it here, and the question map opens when it is ready.': '只需提问一次。本地智能体会在这里研究，完成后自动打开问题地图。',
-  'Install Codex or Claude Code, then restart this helper to ask without copy and paste.': '安装 Codex 或 Claude Code，然后重启本地服务，即可直接提问，无需复制粘贴。',
-  'Start with python scripts/serve.py so this page can run Codex or Claude Code for you.': '先运行 python scripts/serve.py，这个页面就能替你调用 Codex 或 Claude Code。',
+  'Space, ↑, or tap to jump while you wait.': '等待时可按空格键、↑ 或点击画面来跳跃。',
+  'Install Codex, Claude Code, Cursor, or GitHub Copilot, then restart this helper to ask without copy and paste.': '安装 Codex、Claude Code、Cursor 或 GitHub Copilot，然后重启本地服务，即可直接提问，无需复制粘贴。',
+  'Start with python scripts/serve.py so this page can run your local agent for you.': '先运行 python scripts/serve.py，这个页面就能替你调用本地智能体。',
   'Meaning': '含义', 'Landscape': '全景', 'Mechanism': '机制', 'Tension': '张力',
   'Evidence': '证据', 'Scope': '边界', 'Stake': '意义'
 };
@@ -393,8 +394,8 @@ function setStatus() {
     el.status.className = 'status partial';
     el.status.textContent = T('agent needed');
     el.status.title = isZh()
-      ? '安装 Codex 或 Claude Code，然后重启本地服务。'
-      : 'Install Codex or Claude Code, then restart this helper.';
+      ? '安装 Codex、Claude Code、Cursor 或 GitHub Copilot，然后重启本地服务。'
+      : 'Install Codex, Claude Code, Cursor, or GitHub Copilot, then restart this helper.';
   }
 }
 
@@ -539,9 +540,264 @@ function updateAskFoot() {
   el.askFoot.textContent = T(HELPER
     ? (HELPER.cli
         ? 'Ask once. Your local agent researches it here, and the question map opens when it is ready.'
-        : 'Install Codex or Claude Code, then restart this helper to ask without copy and paste.')
-    : 'Start with python scripts/serve.py so this page can run Codex or Claude Code for you.');
+        : 'Install Codex, Claude Code, Cursor, or GitHub Copilot, then restart this helper to ask without copy and paste.')
+    : 'Start with python scripts/serve.py so this page can run your local agent for you.');
 }
+
+/* ---------- a small dino-runner to play while the real research job works ----------
+   Purely decorative: never reflects job state, never blocks it, and stops the moment
+   startProgress()/stopProgress() do. Skipped entirely under prefers-reduced-motion. */
+const waitGame = (() => {
+  const canvas = document.getElementById('waitgame');
+  if (!canvas) return { start() {}, stop() {} };
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const GROUND_Y = H - 24;
+  const GRAVITY = 0.9;
+  const JUMP_V = -13;
+  const CAT_X = 40, CAT_W = 26, CAT_H = 20;
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Five furniture pieces, each a fixed size/shape rather than a random box,
+     so they read as distinct obstacles instead of interchangeable blocks. */
+  const FURNITURE = [
+    { kind: 'chair', w: 14, h: 18 },
+    { kind: 'table', w: 30, h: 14 },
+    { kind: 'lamp', w: 10, h: 32 },
+    { kind: 'sofa', w: 36, h: 16 },
+    { kind: 'shelf', w: 16, h: 36 }
+  ];
+
+  let running = false;
+  let raf = null;
+  let catY, velY, onGround, obstacles, speed, score, alive, sinceSpawn;
+
+  function cssVar(name, fallback) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return v || fallback;
+  }
+
+  function reset() {
+    catY = GROUND_Y - CAT_H;
+    velY = 0;
+    onGround = true;
+    obstacles = [];
+    speed = 5;
+    score = 0;
+    alive = true;
+    sinceSpawn = 0;
+  }
+
+  function jump() {
+    if (!running) return;
+    if (!alive) { reset(); return; }
+    if (onGround) { velY = JUMP_V; onGround = false; }
+  }
+
+  function spawnObstacle() {
+    const piece = FURNITURE[Math.floor(Math.random() * FURNITURE.length)];
+    obstacles.push({ x: W + 10, w: piece.w, h: piece.h, kind: piece.kind });
+  }
+
+  function fillShape(x, y, w, h, r) {
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, r);
+      ctx.fill();
+    } else {
+      ctx.fillRect(x, y, w, h);
+    }
+  }
+
+  /* A fat, round, unmistakably cute cat — an oval body, a round head with
+     triangle ears, dot eyes, and a curled tail — built from primitive shapes
+     so no image asset is needed. */
+  function drawCat(y) {
+    const bodyW = CAT_W, bodyH = CAT_H * 0.66;
+    const cx = CAT_X + bodyW / 2;
+    const bodyCy = y + CAT_H - bodyH / 2;
+    const fur = cssVar('--ember', '#ffbd73');
+    const ink = cssVar('--bg', '#070a12');
+
+    ctx.fillStyle = fur;
+    ctx.strokeStyle = fur;
+
+    // curled tail, drawn first so the body overlaps its base
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - bodyW * 0.42, bodyCy + bodyH * 0.15);
+    ctx.quadraticCurveTo(cx - bodyW * 0.95, bodyCy - bodyH * 0.55, cx - bodyW * 0.55, bodyCy - bodyH * 0.95);
+    ctx.stroke();
+
+    // fat oval body
+    ctx.beginPath();
+    ctx.ellipse(cx, bodyCy, bodyW / 2, bodyH / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // round head with a slight muzzle bump
+    const headR = CAT_H * 0.32;
+    const headCx = cx + bodyW * 0.24;
+    const headCy = y + headR * 0.95;
+    ctx.beginPath();
+    ctx.arc(headCx, headCy, headR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ears
+    ctx.beginPath();
+    ctx.moveTo(headCx - headR * 0.75, headCy - headR * 0.55);
+    ctx.lineTo(headCx - headR * 0.25, headCy - headR * 1.65);
+    ctx.lineTo(headCx + headR * 0.1, headCy - headR * 0.7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(headCx + headR * 0.25, headCy - headR * 0.75);
+    ctx.lineTo(headCx + headR * 0.7, headCy - headR * 1.7);
+    ctx.lineTo(headCx + headR * 0.95, headCy - headR * 0.55);
+    ctx.closePath();
+    ctx.fill();
+
+    // eyes
+    ctx.fillStyle = ink;
+    ctx.beginPath(); ctx.arc(headCx - headR * 0.3, headCy - headR * 0.05, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(headCx + headR * 0.35, headCy - headR * 0.05, 1.5, 0, Math.PI * 2); ctx.fill();
+  }
+
+  function drawFurniture(o) {
+    const x = o.x, w = o.w, h = o.h;
+    const topY = GROUND_Y - h;
+    const wood = cssVar('--reading', '#8d96b8');
+    const cutout = cssVar('--bg', '#070a12');
+    ctx.fillStyle = wood;
+    ctx.strokeStyle = cutout;
+
+    switch (o.kind) {
+      case 'chair': {
+        const seatH = h * 0.42;
+        fillShape(x, GROUND_Y - seatH, w, seatH, 1.5);
+        fillShape(x + w - 4, topY, 4, h, 1.5);
+        break;
+      }
+      case 'table': {
+        fillShape(x, topY, w, 4, 1.5);
+        ctx.fillRect(x + 1.5, topY + 4, 2.5, h - 4);
+        ctx.fillRect(x + w - 4, topY + 4, 2.5, h - 4);
+        break;
+      }
+      case 'lamp': {
+        ctx.fillRect(x + w / 2 - 1.5, topY + 9, 3, h - 9);
+        ctx.beginPath();
+        ctx.moveTo(x + w / 2 - 5, topY + 9);
+        ctx.lineTo(x + w / 2 + 5, topY + 9);
+        ctx.lineTo(x + w / 2 + 3, topY);
+        ctx.lineTo(x + w / 2 - 3, topY);
+        ctx.closePath();
+        ctx.fill();
+        break;
+      }
+      case 'sofa': {
+        fillShape(x, GROUND_Y - h * 0.6, w, h * 0.6, 3);
+        fillShape(x, topY, 5, h, 2);
+        fillShape(x + w - 5, topY, 5, h, 2);
+        break;
+      }
+      case 'shelf': {
+        fillShape(x, topY, w, h, 1.5);
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 3; i++) {
+          const ly = topY + (h / 3) * i;
+          ctx.beginPath();
+          ctx.moveTo(x + 2, ly);
+          ctx.lineTo(x + w - 2, ly);
+          ctx.stroke();
+        }
+        break;
+      }
+      default:
+        fillShape(x, topY, w, h, 1.5);
+    }
+  }
+
+  function step() {
+    if (!running) return;
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.strokeStyle = cssVar('--line', '#242c40');
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 1);
+    ctx.lineTo(W, GROUND_Y + 1);
+    ctx.stroke();
+
+    if (alive) {
+      velY += GRAVITY;
+      catY += velY;
+      if (catY >= GROUND_Y - CAT_H) { catY = GROUND_Y - CAT_H; velY = 0; onGround = true; }
+
+      sinceSpawn++;
+      if (sinceSpawn > 55 - Math.min(25, Math.floor(speed * 2))) {
+        spawnObstacle();
+        sinceSpawn = 0;
+      }
+      obstacles.forEach(o => { o.x -= speed; });
+      obstacles = obstacles.filter(o => o.x + o.w > -5);
+      speed = Math.min(11, speed + 0.0025);
+      score += 0.1;
+
+      /* A small inset on the cat's hitbox so close calls feel fair rather than cheap. */
+      const dx1 = CAT_X + 3, dx2 = CAT_X + CAT_W - 3, dy1 = catY + 3, dy2 = catY + CAT_H;
+      for (const o of obstacles) {
+        const ox1 = o.x, ox2 = o.x + o.w, oy1 = GROUND_Y - o.h, oy2 = GROUND_Y;
+        if (dx2 > ox1 && dx1 < ox2 && dy2 > oy1 && dy1 < oy2) { alive = false; break; }
+      }
+    }
+
+    obstacles.forEach(drawFurniture);
+    drawCat(catY);
+
+    ctx.fillStyle = cssVar('--fg-3', '#9ed8ff');
+    ctx.font = '11px ui-monospace, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(String(Math.floor(score)).padStart(5, '0'), W - 8, 16);
+
+    if (!alive) {
+      ctx.fillStyle = cssVar('--fg', '#f1f4ff');
+      ctx.textAlign = 'center';
+      ctx.font = '13px ui-monospace, monospace';
+      ctx.fillText(
+        isZh() ? '游戏结束 — 再次跳跃即可重新开始' : 'Game over — jump again to retry',
+        W / 2, H / 2
+      );
+    }
+
+    raf = requestAnimationFrame(step);
+  }
+
+  canvas.addEventListener('click', jump);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); jump(); }, { passive: false });
+  window.addEventListener('keydown', e => {
+    if (!running) return;
+    if (e.key !== ' ' && e.key !== 'ArrowUp') return;
+    const tag = document.activeElement && document.activeElement.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    e.preventDefault();
+    jump();
+  });
+
+  return {
+    start() {
+      if (reduceMotion || running) return;
+      running = true;
+      reset();
+      raf = requestAnimationFrame(step);
+    },
+    stop() {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      ctx.clearRect(0, 0, W, H);
+    }
+  };
+})();
 
 function hideAsk() {
   el.intro.hidden = true;
@@ -557,6 +813,7 @@ function startProgress(text) {
   el.go.disabled = true;
   el.cancelJob.hidden = true;
   el.cancelJob.disabled = false;
+  waitGame.start();
 }
 
 function stopProgress() {
@@ -567,6 +824,7 @@ function stopProgress() {
   el.cancelJob.hidden = true;
   el.cancelJob.disabled = false;
   activeJobId = null;
+  waitGame.stop();
 }
 
 function watchJob(jobId, generationSnapshot = currentSetSnapshot()) {
@@ -647,8 +905,8 @@ el.form.addEventListener('submit', async ev => {
   }
   if (!HELPER.cli) {
     return banner(isZh()
-      ? '请安装 Codex 或 Claude Code，重启本地服务后再次提问。'
-      : 'Install Codex or Claude Code, restart the helper, and then ask again.', 'error');
+      ? '请安装 Codex、Claude Code、Cursor 或 GitHub Copilot，重启本地服务后再次提问。'
+      : 'Install Codex, Claude Code, Cursor, or GitHub Copilot, restart the helper, and then ask again.', 'error');
   }
 
   startProgress(isZh() ? '正在启动…' : 'Starting…');
@@ -676,7 +934,7 @@ el.form.addEventListener('submit', async ev => {
 el.portal.addEventListener('click', showAsk);
 
 function applyBrightness(rawValue, persist = true) {
-  const value = Math.max(45, Math.min(100, Number(rawValue) || 68));
+  const value = Math.max(45, Math.min(100, Number(rawValue) || 56));
   document.documentElement.style.setProperty('--scene-brightness', String(value / 100));
   el.brightness.forEach(input => {
     input.value = String(value);
@@ -687,8 +945,8 @@ function applyBrightness(rawValue, persist = true) {
   }
 }
 
-let savedBrightness = 68;
-try { savedBrightness = localStorage.getItem('dsa-brightness') || 68; } catch {}
+let savedBrightness = 56;
+try { savedBrightness = localStorage.getItem('dsa-brightness') || 56; } catch {}
 applyBrightness(savedBrightness, false);
 el.brightness.forEach(input => input.addEventListener('input', event => applyBrightness(event.target.value)));
 document.querySelectorAll('[data-language]').forEach(button => {
@@ -812,12 +1070,16 @@ function render() {
     ['reading-world', '#e5efff', '#7889c5', '#171b3d']
   ];
   gradients.forEach(([id, light, mid, dark]) => {
+    /* Limb-darkening: a sphere reads as solid only if the rim is darker than the
+       midtone, not just a fade to the same "dark" stop used for the base color. */
+    const rim = d3.color(dark).darker(0.85).formatHex();
     const gradient = defs.append('radialGradient')
-      .attr('id', id).attr('cx', '31%').attr('cy', '26%').attr('r', '76%');
+      .attr('id', id).attr('cx', '30%').attr('cy', '24%').attr('r', '70%');
     gradient.append('stop').attr('offset', '0%').attr('stop-color', '#fff');
-    gradient.append('stop').attr('offset', '8%').attr('stop-color', light);
-    gradient.append('stop').attr('offset', '38%').attr('stop-color', mid);
-    gradient.append('stop').attr('offset', '100%').attr('stop-color', dark);
+    gradient.append('stop').attr('offset', '5%').attr('stop-color', light);
+    gradient.append('stop').attr('offset', '28%').attr('stop-color', mid);
+    gradient.append('stop').attr('offset', '66%').attr('stop-color', dark);
+    gradient.append('stop').attr('offset', '100%').attr('stop-color', rim);
   });
 
   const g = el.svg.append('g');
@@ -848,57 +1110,103 @@ function render() {
     return `url(#${d.q.difficulty || 'middle'}-world)`;
   };
 
-  const dot = g.append('g').selectAll('circle').data(nodes).join('circle')
-    .attr('class', d => `dot dot-${d.kind}${d.q ? ` dot-${d.q.difficulty || 'middle'}` : ''}`)
+  /* Reading/source nodes stay plain gradient dots — there can be many of
+     them per set, and the textured planet look is reserved for the root and
+     question nodes that carry the actual visual weight of the graph. */
+  const dot = g.append('g').selectAll('circle').data(nodes.filter(n => n.kind === 'source')).join('circle')
+    .attr('class', d => `dot dot-${d.kind}`)
     .attr('r', d => d.r).attr('fill', planetFill)
+    /* currentColor drives the per-node glow (see .dot filter in style.css); without
+       this every world glows the same neutral white instead of its own hue. */
+    .style('color', d => d.col)
     .attr('tabindex', 0)
     .attr('role', 'button')
-    .attr('aria-label', d => d.kind === 'source'
-      ? `${T('Reading')} ${d.id}: ${DATA.sources[d.id].citation}`
-      : (d.kind === 'question' ? `${d.id}: ${d.q.question}` : d.label))
+    .attr('aria-label', d => `${T('Reading')} ${d.id}: ${DATA.sources[d.id].citation}`)
     .attr('stroke', d => (d.unconfirmed ? '#f0b24a' : null))
     .attr('stroke-width', d => (d.unconfirmed ? 1.2 : null))
     .attr('stroke-dasharray', d => (d.unconfirmed ? '2 2' : null));
+
+  /* Root and question nodes render as a pre-rendered planet picture (see
+     assets/planet-*.svg) instead of a live-animated element: one small
+     static file per type, no per-node DOM subtree and no running animation,
+     which matters once a graph has dozens of nodes on screen at once. */
+  const PLANET_IMAGE = {
+    root: 'assets/planet-root.svg',
+    easy: 'assets/planet-easy.svg',
+    middle: 'assets/planet-middle.svg',
+    technical: 'assets/planet-technical.svg'
+  };
+  const planetImage = d => (d.kind === 'root' ? PLANET_IMAGE.root : PLANET_IMAGE[d.q.difficulty || 'middle']);
+
+  const planet = g.append('g').selectAll('image')
+    .data(nodes.filter(n => n.kind !== 'source')).join('image')
+    .attr('class', 'node-planet')
+    .attr('href', planetImage)
+    .attr('width', d => d.r * 2).attr('height', d => d.r * 2)
+    /* currentColor drives the per-node glow, same as the reading dots. */
+    .style('color', d => d.col)
+    .attr('tabindex', 0)
+    .attr('role', 'button')
+    .attr('aria-label', d => (d.kind === 'question' ? `${d.id}: ${d.q.question}` : d.label));
 
   const label = g.append('g').selectAll('text')
     .data(nodes.filter(n => n.kind !== 'source')).join('text')
     .attr('class', 'node-label').attr('text-anchor', 'middle').text(d => d.label);
 
-  dot.call(d3.drag()
-    .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.25).restart(); d.fx = d.x; d.fy = d.y; })
-    .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
-    .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
+  /* Drag, hover tooltip, click, and keyboard activation are identical for the
+     plain reading dots and the planet images; only how each renders
+     differs, so both selections share this wiring. */
+  function wireInteractions(sel) {
+    sel.call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.25).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag', (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end', (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }));
 
-  dot.on('mouseenter', (e, d) => {
-      el.tip.hidden = false;
-      el.tip.textContent = d.kind === 'source'
-        ? DATA.sources[d.id].citation
-        : (d.kind === 'question' ? `${d.id} · ${d.label}` : d.label);
-    })
-    .on('mousemove', e => {
-      const b = el.stage.getBoundingClientRect();
-      el.tip.style.left = `${e.clientX - b.left + 14}px`;
-      el.tip.style.top = `${e.clientY - b.top + 10}px`;
-    })
-    .on('mouseleave', () => { el.tip.hidden = true; });
+    sel.on('mouseenter', (e, d) => {
+        el.tip.hidden = false;
+        el.tip.textContent = d.kind === 'source'
+          ? DATA.sources[d.id].citation
+          : (d.kind === 'question' ? `${d.id} · ${d.label}` : d.label);
+      })
+      .on('mousemove', e => {
+        const b = el.stage.getBoundingClientRect();
+        el.tip.style.left = `${e.clientX - b.left + 14}px`;
+        el.tip.style.top = `${e.clientY - b.top + 10}px`;
+      })
+      .on('mouseleave', () => { el.tip.hidden = true; });
+
+    sel.on('click', function (e, d) {
+      activateNode(this, d);
+    }).on('keydown', function (e, d) {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      activateNode(this, d);
+    });
+  }
+
+  function setSelected(id) {
+    selectedId = id;
+    dot.classed('sel', n => n.id === id);
+    planet.classed('sel', n => n.id === id);
+  }
 
   function activateNode(target, d) {
-    d3.select(target).transition().duration(140).attr('r', d.r * 1.8)
-      .transition().duration(220).attr('r', d.r);
-    selectedId = d.id;
-    dot.classed('sel', n => n.id === selectedId);
+    if (d.kind === 'source') {
+      d3.select(target).transition().duration(140).attr('r', d.r * 1.8)
+        .transition().duration(220).attr('r', d.r);
+    } else {
+      target.classList.add('pulse');
+      target.addEventListener('animationend', () => target.classList.remove('pulse'), { once: true });
+    }
+    setSelected(d.id);
     openNode(d);
   }
 
-  dot.on('click', function (e, d) {
-    activateNode(this, d);
-  }).on('keydown', function (e, d) {
-    if (e.key !== 'Enter' && e.key !== ' ') return;
-    e.preventDefault();
-    activateNode(this, d);
-  });
+  wireInteractions(dot);
+  wireInteractions(planet);
 
   el.svg.node().__dots = dot;
+  el.svg.node().__planets = planet;
   el.svg.node().__fit = () => {
     el.svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
     sim.alpha(0.4).restart();
@@ -912,6 +1220,7 @@ function render() {
     });
     halo.attr('cx', d => d.x).attr('cy', d => d.y);
     dot.attr('cx', d => d.x).attr('cy', d => d.y);
+    planet.attr('x', d => d.x - d.r).attr('y', d => d.y - d.r);
     label.attr('x', d => d.x).attr('y', d => d.y - d.r - 7);
   });
 }
@@ -925,11 +1234,13 @@ function openNode(d) {
 /* Re-open whatever was selected before a hot reload, if it still exists. */
 function reselect(id) {
   const dot = el.svg.node().__dots;
-  if (!dot) return;
-  const match = dot.data().find(n => n.id === id);
+  const planetBody = el.svg.node().__planets;
+  if (!dot || !planetBody) return;
+  const match = dot.data().find(n => n.id === id) || planetBody.data().find(n => n.id === id);
   if (!match) return;
   selectedId = id;
   dot.classed('sel', n => n.id === id);
+  planetBody.classed('sel', n => n.id === id);
   openNode(match);
 }
 
@@ -939,7 +1250,9 @@ function resetPanel() {
   selectedId = null;
   document.body.classList.remove('detail-open');
   const dots = el.svg.node() && el.svg.node().__dots;
+  const planets = el.svg.node() && el.svg.node().__planets;
   if (dots) dots.classed('sel', false);
+  if (planets) planets.classed('sel', false);
   el.panel.innerHTML = DATA
     ? `<p class="muted">${T('Click a question to see its readings and how to work it.')}</p>`
     : `<p class="muted">${T('Nothing loaded yet. Ask a question, and the graph will appear here.')}</p>`;
@@ -1011,8 +1324,8 @@ function wireExpand() {
       return;
     }
     note.textContent = isZh()
-      ? ' 安装 Codex 或 Claude Code 后即可自动展开'
-      : ' install Codex or Claude Code to expand automatically';
+      ? ' 安装 Codex、Claude Code、Cursor 或 GitHub Copilot 后即可自动展开'
+      : ' install Codex, Claude Code, Cursor, or GitHub Copilot to expand automatically';
   });
 }
 
@@ -1206,7 +1519,9 @@ el.readerSmaller.addEventListener('click', () => applyReaderScale(readerScale - 
 el.readerLarger.addEventListener('click', () => applyReaderScale(readerScale + .1));
 el.closePanel.addEventListener('click', () => {
   const dots = el.svg.node() && el.svg.node().__dots;
-  const previous = dots && dots.filter(node => node.id === selectedId).node();
+  const planets = el.svg.node() && el.svg.node().__planets;
+  const previous = (dots && dots.filter(node => node.id === selectedId).node())
+    || (planets && planets.filter(node => node.id === selectedId).node());
   resetPanel();
   if (previous) previous.focus({ preventScroll: true });
 });

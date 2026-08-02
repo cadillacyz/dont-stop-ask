@@ -44,13 +44,22 @@ JOB_TIMEOUT_SECONDS = max(30, int(os.environ.get("DSA_JOB_TIMEOUT", "900")))
 JOB_TTL_SECONDS = max(60, int(os.environ.get("DSA_JOB_TTL", "3600")))
 SESSION_TOKEN = secrets.token_urlsafe(32)
 
-# Override either default with a JSON list containing {prompt}. DSA_AGENT_CMD
+# Override any default with a JSON list containing {prompt}. DSA_AGENT_CMD
 # defines one custom provider; DSA_CLAUDE_CMD remains supported for existing users.
+# Cursor's and Copilot's exact flags come from their own docs as of 2026-08
+# (cursor.com/docs/cli/headless; docs.github.com/copilot/.../autopilot) — not
+# verified against a local install the way codex/claude were, since neither
+# CLI is installed on the machine this was written on. If a flag has moved,
+# override it with DSA_CURSOR_CMD / DSA_COPILOT_CMD without editing this file.
 PROVIDERS = (
     {"id": "codex", "label": "Codex", "env": "DSA_CODEX_CMD",
      "template": ["codex", "exec", "--full-auto", "{prompt}"]},
     {"id": "claude", "label": "Claude Code", "env": "DSA_CLAUDE_CMD",
      "template": ["claude", "-p", "{prompt}", "--permission-mode", "acceptEdits"]},
+    {"id": "cursor", "label": "Cursor", "env": "DSA_CURSOR_CMD",
+     "template": ["agent", "-p", "--force", "{prompt}"]},
+    {"id": "copilot", "label": "GitHub Copilot", "env": "DSA_COPILOT_CMD",
+     "template": ["copilot", "-p", "{prompt}", "--allow-all", "--no-ask-user"]},
 )
 
 JOBS = {}
@@ -64,6 +73,63 @@ def command_template(provider):
     if not isinstance(template, list) or not template or not all(isinstance(p, str) for p in template):
         raise ValueError(f'{provider["env"]} must be a non-empty JSON list of strings')
     return template
+
+
+def _newest_versioned_binary(base_dir, exe_name):
+    """base_dir holds one subfolder per installed version or build (desktop-app
+    auto-updaters name them by version or build hash). Return the most recently
+    modified exe_name found one level down, or None."""
+    if not base_dir.is_dir():
+        return None
+    candidates = [child / exe_name for child in base_dir.iterdir()
+                  if child.is_dir() and (child / exe_name).is_file()]
+    if not candidates:
+        return None
+    return max(candidates, key=lambda exe: exe.stat().st_mtime)
+
+
+def _roaming_data_dir():
+    """Where Electron apps put per-user, synced app data: %APPDATA% on Windows,
+    ~/Library/Application Support on macOS, $XDG_CONFIG_HOME or ~/.config on
+    Linux. Verified against a real local Claude Desktop install on Windows;
+    macOS/Linux follow the same documented Electron convention but are
+    unverified on real hardware."""
+    if sys.platform == "win32":
+        appdata = os.environ.get("APPDATA")
+        return pathlib.Path(appdata) if appdata else None
+    if sys.platform == "darwin":
+        return pathlib.Path.home() / "Library" / "Application Support"
+    xdg = os.environ.get("XDG_CONFIG_HOME")
+    return pathlib.Path(xdg) if xdg else pathlib.Path.home() / ".config"
+
+
+def _local_data_dir():
+    """Where Electron apps put per-user, non-synced app data: %LOCALAPPDATA%
+    on Windows (this is where the real local Codex Desktop install landed,
+    verified), same as _roaming_data_dir() on macOS/Linux since those
+    platforms don't distinguish roaming vs. local app data."""
+    if sys.platform == "win32":
+        localappdata = os.environ.get("LOCALAPPDATA")
+        return pathlib.Path(localappdata) if localappdata else None
+    return _roaming_data_dir()
+
+
+def _bundled_install_dirs(provider_id):
+    """Desktop apps (Claude, Codex) bundle their own CLI outside PATH and
+    outside the npm global root, in a version- or build-hash-named subfolder
+    that changes on every auto-update."""
+    exe = f"{provider_id}.exe" if sys.platform == "win32" else provider_id
+    if provider_id == "claude":
+        base = _roaming_data_dir()
+        return [(base / "Claude" / "claude-code", exe)] if base else []
+    if provider_id == "codex":
+        base = _local_data_dir()
+        if not base:
+            return []
+        # Windows nests the binary under bin/<build-hash>/; the same shape is
+        # the best-effort mac/Linux guess.
+        return [(base / "OpenAI" / "Codex" / "bin", exe)]
+    return []
 
 
 def provider_path(provider):
@@ -81,7 +147,14 @@ def provider_path(provider):
         npm_shim = pathlib.Path(appdata) / "npm" / f"{executable}.cmd"
         if npm_shim.is_file():
             return str(npm_shim)
-    return shutil.which(executable)
+    found = shutil.which(executable)
+    if found:
+        return found
+    for base_dir, exe_name in _bundled_install_dirs(provider["id"]):
+        newest = _newest_versioned_binary(base_dir, exe_name)
+        if newest:
+            return str(newest)
+    return None
 
 
 def provider_usable(provider):
@@ -590,13 +663,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
             prompt = build_expand_prompt(set_url, node, question)
 
         preferred = body.get("agent", "auto")
-        if preferred not in {"auto", "codex", "claude", "custom"}:
-            return self.send_json({"error": "agent must be auto, codex, or claude"}, 400)
+        allowed_agents = {"auto", "custom"} | {p["id"] for p in PROVIDERS}
+        if preferred not in allowed_agents:
+            return self.send_json({"error": f"agent must be one of: {', '.join(sorted(allowed_agents))}"}, 400)
         provider = select_agent(preferred)
         if not provider:
             return self.send_json({
                 "error": "no-cli",
-                "message": "No supported local agent is available. Install Codex or Claude Code, then restart the helper.",
+                "message": "No supported local agent is available. Install Codex, Claude Code, Cursor, or "
+                           "GitHub Copilot, then restart the helper.",
             }, 501)
 
         job_id = start_job(prompt, provider)
@@ -626,7 +701,7 @@ def main():
     if agents:
         print(f'  agent     {agents[0]["label"]} — questions run directly from the Ask box')
     else:
-        print("  agent     unavailable — install Codex or Claude Code to generate sets")
+        print("  agent     unavailable — install Codex, Claude Code, Cursor, or GitHub Copilot to generate sets")
     print(f"  safety    loopback only · {MAX_RUNNING_JOBS} concurrent jobs · {JOB_TIMEOUT_SECONDS}s timeout")
     print("  stop      ctrl-c\n")
     try:

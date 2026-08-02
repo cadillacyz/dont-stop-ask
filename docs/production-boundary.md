@@ -6,8 +6,8 @@ application.
 
 ## What the local release guarantees
 
-- A user can launch the viewer, generate directly through an installed Codex or Claude Code CLI, and reopen
-  generated sets from local history.
+- A user can launch the viewer, generate directly through an installed Codex, Claude Code, Cursor, or
+  GitHub Copilot CLI, and reopen generated sets from local history.
 - Jobs can be cancelled and are bounded by concurrency and time limits.
 - Invalid or unsafe question sets are rejected instead of partially rendered.
 - The graph is keyboard operable, and the landing flow has a responsive small-screen layout.

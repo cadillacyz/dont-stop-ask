@@ -13,7 +13,7 @@
   --aqua: #7de3da;
   --ember: #ffbd73;
   --warn: #f0b24a;
-  --scene-brightness: .68;
+  --scene-brightness: .56;
   --reader-scale: 1;
 }
 
@@ -504,6 +504,26 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
 }
 .prog-log { color: var(--fg-3); font-size: 11.5px; user-select: text; }
 
+/* A little something to do while the real research job runs in the
+   background — purely decorative, never blocks or reflects job state. */
+.wait-game-wrap { margin: 4px 0 10px; }
+.wait-game {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 600 / 150;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  cursor: pointer;
+}
+.wait-game-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--fg-3);
+  text-align: center;
+}
+
 .spinner {
   display: inline-block;
   width: 11px;
@@ -752,18 +772,14 @@ code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-si
 .legend .spacer { flex: 1; }
 
 .node-label {
-  font-size: 11.5px;
-  fill: rgba(235, 236, 245, 0.8);
+  /* font-size, fill, stroke, and stroke-width are set once, further down,
+     where the graph-mode theme finalizes them. */
   pointer-events: none;
   paint-order: stroke;
-  stroke: var(--bg);
-  stroke-width: 3.5px;
   stroke-linejoin: round;
 }
 .edge { fill: none; stroke: rgba(200, 205, 255, 0.26); stroke-width: 1; }
 .edge.weak { stroke: rgba(200, 205, 255, 0.12); }
-.halo { opacity: 0.13; }
-.dot { cursor: pointer; }
 .dot.sel { stroke: #fff; stroke-width: 1.5px; }
 .dot:focus { outline: none; stroke: #fff; stroke-width: 2.5px; }
 
@@ -894,20 +910,50 @@ body.ask-mode { background: transparent; }
   stroke-dasharray: 2 4;
 }
 .halo {
-  opacity: .2;
-  filter: blur(3px);
+  opacity: .24;
+  filter: blur(4px);
 }
 .dot {
-  filter: drop-shadow(0 5px 8px rgba(0,0,0,.5)) drop-shadow(0 0 5px currentColor);
+  cursor: pointer;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,.55)) drop-shadow(0 0 6px currentColor);
   transition: filter .25s ease;
 }
 .dot:hover,
 .dot:focus,
 .dot.sel {
-  filter: brightness(1.22) saturate(1.25) drop-shadow(0 0 11px rgba(198, 177, 255, .85));
+  filter: brightness(1.22) saturate(1.25) drop-shadow(0 0 12px currentColor);
 }
 .dot.sel { stroke: rgba(255,255,255,.95); stroke-width: 1.4px; }
 .dot:focus { stroke: #fff; stroke-width: 2px; }
+
+/* Root and question nodes: a pre-rendered planet picture per type (see
+   assets/planet-*.svg) instead of a live-animated element — one small
+   static file, reused and cached across every node of that type. */
+.node-planet {
+  cursor: pointer;
+  /* Without this, "transform: scale()" below computes its origin against the
+     whole SVG canvas instead of this element's own box, so the image jumps
+     toward the canvas center on hover instead of growing in place — the
+     jump moves it out from under the cursor, which drops :hover, which
+     shrinks it back, which re-enters :hover, and so on: visible shaking. */
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, .5)) drop-shadow(0 0 6px currentColor);
+  transition: transform .18s ease, filter .2s ease;
+}
+.node-planet:hover,
+.node-planet:focus-visible,
+.node-planet.sel {
+  transform: scale(1.12);
+  filter: brightness(1.15) saturate(1.2) drop-shadow(0 0 11px currentColor);
+}
+.node-planet:focus-visible { outline: 1px solid rgba(255, 255, 255, .8); outline-offset: 2px; }
+.node-planet.sel { outline: 1px solid rgba(255, 255, 255, .9); }
+.node-planet.pulse { animation: planet-pulse .36s ease; }
+@keyframes planet-pulse {
+  40% { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
 .node-label {
   fill: rgba(242, 239, 255, .84);
   stroke: rgba(4, 3, 17, .9);
@@ -1495,8 +1541,11 @@ body.ask-mode { background: transparent; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cosmos, .planet, .nebula, .planet-body::before, .spinner { animation: none !important; }
+  .cosmos, .planet, .nebula, .planet-body::before, .spinner, .node-planet { animation: none !important; }
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
+  /* A running/jumping game is exactly the kind of motion this setting asks to
+     avoid; graph.js also checks this before starting the game loop at all. */
+  .wait-game-wrap { display: none !important; }
 }
 
 @media (max-width: 460px) {
